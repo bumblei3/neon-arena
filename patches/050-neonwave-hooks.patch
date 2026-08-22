@@ -1,21 +1,5 @@
-diff --git a/code/game/g_cmds.c b/code/game/g_cmds.c
-index fd9d170..76e74c6 100644
---- a/code/game/g_cmds.c
-+++ b/code/game/g_cmds.c
-@@ -1631,7 +1631,10 @@ static const char *gameNames[] = {
- 	"Last Man Standing",
- 	"Double Domination",
- 	"Domination",
--	"Possession"
-+	"Possession",
-+#ifdef NEONARENA_MOD
-+	"Neon Wave Survival",
-+#endif
- };
- 
- 
 diff --git a/code/game/g_local.h b/code/game/g_local.h
-index b9931c5..6b3cca1 100644
+index b9931c5..7a75ed6 100644
 --- a/code/game/g_local.h
 +++ b/code/game/g_local.h
 @@ -873,7 +877,13 @@ void SendYourTeamMessageToTeam( team_t team );
@@ -29,34 +13,7 @@ index b9931c5..6b3cca1 100644
 +void NeonWave_Reset( void );
 +void NeonWave_StartWave( int num );
 +int  NeonWave_GetWave( void );
-+void NeonWave_Frame( void ); 
++void NeonWave_Frame( void );
  void CheckTeamVote( int team );
  
  //
-diff --git a/code/game/g_main.c b/code/game/g_main.c
-index e9e9cf1..6f09c77 100644
---- a/code/game/g_main.c
-+++ b/code/game/g_main.c
-@@ -605,6 +605,10 @@ void G_RegisterCvars( void )
- 		g_ffa_gt = 0;	//If >GT_CTF use bases
- 	}
- 
-+#ifdef NEONARENA_MOD
-+	NeonWave_Reset();
-+#endif
-+
- 	level.warmupModificationCount = g_warmup.modificationCount;
- }
- 
-@@ -2742,6 +2746,11 @@ void G_RunFrame( int levelTime )
- 		Possession_SpawnFlag();
- 	}
- 
-+	// NeonArena wave-survival logic
-+	if ( g_gametype.integer == GT_NEONWAVE ) {
-+		NeonWave_Frame();
-+	}
-+
- 	// see if it is time to end the level
- 	CheckExitRules();
- 

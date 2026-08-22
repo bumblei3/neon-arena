@@ -30,8 +30,7 @@ jobs:
           cd oa-gamecode
           for p in ../patches/*.patch; do
             echo "Applying $p"
-            git apply --check "$p"
-            git apply "$p"
+            git apply --recount --whitespace=fix "$p"
           done
           cp ../patches/g_neonwave.c code/game/g_neonwave.c
           cp ../Makefile.local .
