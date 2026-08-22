@@ -1,0 +1,18 @@
+diff --git a/code/game/g_client.c b/code/game/g_client.c
+index e14bf27..7b8ffc0 100644
+--- a/code/game/g_client.c
++++ b/code/game/g_client.c
+@@ -1191,6 +1191,13 @@ void ClientUserinfoChanged( int clientNum ) {
+ 		if ( client->pers.maxHealth < 1 || client->pers.maxHealth > 100 ) {
+ 			client->pers.maxHealth = 100;
+ 		}
++#ifdef NEONARENA_MOD
++		// NeonWave boss drones: 4x health
++		if ( atoi( Info_ValueForKey( userinfo, "neonwave_boss" ) ) == 1 ) {
++			client->pers.maxHealth = 400;
++			client->pers.neonwaveBoss = qtrue;
++		}
++#endif
+ 	}
+ 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
+ 

@@ -1,0 +1,14 @@
+diff --git a/code/game/g_local.h b/code/game/g_local.h
+index b9931c5..88f4d87 100644
+--- a/code/game/g_local.h
++++ b/code/game/g_local.h
+@@ -310,6 +314,9 @@ typedef struct {
+ 	int         nameChanges;
+ 
+ 	qboolean    cannotWin; // Set to true if the players joins a leading team or the team with the most players
++#ifdef NEONARENA_MOD
++	qboolean    neonwaveBoss; // NeonWave boss drone
++#endif
+ } clientPersistant_t;
+ 
+ //unlagged - backward reconciliation #1

@@ -5,6 +5,7 @@
 #define NW_FIRST_WAVE_DELAY	5000	// ms after map start
 #define NW_WAVE_BREAK		4000	// ms between waves
 #define NW_MAX_WAVE			20
+#define NW_BOSS_WAVE		10	// from here on, each wave gets one boss drone
 
 // CS_NEONWAVE payload: "<wave> <event>"
 // event: 0 = wave running, 1 = wave just cleared
@@ -33,6 +34,19 @@ static void NW_SpawnBot( int skill ) {
 
 /*
 ================
+NW_SpawnBoss
+
+Queue one boss drone (4x health via userinfo flag).
+================
+*/
+static void NW_SpawnBoss( void ) {
+	trap_Cvar_Set( "g_neonwave_nextboss", "1" );
+	trap_SendConsoleCommand( EXEC_APPEND,
+		va("addbot sarge 5 \"BOSS W%d\"\n", nw_wave) );
+}
+
+/*
+================
 NeonWave_DropReward
 
 Spawn health/armor/ammo rewards at each living human's feet.
@@ -42,7 +56,7 @@ Called after a wave is cleared, before the next one starts.
 void NeonWave_DropReward( int clearedWave ) {
 	gentity_t *ent;
 	vec3_t origin, velocity = {0, 0, 20};
-	gitem_t *mega, *armor, *ammo;
+	gitem_t *mega, *armor, *ammo, *ra;
 	int i;
 
 	mega  = BG_FindItem( "Mega Health" );
@@ -50,6 +64,8 @@ void NeonWave_DropReward( int clearedWave ) {
 	ammo  = BG_FindItemForWeapon( WP_LIGHTNING );
 	if (!mega)  mega  = BG_FindItem( "5 Health" );
 	if (!armor) armor = BG_FindItem( "Armor Shard" );
+	// rail slugs: keep the railgun fed (ammo economy)
+	ra = BG_FindItemForWeapon( WP_RAILGUN );
 
 	for ( i = 0; i < level.maxclients; i++ ) {
 		ent = &g_entities[i];
@@ -62,6 +78,7 @@ void NeonWave_DropReward( int clearedWave ) {
 		if ( mega )  LaunchItem( mega,  origin, velocity );
 		if ( armor ) LaunchItem( armor, origin, velocity );
 		if ( ammo )  LaunchItem( ammo,  origin, velocity );
+		if ( ra )    LaunchItem( ra,    origin, velocity );
 	}
 }
 
@@ -90,7 +107,11 @@ void NeonWave_StartWave( int num ) {
 	nw_wave = num;
 	nw_botCounter = 0;
 	trap_SetConfigstring( CS_NEONWAVE, va( "%i %i", num, NW_EV_RUNNING ) );
-	G_Printf( "NeonWave: starting wave %i (%i bots, skill %i)\n", num, num + 1, skill );
+	G_Printf( "NeonWave: starting wave %i (%i bots, skill %i)%s\n", num, num + 1, skill,
+		num >= NW_BOSS_WAVE ? " + BOSS" : "" );
+	if ( num >= NW_BOSS_WAVE ) {
+		NW_SpawnBoss();
+	}
 	for ( i = 0; i <= num && i < MAX_CLIENTS; i++ ) {
 		NW_SpawnBot( skill );
 	}
