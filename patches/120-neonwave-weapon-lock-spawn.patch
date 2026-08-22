@@ -1,0 +1,27 @@
+diff --git a/code/game/g_client.c b/code/game/g_client.c
+index e14bf27..bb92b97 100644
+--- a/code/game/g_client.c
++++ b/code/game/g_client.c
+@@ -1811,6 +1811,14 @@ void ClientSpawn(gentity_t *ent) {
+ 
+ 	if(g_gametype.integer != GT_ELIMINATION && g_gametype.integer != GT_CTF_ELIMINATION && g_gametype.integer != GT_LMS && !g_elimination_allgametypes.integer)
+ 	{
++#ifdef NEONARENA_MOD
++		// NeonWave: railgun + lightning only (neon identity)
++		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN ) | ( 1 << WP_LIGHTNING ) | ( 1 << WP_GAUNTLET );
++		client->ps.ammo[WP_RAILGUN] = 20;
++		client->ps.ammo[WP_LIGHTNING] = 150;
++		client->ps.ammo[WP_GAUNTLET] = -1;
++		client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
++#else
+ 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
+ 		if ( g_gametype.integer == GT_TEAM ) {
+ 			client->ps.ammo[WP_MACHINEGUN] = 50;
+@@ -1821,6 +1829,7 @@ void ClientSpawn(gentity_t *ent) {
+ 		client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
+ 		client->ps.ammo[WP_GAUNTLET] = -1;
+ 		client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
++#endif
+ 
+ 		// health will count down towards max_health
+ 		ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] + 25;
