@@ -1,6 +1,5 @@
 // NeonArena wave-survival gametype logic (GT_NEONWAVE)
-// Spawns escalating bot waves, ends game when all humans die.
-// Applied via patches/040+050; this file is copied to code/game/ by CI.
+// Spawns escalating bot waves, tracks score, ends game when player dies.
 #include "g_local.h"
 
 #define NW_FIRST_WAVE_DELAY	5000	// ms after map start
@@ -19,18 +18,54 @@ void NeonWave_Reset( void ) {
 	nw_started = qfalse;
 }
 
-static void NW_SpawnBot( void ) {
-	// queue a bot via the server console command (skill 3)
-	trap_SendConsoleCommand( EXEC_APPEND, "addbot sarge 3\n" );
+static void NW_SpawnBot( int skill ) {
+	// queue a bot via the server console command
+	trap_SendConsoleCommand( EXEC_APPEND, va("addbot sarge %i\n", skill) );
+}
+
+/*
+================
+NeonWave_DropReward
+
+Spawn health/armor/ammo rewards at each living human's feet.
+Called after a wave is cleared, before the next one starts.
+================
+*/
+void NeonWave_DropReward( int clearedWave ) {
+	gentity_t *ent;
+	vec3_t origin, velocity = {0, 0, 20};
+	gitem_t *mega, *armor, *ammo;
+	int i;
+
+	mega  = BG_FindItem( "Mega Health" );
+	armor = BG_FindItem( "Heavy Armor" );
+	ammo  = BG_FindItemForWeapon( WP_LIGHTNING );
+	if (!mega)  mega  = BG_FindItem( "5 Health" );
+	if (!armor) armor = BG_FindItem( "Armor Shard" );
+
+	for ( i = 0; i < level.maxclients; i++ ) {
+		ent = &g_entities[i];
+		if ( !ent->inuse || !ent->client ) continue;
+		if ( ent->r.svFlags & SVF_BOT ) continue;
+		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
+
+		VectorCopy( ent->r.currentOrigin, origin );
+		origin[2] += 24;
+		if ( mega )  LaunchItem( mega,  origin, velocity );
+		if ( armor ) LaunchItem( armor, origin, velocity );
+		if ( ammo )  LaunchItem( ammo,  origin, velocity );
+	}
 }
 
 void NeonWave_StartWave( int num ) {
 	int i;
+	int skill = 1 + num / 3;
+	if ( skill > 5 ) skill = 5;
 	nw_wave = num;
 	trap_SetConfigstring( CS_NEONWAVE, va( "%i %i", num, 0 ) );
-	G_Printf( "NeonWave: starting wave %i (%i bots)\n", num, num + 1 );
+	G_Printf( "NeonWave: starting wave %i (%i bots, skill %i)\n", num, num + 1, skill );
 	for ( i = 0; i <= num && i < MAX_CLIENTS; i++ ) {
-		NW_SpawnBot();
+		NW_SpawnBot( skill );
 	}
 	nw_aliveBots += num + 1;
 }
@@ -83,6 +118,7 @@ void NeonWave_Frame( void ) {
 			NeonWave_Reset();
 			return;
 		}
+		NeonWave_DropReward( nw_wave );
 		NeonWave_StartWave( nw_wave + 1 );
 		nw_nextSpawnTime = level.time + NW_WAVE_BREAK;
 	}
