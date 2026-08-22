@@ -33,6 +33,7 @@ jobs:
             git apply --check "$p"
             git apply "$p"
           done
+          cp ../patches/g_neonwave.c code/game/g_neonwave.c
           cp ../Makefile.local .
 
       - name: Build mod

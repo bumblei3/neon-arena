@@ -42,6 +42,12 @@ Railgun-Trails immer in Neon-Cyan.
 | `010-gamename.patch` | gamename → "NeonArena-0.1" (`#ifdef NEONARENA_MOD`) |
 | `020-cyan-railtrail.patch` | Railtrail fix Cyan statt Spielerfarbe |
 | `030-lcc-gnu89.patch` | lcc-Tools mit `-std=gnu89` bauen (GCC ≥ 14: `constexpr`-Clash) |
+| `040-neonwave-gametype.patch` | GT_NEONWAVE (Gametype 14) + CS_NEONWAVE Configstring |
+| `050-neonwave-hooks.patch` | Wellen-Hooks in g_main.c/g_local.h/g_cmds.c + Makefile-Objekte |
+
+Zusätzlich wird `patches/g_neonwave.c` nach `code/game/` kopiert – die
+Wave-Survival-Logik (Gegnerwellen via Bots, Game Over wenn alle Menschen tot,
+20 Wellen max). Spielen mit `g_gametype 14`.
 
 ## Look-Pack (assets/)
 
