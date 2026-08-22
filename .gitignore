@@ -2,3 +2,4 @@ oa-gamecode/
 build/
 *.o
 neon-arena
+!Makefile.local

@@ -1,0 +1,3 @@
+# NeonArena mod local overrides (loaded via -include from Makefile)
+BASEGAME = neonarena
+BASEGAME_CFLAGS = -DNEONARENA_MOD
