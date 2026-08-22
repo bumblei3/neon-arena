@@ -3,11 +3,6 @@ name: build-mod
 on:
   push:
     branches: [main]
-    paths:
-      - 'patches/**'
-      - 'Makefile.local'
-      - 'build-mod.sh'
-      - '.github/workflows/build-mod.yml'
   pull_request:
   workflow_dispatch:
 
@@ -20,7 +15,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential bison flex
+          sudo apt-get install -y build-essential bison flex zip
 
       - name: Clone OpenArena gamecode
         run: git clone --depth 1 https://github.com/OpenArena/gamecode.git oa-gamecode
@@ -43,13 +38,61 @@ jobs:
           set -e
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
           ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
-          # gamename must be patched in
           grep -r "NeonArena-0.1" oa-gamecode/code/game/g_local.h
 
-      - name: Upload mod artifacts
+      # ---- Smoke test: run the real engine headless with our mod ----
+      - name: Install OpenArena (smoke test)
+        run: |
+          sudo apt-get install -y openarena xvfb x11-utils
+          echo "OA installed"
+
+      - name: Run smoke test (gametype 14 loads)
+        run: |
+          set -e
+          OUT=oa-gamecode/build/release-linux-x86_64/neonarena
+          mkdir -p ~/.openarena/neonarena/vm
+          cp "$OUT/vm/"*.qvm ~/.openarena/neonarena/vm/
+          cp ../assets/scripts/* /tmp/ 2>/dev/null || true
+          cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg && cd ..
+          xvfb-run -a timeout 40 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 +map oa_shine > smoke.log 2>&1 || true
+          echo "--- smoke log tail ---"
+          tail -30 smoke.log || true
+          grep -q "gamename\\\\NeonArena-0.1" smoke.log
+          grep -q "g_gametype\\\\14" smoke.log
+          echo "SMOKE TEST PASSED: mod loads with gametype 14"
+
+      # ---- Package the PK3 for distribution ----
+      - name: Package neonarena PK3
+        run: |
+          set -e
+          OUT=oa-gamecode/build/release-linux-x86_64/neonarena
+          mkdir -p dist/neonarena/vm
+          cp "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm" dist/neonarena/vm/
+          cp cgamex86_64.so qagamex86_64.so uix86_64.so dist/neonarena/ 2>/dev/null || true
+          if [ -d "oa-gamecode/build/release-linux-x86_64/neonarena" ]; then
+            cp oa-gamecode/build/release-linux-x86_64/neonarena/*.so dist/neonarena/ 2>/dev/null || true
+          fi
+          cd assets && zip -rq ../dist/neonarena-zip-tmp/neon-look.pk3 scripts autoexec.cfg 2>/dev/null || (
+            mkdir -p ../dist/pk3src && cp -r scripts autoexec.cfg ../dist/pk3src/
+          )
+          # pack look files into the same tree
+          cd .. && cp -r assets/scripts dist/neonarena/ && cp assets/autoexec.cfg dist/neonarena/
+          cd dist && zip -rq neonarena.pk3 neonarena && cd ..
+          ls -la dist/neonarena.pk3
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: neonarena-mod
           path: |
+            dist/neonarena.pk3
             oa-gamecode/build/release-linux-x86_64/neonarena/vm/*.qvm
-            oa-gamecode/assets/
+
+      # ---- Release on tag push ----
+      - name: Create release (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/neonarena.pk3
+          generate_release_notes: true
