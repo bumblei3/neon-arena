@@ -1,0 +1,19 @@
+diff --git a/code/game/g_client.c b/code/game/g_client.c
+index e14bf27..e77096a 100644
+--- a/code/game/g_client.c
++++ b/code/game/g_client.c
+@@ -1901,6 +1916,13 @@ void ClientSpawn(gentity_t *ent) {
+ 	G_SetOrigin( ent, spawn_origin );
+ 	VectorCopy( spawn_origin, client->ps.origin );
+ 
++#ifdef NEONARENA_MOD
++	// NeonWave boss: magenta constant glow so it's instantly recognizable
++	if ( g_gametype.integer == GT_NEONWAVE && ent->client->pers.neonwaveBoss ) {
++		ent->s.constantLight = 255 | ( 0 << 8 ) | ( 255 << 16 ) | ( 128 << 24 );
++	}
++#endif
++
+ 	// the respawned flag will be cleared after the attack and jump keys come up
+ 	client->ps.pm_flags |= PMF_RESPAWNED;
+ 	if(g_gametype.integer==GT_ELIMINATION || g_gametype.integer==GT_CTF_ELIMINATION || g_gametype.integer==GT_LMS)	
+
