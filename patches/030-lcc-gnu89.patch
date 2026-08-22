@@ -1,0 +1,13 @@
+diff --git a/Makefile b/Makefile
+index a32ee5c..30b7608 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1318,6 +1318,8 @@ ifndef TOOLS_CC
+   # A compiler which probably produces native binaries
+   TOOLS_CC = gcc
+ endif
++# lcc sources use 'constexpr' as identifier, illegal in newer C standards
++TOOLS_CFLAGS += -std=gnu89
+ 
+ TOOLS_OPTIMIZE = -g -Wall -fno-strict-aliasing
+ TOOLS_CFLAGS += $(TOOLS_OPTIMIZE) \

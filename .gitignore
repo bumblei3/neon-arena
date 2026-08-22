@@ -1,0 +1,4 @@
+oa-gamecode/
+build/
+*.o
+neon-arena
