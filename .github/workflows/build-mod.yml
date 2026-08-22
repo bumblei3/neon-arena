@@ -1,0 +1,55 @@
+name: build-mod
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'patches/**'
+      - 'Makefile.local'
+      - 'build-mod.sh'
+      - '.github/workflows/build-mod.yml'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bison flex
+
+      - name: Clone OpenArena gamecode
+        run: git clone --depth 1 https://github.com/OpenArena/gamecode.git oa-gamecode
+
+      - name: Apply NeonArena patches
+        run: |
+          cd oa-gamecode
+          for p in ../patches/*.patch; do
+            echo "Applying $p"
+            git apply --check "$p"
+            git apply "$p"
+          done
+          cp ../Makefile.local .
+
+      - name: Build mod
+        run: make -C oa-gamecode
+
+      - name: Verify artifacts
+        run: |
+          set -e
+          OUT=oa-gamecode/build/release-linux-x86_64/neonarena
+          ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
+          # gamename must be patched in
+          grep -r "NeonArena-0.1" oa-gamecode/code/game/g_local.h
+
+      - name: Upload mod artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: neonarena-mod
+          path: |
+            oa-gamecode/build/release-linux-x86_64/neonarena/vm/*.qvm
+            oa-gamecode/assets/

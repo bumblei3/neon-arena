@@ -43,6 +43,18 @@ Railgun-Trails immer in Neon-Cyan.
 | `020-cyan-railtrail.patch` | Railtrail fix Cyan statt Spielerfarbe |
 | `030-lcc-gnu89.patch` | lcc-Tools mit `-std=gnu89` bauen (GCC ≥ 14: `constexpr`-Clash) |
 
+## Look-Pack (assets/)
+
+`assets/` wird zu `neon-look.pk3` gepackt (build-mod.sh macht das automatisch):
+Shader-Overrides (Neon-Glow, Sky) + `autoexec.cfg` (längere Railtrails,
+moderner Rail-Stil). Wird beim Start mit `fs_game=neonarena` geladen.
+
+## CI
+
+`.github/workflows/build-mod.yml` klont bei jedem Push den Upstream-Gamecode,
+applied die Patch-Serie und baut den Mod – so bleibt die Serie gegen aktuelles
+Upstream verifiziert. Artefakte (QVMs) werden als Artifact hochgeladen.
+
 ## Status
 
 - Prototyp: lauffähig (verifiziert auf X11)
