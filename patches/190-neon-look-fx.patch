@@ -1,8 +1,10 @@
 diff --git a/code/cgame/cg_local.h b/code/cgame/cg_local.h
 --- a/code/cgame/cg_local.h
 +++ b/code/cgame/cg_local.h
-@@ -863,6 +863,14 @@ typedef struct {
+@@ -863,5 +863,12 @@ typedef struct {
  	qhandle_t	bloodTrailShader;
+ 
+ 
  
 +#ifdef NEONARENA_MOD
 +	qhandle_t	neonDroneShellShader;
@@ -11,7 +13,6 @@ diff --git a/code/cgame/cg_local.h b/code/cgame/cg_local.h
 +	qhandle_t	neonVignetteShader;
 +	qhandle_t	neonBarShader;
 +#endif
-+
  	// LEILEI shaders
 diff --git a/code/cgame/cg_main.c b/code/cgame/cg_main.c
 --- a/code/cgame/cg_main.c
