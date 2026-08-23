@@ -31,6 +31,28 @@ OpenArena 0.8.8 (oder kompatibel) muss installiert sein.
 
 Nach dem ersten Start einmal `vid_restart` in der Konsole (`~`), damit `r_mapoverbrightbits 1` die Map dunkler zieht und Neon besser knallt. Zurück zur hellen Map: `seta r_mapoverbrightbits 2` + `vid_restart`.
 
+## Optional: Quake3e-Engine (Bloom + Vulkan)
+
+NeonArena läuft auch auf [Quake3e](https://github.com/ec-/quake3e) — einer modernen
+Q3-Engine mit OpenGL2- und Vulkan-Renderer inkl. **Bloom**. Damit glühen alle
+Neon-Elemente (Rails, Drohnen-Shells, HUD) richtig.
+
+1. Engine-Binary aus dem CI-Artifact `neonarena-engine`
+   (oder selbst bauen: `git clone https://github.com/ec-/quake3e && make`)
+   nach `~/quake3e-engine/` legen.
+2. Die **OpenArena-Basisdateien** (`baseoa/*.pk3`) nach `~/quake3e-engine/baseq3/`
+   kopieren — der Engine-Patch `patches/engine-quake3e-oa.patch` überspringt die
+   Q3-CDROM-Checksummenprüfung, damit OA-Content akzeptiert wird.
+3. Starten:
+   ```sh
+   ~/quake3e-engine/quake3e.x64 +set cl_renderer vulkan +set r_bloom 1 \
+     +set fs_basepath ~/quake3e-engine +set fs_homepath ~/.openarena \
+     +set fs_game neonarena +g_gametype 14 +map oa_shine
+   ```
+   (`cl_renderer opengl` statt `vulkan` für den GL2-Renderer mit Bloom.)
+
+Der klassische OpenArena-Client bleibt voll unterstützt — Quake3e ist rein optional.
+
 ## Bauen (Entwickler)
 
 Voraussetzungen: `build-essential`, `bison`, `flex`, `zip` (+ installiertes

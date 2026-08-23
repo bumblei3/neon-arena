@@ -1,0 +1,56 @@
+name: engine-quake3e
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'patches/engine-quake3e-oa.patch'
+      - '.github/workflows/engine-quake3e.yml'
+  workflow_dispatch:
+
+jobs:
+  build-engine:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libsdl2-dev zip unzip
+
+      # Quake3e: modern Q3 engine with OpenGL2 + Vulkan renderers (bloom support)
+      - name: Clone Quake3e
+        run: git clone --depth 1 https://github.com/ec-/quake3e.git /tmp/quake3e
+
+      - name: Apply OpenArena compatibility patch (skip id-pak checksum check)
+        run: |
+          cd /tmp/quake3e
+          patch -p1 < "$GITHUB_WORKSPACE/patches/engine-quake3e-oa.patch"
+
+      - name: Build engine
+        run: make -C /tmp/quake3e ARCH=x86_64 -j4
+
+      - name: Package engine binaries
+        run: |
+          mkdir -p dist/neonarena-engine/baseq3
+          cp /tmp/quake3e/build/release-linux-x86_64/quake3e.x64 dist/neonarena-engine/
+          cp /tmp/quake3e/build/release-linux-x86_64/quake3e_opengl_x86_64.so dist/neonarena-engine/
+          cp /tmp/quake3e/build/release-linux-x86_64/quake3e_vulkan_x86_64.so dist/neonarena-engine/
+          # OpenArena base content must be supplied by the player (see README)
+          cd dist && zip -rq neonarena-engine-linux64.zip neonarena-engine && cd ..
+          ls -la neonarena-engine-linux64.zip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: neonarena-engine
+          path: dist/neonarena-engine-linux64.zip
+
+      - name: Release engine (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/neonarena-engine-linux64.zip

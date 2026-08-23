@@ -1,0 +1,20 @@
+diff --git a/code/qcommon/files.c b/code/qcommon/files.c
+index 0576146..8f7bdbd 100644
+--- a/code/qcommon/files.c
++++ b/code/qcommon/files.c
+@@ -4888,10 +4888,11 @@ static void FS_Startup( void ) {
+ 
+ 	fs_gamedirvar->modified = qfalse; // We just loaded, it's not modified
+ 
+-	// check original q3a files
+-	if ( FS_IsBaseGame( BASEGAME ) || FS_IsBaseGame( BASEDEMO ) ) {
+-		FS_CheckIdPaks();
+-	}
++	// NeonArena: skip id-pak checksum validation — we ship OpenArena content,
++	// whose pak0.pk3 legitimately differs from the Q3 CDROM layout.
++	//if ( FS_IsBaseGame( BASEGAME ) || FS_IsBaseGame( BASEDEMO ) ) {
++	//	FS_CheckIdPaks();
++	//}
+ 
+ #ifdef FS_MISSING
+ 	if (missingFiles == NULL) {
