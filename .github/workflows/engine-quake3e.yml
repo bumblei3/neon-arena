@@ -19,7 +19,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libsdl2-dev zip unzip
+          sudo apt-get install -y build-essential libsdl2-dev zip unzip libcurl4-openssl-dev
 
       # Quake3e: modern Q3 engine with OpenGL2 + Vulkan renderers (bloom support)
       - name: Clone Quake3e

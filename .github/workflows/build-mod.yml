@@ -25,7 +25,7 @@ jobs:
       - name: Apply NeonArena patches
         run: |
           cd oa-gamecode
-          for p in ../patches/*.patch; do
+          for p in ../patches/0*.patch ../patches/1*.patch ../patches/2*.patch; do
             echo "Applying $p"
             git apply --recount --whitespace=fix "$p"
           done
