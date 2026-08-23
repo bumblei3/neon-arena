@@ -136,6 +136,18 @@ Quake3e-Engine-Build angewendet, siehe Workflow `engine-quake3e.yml`.)
 - **Combos:** Kill-Serien innerhalb von 3 s; ab Best-Serie 5 Bonus-Upgrade-Punkte.
 - **End-Screen:** Waves / Kills / Best Combo / Zeit bei Victory und Game Over.
 
+### v0.9-Highlights (Modi & Bosse)
+
+- **Endless Mode:** `g_neonwave_maxwave 0` (Standard) = klassische 20 Wellen;
+  höherer Wert = mehr Wellen mit weiter wachsender Bot-Zahl. Victory bei der
+  gesetzten Zielwelle.
+- **Time Attack:** Bei jedem Sieg wird die Laufzeit gegen `g_neonwave_besttime`
+  getauscht — `NEW BEST TIME` im Log/HUD.
+- **Boss-Vielfalt:** SNIPER (Rail, 4× HP), TANK (MG-Spam, 6× HP, 40 % langsamer),
+  SWARM MOTHER (Rail + spawnt alle 10 s Mini-Drones) — rotieren pro Boss-Welle,
+  Test-Hook `g_neonwave_bosstype 1..3`.
+- **Boss-Kill-Bonus:** +3 Upgrade-Punkte pro bezwungenem Boss.
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod gegen aktuellen

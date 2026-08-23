@@ -111,6 +111,27 @@ jobs:
           grep -q "NeonWave over" failrun.log
           echo "FAIL RUN TEST PASSED: FAILED path + run stats logged"
 
+          # ---- Test 5: TANK boss (6x hp) ----
+          xvfb-run -a timeout 40 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
+            +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 \
+            +map oa_shine > bosstank.log 2>&1 || true
+          tail -10 bosstank.log || true
+          grep -q "hc\\\\600" bosstank.log
+          echo "BOSS VARIETY TEST PASSED: TANK boss spawns with 6x health"
+
+          # ---- Test 6: endless mode + time attack ----
+          xvfb-run -a timeout 90 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
+            +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 \
+            +set g_neonwave_startwave 20 +set g_neonwave_maxwave 25 \
+            +map oa_shine > endless.log 2>&1 || true
+          tail -10 endless.log || true
+          grep -q "starting wave 25" endless.log
+          grep -q "All waves cleared" endless.log
+          grep -q "BEST TIME" endless.log
+          echo "ENDLESS MODE TEST PASSED: waves past 20 + victory + best-time tracked"
+
       # ---- Package the PK3 for distribution ----
       - name: Package neonarena PK3
         run: |

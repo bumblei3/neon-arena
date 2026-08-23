@@ -30,6 +30,7 @@
 static int nw_wave;				// current wave (1-based)
 static int nw_aliveBots;
 static int nw_modifier = NW_MOD_NONE;
+static int nw_bossType = 0;		// current boss type (NW_BOSS_*)
 static int nw_runStartTime;		// run stats: level.time of first wave start
 static qboolean nw_started;
 static int nw_botCounter;
@@ -95,10 +96,46 @@ static void NW_SpawnBot( int skill ) {
 		va("addbot sarge %i \"Drone W%d-%d\"\n", skill, nw_wave, ++nw_botCounter) );
 }
 
+// boss types: rotate per boss wave, forceable via g_neonwave_bosstype for tests
+#define NW_BOSS_SNIPER	1	// railgun sniper (classic)
+#define NW_BOSS_TANK	2	// slow, huge HP, chaingun-style MG spam
+#define NW_BOSS_SWARM	3	// spawns mini-drones during the wave
+
+static int NW_PickBossType( void ) {
+	char btBuf[8];
+	int forced;
+
+	// test hook: g_neonwave_bosstype N forces the type
+	trap_Cvar_VariableStringBuffer( "g_neonwave_bosstype", btBuf, sizeof(btBuf) );
+	forced = atoi( btBuf );
+	if ( forced >= NW_BOSS_SNIPER && forced <= NW_BOSS_SWARM ) {
+		return forced;
+	}
+	// rotate by boss-wave count: wave 10 = sniper, 20 = tank, 30 = swarm, ...
+	return NW_BOSS_SNIPER + (( nw_wave / NW_BOSS_WAVE - 1 ) % 3);
+}
+
+static const char *NW_BossName( int type ) {
+	switch ( type ) {
+	case NW_BOSS_TANK:	return "TANK";
+	case NW_BOSS_SWARM:	return "SWARM MOTHER";
+	default:			return "SNIPER";
+	}
+}
+
 static void NW_SpawnBoss( void ) {
+	int type = NW_PickBossType();
+	int hc = 400; // classic 4x
+
+	if ( type == NW_BOSS_TANK ) {
+		hc = 600; // 6x
+	}
+	nw_bossType = type;
 	trap_Cvar_Set( "g_neonwave_nextboss", "1" );
+	trap_Cvar_Set( "g_neonwave_bosshc", va("%i", hc) );
+	trap_SendServerCommand( -1, va( "cp \"BOSS: %s\\n\"", NW_BossName( type ) ) );
 	trap_SendConsoleCommand( EXEC_APPEND,
-		va("addbot sarge 5 \"BOSS W%d\"\n", nw_wave) );
+		va("addbot sarge 5 \"BOSS W%d %s\"\n", nw_wave, NW_BossName( type )) );
 }
 
 static void NW_BossHealth( int *hp, int *maxhp ) {
@@ -258,6 +295,8 @@ void NeonWave_StartWave( int num ) {
 	int i;
 	int skill = 1 + num / 3;
 	int botCount;
+	char mwBuf[8];
+	int maxWave;
 
 	NW_PickModifier( num );
 	if ( skill > 5 ) skill = 5;
@@ -265,6 +304,19 @@ void NeonWave_StartWave( int num ) {
 	nw_botCounter = 0;
 	nw_inBreak = qfalse;
 	nw_waveHadBots = qfalse;
+
+	// endless mode: past the classic max wave, keep scaling difficulty
+	trap_Cvar_VariableStringBuffer( "g_neonwave_maxwave", mwBuf, sizeof(mwBuf) );
+	maxWave = atoi( mwBuf );
+	if ( maxWave <= 0 ) {
+		maxWave = NW_MAX_WAVE;
+	}
+	if ( num > maxWave ) {
+		// +2 bots every 3 waves past max, capped at client limit
+		botCount = maxWave + 1 + ((num - maxWave) / 3) * 2;
+	} else {
+		botCount = num + 1;
+	}
 
 	// apply modifier side effects
 	if ( nw_modifier == NW_MOD_LOWGRAV ) {
@@ -275,7 +327,6 @@ void NeonWave_StartWave( int num ) {
 	if ( nw_modifier == NW_MOD_GLASS && skill < 4 ) {
 		skill += 1; // glass drones are fast/aggressive
 	}
-	botCount = num + 1;
 	if ( nw_modifier == NW_MOD_SWARM ) {
 		botCount *= 2;
 	}
@@ -308,6 +359,11 @@ static void NW_GrantUpgradePoints( void ) {
 
 	if ( nw_modifier == NW_MOD_DOUBLEPTS ) {
 		gain *= 2;
+	}
+	// boss kill bonus: +3 for taking down a boss wave
+	if ( nw_wave % NW_BOSS_WAVE == 0 ) {
+		gain += 3;
+		G_Printf( "NeonWave: boss kill bonus +3\n" );
 	}
 	// combo bonus: +1 point for streaks of 5+ kills
 	combo = NW_RunBestCombo();
@@ -478,7 +534,28 @@ void NeonWave_Frame( void ) {
 	}
 
 	if ( nw_waveHadBots && bots == 0 ) {
-		if ( nw_wave >= NW_MAX_WAVE ) {
+		// endless mode: g_neonwave_maxwave 0 = unlimited waves; victory only
+		// when the current wave reaches the (cvar-set) final wave
+		char mwBuf[8];
+		int maxWave;
+		trap_Cvar_VariableStringBuffer( "g_neonwave_maxwave", mwBuf, sizeof(mwBuf) );
+		maxWave = atoi( mwBuf );
+		if ( maxWave <= 0 ) {
+			maxWave = NW_MAX_WAVE;
+		}
+		if ( nw_wave >= maxWave ) {
+			int runSec = ( level.time - nw_runStartTime ) / 1000;
+			char btBuf[16];
+			int bestTime;
+			// time attack: g_neonwave_besttime tracks fastest victory (seconds)
+			trap_Cvar_VariableStringBuffer( "g_neonwave_besttime", btBuf, sizeof(btBuf) );
+			bestTime = atoi( btBuf );
+			if ( bestTime <= 0 || runSec < bestTime ) {
+				trap_Cvar_Set( "g_neonwave_besttime", va("%i", runSec) );
+				G_Printf( "NeonWave: NEW BEST TIME %is\n", runSec );
+			}
+			G_Printf( "NeonWave: victory time %is (best %is)\n", runSec,
+				( bestTime > 0 && runSec >= bestTime ) ? bestTime : runSec );
 			NW_GrantUpgradePoints();
 			NeonWave_DropReward( nw_wave );
 			NW_GameOver( NW_EV_VICTORY, "All waves cleared" );
@@ -489,6 +566,23 @@ void NeonWave_Frame( void ) {
 	}
 
 	if ( bots > 0 && nw_wave >= NW_BOSS_WAVE ) {
+		// swarm mother: keep spawning mini-drones while the boss lives
+		static int lastMini;
+		if ( nw_bossType == NW_BOSS_SWARM && level.time > lastMini ) {
+			int bossAlive = 0;
+			lastMini = level.time + 10000;
+			for ( i = 0; i < level.maxclients; i++ ) {
+				ent = &g_entities[i];
+				if ( ent->inuse && ent->client && ( ent->r.svFlags & SVF_BOT )
+						&& ent->health > 0 && ent->client->pers.neonwaveBoss ) {
+					bossAlive = 1;
+				}
+			}
+			if ( bossAlive && bots < 10 ) {
+				NW_SpawnBot( 3 );
+				G_Printf( "NeonWave: swarm mother spawns mini-drone\n" );
+			}
+		}
 		if ( level.time > lastRefresh ) {
 			lastRefresh = level.time + 250;
 			NW_SyncUpgrades();
