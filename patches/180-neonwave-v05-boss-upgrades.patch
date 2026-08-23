@@ -216,7 +216,7 @@ index 6302035..13c93ab 100644
  		damage = 1;
  	}
 diff --git a/code/game/g_local.h b/code/game/g_local.h
-index 0675e55..0345895 100644
+index 0675e55..cc2c2d0 100644
 --- a/code/game/g_local.h
 +++ b/code/game/g_local.h
 @@ -316,6 +316,9 @@ typedef struct {
@@ -229,15 +229,6 @@ index 0675e55..0345895 100644
  #endif
  } clientPersistant_t;
  
-@@ -887,7 +890,7 @@ void NeonWave_Reset( void );
- void NeonWave_StartWave( int num );
- int  NeonWave_GetWave( void );
- void NeonWave_Frame( void );
--void NeonWave_DropReward( int clearedWave );
-+void NeonWave_DropReward( int clearedWave ); 
- void CheckTeamVote( int team );
- 
- //
 @@ -1043,10 +1046,13 @@ extern	gentity_t		g_entities[MAX_GENTITIES];
  
  #define	FOFS(x) ((size_t)&(((gentity_t *)0)->x))
@@ -253,3 +244,22 @@ index 0675e55..0345895 100644
  extern vmCvar_t g_maxclients;			// allow this many total, including spectators
  extern vmCvar_t g_maxGameClients;		// allow this many active
  extern vmCvar_t g_restarted;
+diff --git a/code/game/g_main.c b/code/game/g_main.c
+index b4bd247..7edc400 100644
+--- a/code/game/g_main.c
++++ b/code/game/g_main.c
+@@ -2753,12 +2753,14 @@ void G_RunFrame( int levelTime )
+ 	}
+ 
+ 	// NeonArena wave-survival logic
++#ifdef NEONARENA_MOD
+ 	if ( g_gametype.integer == GT_NEONWAVE ) {
+ 		// hold waves until warmup is over (-1 = waiting, 0 = done)
+ 		if ( level.warmupTime == 0 ) {
+ 			NeonWave_Frame();
+ 		}
+ 	}
++#endif
+ 
+ 	// see if it is time to end the level
+ 	CheckExitRules();

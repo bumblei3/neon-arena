@@ -2,6 +2,8 @@
 // Spawns escalating bot waves, tracks score + best-wave highscore.
 #include "g_local.h"
 
+#ifdef NEONARENA_MOD
+
 #define NW_FIRST_WAVE_DELAY	5000	// ms after map start
 #define NW_WAVE_BREAK		4000	// ms between waves
 #define NW_MAX_WAVE			20
@@ -229,3 +231,5 @@ void NeonWave_Frame( void ) {
 		}
 	}
 }
+
+#endif // NEONARENA_MOD
