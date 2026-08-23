@@ -93,17 +93,19 @@ jobs:
           echo "FULL RUN TEST PASSED: 20 waves, victory, highscore, upgrade economy, modifiers"
 
           # ---- Test 3: forced modifier (low grav) + gravity restore ----
-          printf 'set g_neonwave_autostart 1\\nset g_neonwave_startwave 6\\nset g_neonwave_modifier 3\\n' > "$HOME/.openarena/neonarena/nwmod.cfg"
           xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +exec nwmod.cfg +map oa_shine > modtest.log 2>&1 || true
+            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
+            +set g_neonwave_startwave 6 +set g_neonwave_modifier 3 \
+            +map oa_shine > modtest.log 2>&1 || true
           tail -10 modtest.log || true
-          grep -q "starting wave 6.*\\[LOW GRAVITY\\]" modtest.log
+          grep -q "starting wave 6.*\[LOW GRAVITY\]" modtest.log
           echo "MODIFIER TEST PASSED: g_neonwave_modifier forces LOW GRAVITY"
 
           # ---- Test 4: failed run path (RUN STATS + game over) ----
-          printf 'set g_neonwave_autostart 1\\nset g_neonwave_failrun 1\\n' > "$HOME/.openarena/neonarena/nwfail.cfg"
           xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +exec nwfail.cfg +map oa_shine > failrun.log 2>&1 || true
+            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
+            +set g_neonwave_failrun 1 \
+            +map oa_shine > failrun.log 2>&1 || true
           tail -10 failrun.log || true
           grep -q "RUN STATS" failrun.log
           grep -q "NeonWave over" failrun.log
