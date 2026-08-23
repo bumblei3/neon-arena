@@ -78,14 +78,15 @@ jobs:
           if [ -d "oa-gamecode/build/release-linux-x86_64/neonarena" ]; then
             cp oa-gamecode/build/release-linux-x86_64/neonarena/*.so dist/neonarena/ 2>/dev/null || true
           fi
-          cd assets && zip -rq ../dist/neonarena-zip-tmp/neon-look.pk3 scripts autoexec.cfg 2>/dev/null || (
+          cd assets && mkdir -p ../dist/neonarena-zip-tmp && zip -rq ../dist/neonarena-zip-tmp/neon-look.pk3 scripts autoexec.cfg 2>/dev/null || (
             mkdir -p ../dist/pk3src && cp -r scripts autoexec.cfg ../dist/pk3src/
           )
           # pack look files into the same tree
           cd .. && cp -r assets/scripts dist/neonarena/ && cp assets/autoexec.cfg dist/neonarena/
           cd dist && zip -rq neonarena.pk3 neonarena && cd ..
           # standalone QVM pk3 for players who just drop a pk3 into ~/.openarena/neonarena/
-          (cd oa-gamecode/build/release-linux-x86_64/neonarena && zip -q ../../../../../dist/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm)
+          (cd oa-gamecode/build/release-linux-x86_64/neonarena && \
+           zip -q "$GITHUB_WORKSPACE/dist/neonarena-qvm.pk3" vm/cgame.qvm vm/qagame.qvm vm/ui.qvm)
           ls -la dist/neonarena.pk3 dist/neonarena-qvm.pk3
 
       - name: Upload artifacts
