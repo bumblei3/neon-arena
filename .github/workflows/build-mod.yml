@@ -132,6 +132,20 @@ jobs:
           grep -q "BEST TIME" endless.log
           echo "ENDLESS MODE TEST PASSED: waves past 20 + victory + best-time tracked"
 
+          # ---- Test 7: record persistence across restarts ----
+          # run A: fast full run writes neonwave_records.dat
+          xvfb-run -a timeout 90 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
+            +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 \
+            +map oa_shine > persist-a.log 2>&1 || true
+          grep -q "RECORDS SAVED" persist-a.log
+          test -f ~/.openarena/neonarena/neonwave_records.dat || { echo "records file missing"; exit 1; }
+          # run B: fresh server must load the persisted records
+          xvfb-run -a timeout 40 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 +map oa_shine > persist-b.log 2>&1 || true
+          grep -qE "records loaded wave=[1-9]" persist-b.log
+          echo "RECORD PERSISTENCE TEST PASSED: records survive server restart"
+
       # ---- Package the PK3 for distribution ----
       - name: Package neonarena PK3
         run: |

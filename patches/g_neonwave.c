@@ -47,6 +47,11 @@ static int nw_breakEnd;
 static qboolean nw_waveHadBots;	// true once at least one bot connected this wave
 static qboolean nw_over;
 static int nw_event;
+static qboolean nw_overVictory;		// last run ended in victory (record time only counts then)
+
+// forward declarations (records block is defined further down)
+static void NW_LoadRecords( void );
+static void NW_MirrorRecordCvars( void );
 
 void NeonWave_Reset( void ) {
 	nw_wave = 0;
@@ -58,6 +63,8 @@ void NeonWave_Reset( void ) {
 	nw_inBreak = qfalse;
 	nw_breakEnd = 0;
 	nw_waveHadBots = qfalse;
+	nw_overVictory = qfalse;
+	NW_LoadRecords();
 	nw_over = qfalse;
 	nw_event = 0;
 	trap_Cvar_Set( "g_neonwave_upgradepoints", "0" );
@@ -212,6 +219,99 @@ static int NW_RunBestCombo( void ) {
 	return best;
 }
 
+// live combo streak (highest current nwCombo among humans) for the HUD popup
+static int NW_RunCurrentCombo( void ) {
+	int i, cur = 0;
+	gentity_t *ent;
+	for ( i = 0; i < level.maxclients; i++ ) {
+		ent = &g_entities[i];
+		if ( !ent->inuse || !ent->client ) continue;
+		if ( ent->r.svFlags & SVF_BOT ) continue;
+		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
+		if ( ent->client->nwCombo > cur ) cur = ent->client->nwCombo;
+	}
+	return cur;
+}
+
+// ---- persistent records (survive map change / restart) ----
+#define NW_RECORDS_FILE		"neonwave_records.dat"
+
+typedef struct {
+	int	bestWave;
+	int	bestTime;	// fastest victory, seconds (0 = none)
+	int	bestKills;
+	int	bestCombo;
+} nwRecords_t;
+
+static nwRecords_t nw_records;
+
+static void NW_LoadRecords( void ) {
+	fileHandle_t f;
+	memset( &nw_records, 0, sizeof( nw_records ) );
+	if ( trap_FS_FOpenFile( NW_RECORDS_FILE, &f, FS_READ ) >= 0 && f ) {
+		trap_FS_Read( &nw_records, sizeof( nw_records ), f );
+		trap_FS_FCloseFile( f );
+	}
+	G_Printf( "NeonWave: records loaded wave=%i time=%is kills=%i combo=%i\n",
+		nw_records.bestWave, nw_records.bestTime,
+		nw_records.bestKills, nw_records.bestCombo );
+	NW_MirrorRecordCvars();
+}
+
+static void NW_SaveRecords( void ) {
+	fileHandle_t f;
+	int len = trap_FS_FOpenFile( NW_RECORDS_FILE, &f, FS_WRITE );
+	if ( len < 0 || !f ) {
+		G_Printf( "NeonWave: WARNING cannot write " NW_RECORDS_FILE "\n" );
+		return;
+	}
+	trap_FS_Write( &nw_records, sizeof( nw_records ), f );
+	trap_FS_FCloseFile( f );
+	G_Printf( "NeonWave: RECORDS SAVED wave=%i time=%is kills=%i combo=%i\n",
+		nw_records.bestWave, nw_records.bestTime,
+		nw_records.bestKills, nw_records.bestCombo );
+}
+
+static void NW_UpdateRecords( void ) {
+	int kills = NW_RunKills();
+	int combo = NW_RunBestCombo();
+	int runSec = ( level.time - nw_runStartTime ) / 1000;
+	qboolean changed = qfalse;
+
+	if ( nw_wave > nw_records.bestWave ) {
+		nw_records.bestWave = nw_wave;
+		changed = qtrue;
+		G_Printf( "NeonWave: NEW RECORD WAVE %i\n", nw_wave );
+	}
+	if ( nw_overVictory && ( nw_records.bestTime <= 0 || runSec < nw_records.bestTime ) ) {
+		nw_records.bestTime = runSec;
+		changed = qtrue;
+		G_Printf( "NeonWave: NEW RECORD TIME %is\n", runSec );
+	}
+	if ( kills > nw_records.bestKills ) {
+		nw_records.bestKills = kills;
+		changed = qtrue;
+		G_Printf( "NeonWave: NEW RECORD KILLS %i\n", kills );
+	}
+	if ( combo > nw_records.bestCombo ) {
+		nw_records.bestCombo = combo;
+		changed = qtrue;
+		G_Printf( "NeonWave: NEW RECORD COMBO %ix\n", combo );
+	}
+	if ( changed ) {
+		NW_SaveRecords();
+	}
+	NW_MirrorRecordCvars();
+}
+
+// mirror current record values to cvars (called on load and on record update)
+static void NW_MirrorRecordCvars( void ) {
+	trap_Cvar_Set( "g_neonwave_recwave", va("%i", nw_records.bestWave) );
+	trap_Cvar_Set( "g_neonwave_rectime", va("%i", nw_records.bestTime) );
+	trap_Cvar_Set( "g_neonwave_reckills", va("%i", nw_records.bestKills) );
+	trap_Cvar_Set( "g_neonwave_reccombo", va("%i", nw_records.bestCombo) );
+}
+
 static void NW_SendStatus( int event ) {
 	int bossHp, bossMax, breakMs;
 
@@ -221,10 +321,11 @@ static void NW_SendStatus( int event ) {
 	if ( nw_inBreak && nw_breakEnd > level.time ) {
 		breakMs = nw_breakEnd - level.time;
 	}
-	// append run stats: "<wave> <ev> <bhp> <bmax> <brk> <pts> <best> <mod> <kills> <bestcombo> <runsec>"
-	trap_SetConfigstring( CS_NEONWAVE, va( "%i %i %i %i %i %i %i %i %i %i %i",
+	// append run stats: "<wave> <ev> <bhp> <bmax> <brk> <pts> <best> <mod> <kills> <bestcombo> <runsec> <livecombo>"
+	trap_SetConfigstring( CS_NEONWAVE, va( "%i %i %i %i %i %i %i %i %i %i %i %i",
 		nw_wave, event, bossHp, bossMax, breakMs, NW_Points(), NW_Best(), nw_modifier,
-		NW_RunKills(), NW_RunBestCombo(), ( level.time - nw_runStartTime ) / 1000 ) );
+		NW_RunKills(), NW_RunBestCombo(), ( level.time - nw_runStartTime ) / 1000,
+		NW_RunCurrentCombo() ) );
 }
 
 void NeonWave_RefreshStatus( void ) {
@@ -425,9 +526,11 @@ static void NW_GameOver( int event, const char *why ) {
 	}
 	nw_over = qtrue;
 	nw_inBreak = qfalse;
+	nw_overVictory = ( event == NW_EV_VICTORY ) ? qtrue : qfalse;
 	// restore gravity in case we ended during a low-grav wave
 	trap_Cvar_Set( "g_gravity", "800" );
 	NeonWave_UpdateHighscore();
+	NW_UpdateRecords();
 	NW_SendStatus( event );
 	G_Printf( "NeonWave: RUN STATS kills=%i bestCombo=%i time=%is\n",
 		NW_RunKills(), NW_RunBestCombo(), ( level.time - nw_runStartTime ) / 1000 );

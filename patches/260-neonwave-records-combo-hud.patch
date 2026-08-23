@@ -1,0 +1,72 @@
+diff --git a/code/cgame/cg_draw.c b/code/cgame/cg_draw.c
+index e964199..b321d7c 100644
+--- a/code/cgame/cg_draw.c
++++ b/code/cgame/cg_draw.c
+@@ -1299,6 +1299,34 @@ static float CG_DrawNeonWave(float y) {
+ 	CG_DrawBigStringColor(320 - w/2, y, s, color);
+ 	y += BIGCHAR_HEIGHT + 8;
+ 
++	// live combo popup: field 12 of the payload; shows while a streak of 2+
++	// is hot (3s window maintained by g_combat.c)
++	{
++		const char *csC = CG_ConfigString(CS_NEONWAVE);
++		int liveCombo = 0;
++		static int shownCombo = 0;
++		if (csC && csC[0] && sscanf(csC,
++				"%*i %*i %*i %*i %*i %*i %*i %*i %*i %*i %*i %i", &liveCombo) == 1
++			&& liveCombo >= 2 && ev == 0) {
++			float pulse = 0.7f + 0.3f * (float)sin(cg.time / 90.0);
++			vec4_t comboColor = {1.0f, 0.55f, 0.1f, 1.0f};
++			comboColor[3] = pulse;
++			Com_sprintf(s, sizeof(s), "COMBO x%i!", liveCombo);
++			w = CG_DrawStrlen(s) * BIGCHAR_WIDTH * 2;
++			CG_DrawBigStringColor(320 - w/2, y + 4, s, comboColor);
++			shownCombo = liveCombo;
++		} else if (shownCombo >= 5 && ev == 1) {
++			// streak survived the wave: brief golden flash on clear
++			vec4_t gold = {1.0f, 0.85f, 0.2f, 1.0f};
++			Com_sprintf(s, sizeof(s), "COMBO x%i SAVED", shownCombo);
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, y + 4, s, gold);
++		} else {
++			shownCombo = 0;
++		}
++		y += BIGCHAR_HEIGHT + 10;
++	}
++
+ 	// best-wave line
+ 	{
+ 		char bestBuf[16];
+@@ -1403,7 +1431,31 @@ static float CG_DrawNeonWave(float y) {
+ 
+ 			Com_sprintf(s, sizeof(s), "TIME: %i:%02i", runsec / 60, runsec % 60);
+ 			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
+-			CG_DrawSmallStringColor(320 - w/2, py, s, statw);
++			CG_DrawSmallStringColor(320 - w/2, py, s, statw); py += SMALLCHAR_HEIGHT + 6;
++
++			// all-time records (mirrored to cvars by NW_UpdateRecords)
++			{
++				char rw[8], rt[16], rk[8], rc[8];
++				int riw, rit, rik, ric;
++				trap_Cvar_VariableStringBuffer("g_neonwave_recwave", rw, sizeof(rw));
++				trap_Cvar_VariableStringBuffer("g_neonwave_rectime", rt, sizeof(rt));
++				trap_Cvar_VariableStringBuffer("g_neonwave_reckills", rk, sizeof(rk));
++				trap_Cvar_VariableStringBuffer("g_neonwave_reccombo", rc, sizeof(rc));
++				riw = atoi(rw); rit = atoi(rt); rik = atoi(rk); ric = atoi(rc);
++				if (riw > 0) {
++					vec4_t recGold = {1.0f, 0.85f, 0.2f, 1.0f};
++					if (rit > 0) {
++						Com_sprintf(s, sizeof(s), "RECORDS: WAVE %i  TIME %i:%02i  KILLS %i  COMBO %ix",
++							riw, rit / 60, rit % 60, rik, ric);
++					} else {
++						Com_sprintf(s, sizeof(s), "RECORDS: WAVE %i  KILLS %i  COMBO %ix",
++							riw, rik, ric);
++					}
++					w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++					CG_DrawSmallStringColor(320 - w/2, py, s, recGold);
++					py += SMALLCHAR_HEIGHT + 6;
++				}
++			}
+ 
+ 			y += 8; // keep flow stable
+ 		}
