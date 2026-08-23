@@ -216,6 +216,14 @@ static void NW_GrantUpgradePoints( void ) {
 static void NW_EnterBreak( void ) {
 	nw_inBreak = qtrue;
 	nw_breakEnd = level.time + NW_WAVE_BREAK;
+	// test hook: shorten break window when g_neonwave_fastbreak is set
+	{
+		char fbBuf[8];
+		trap_Cvar_VariableStringBuffer( "g_neonwave_fastbreak", fbBuf, sizeof(fbBuf) );
+		if ( atoi( fbBuf ) == 1 ) {
+			nw_breakEnd = level.time + 500;
+		}
+	}
 	NW_GrantUpgradePoints();
 	NeonWave_DropReward( nw_wave );
 	NW_SendStatus( NW_EV_CLEARED );
@@ -276,6 +284,22 @@ void NeonWave_Frame( void ) {
 	nw_aliveBots = bots;
 	if ( bots > 0 ) {
 		nw_waveHadBots = qtrue;
+		// test hook: g_neonwave_autokill 1 -> kill all drones each frame
+		// so a headless run plays through waves up to victory automatically
+		{
+			char akBuf[8];
+			trap_Cvar_VariableStringBuffer( "g_neonwave_autokill", akBuf, sizeof(akBuf) );
+			if ( atoi( akBuf ) == 1 ) {
+				for ( i = 0; i < level.maxclients; i++ ) {
+					ent = &g_entities[i];
+					if ( !ent->inuse || !ent->client ) continue;
+					if ( !( ent->r.svFlags & SVF_BOT ) ) continue;
+					if ( ent->health <= 0 ) continue;
+					ent->health = 0;
+					ent->client->ps.stats[STAT_HEALTH] = 0;
+				}
+			}
+		}
 	}
 
 	// test hook: g_neonwave_startwave N forces wave N (polled every frame,
