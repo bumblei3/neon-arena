@@ -69,7 +69,7 @@ index 3ebb88a..4482434 100644
 diff --git a/code/cgame/cg_draw.c b/code/cgame/cg_draw.c
 --- a/code/cgame/cg_draw.c
 +++ b/code/cgame/cg_draw.c
-@@ -1239,6 +1239,19 @@
+@@ -1239,6 +1239,21 @@
  #ifdef NEONARENA_MOD
  static void CG_DrawNeonLook(void) {
  	vec4_t dim = {0.00f, 0.02f, 0.05f, 0.20f};
@@ -81,7 +81,9 @@ diff --git a/code/cgame/cg_draw.c b/code/cgame/cg_draw.c
 +		if (cs && cs[0] && sscanf(cs, "%*i %*i %i %i", &bossHp, &bossMax) == 2
 +			&& bossHp > 0 && bossMax > 0) {
 +			float pulse = 0.5f + 0.5f * (float)sin(cg.time / 350.0);
-+			vec4_t mag = {0.35f, 0.0f, 0.30f, 0.10f + 0.12f * pulse * bossHp / bossMax};
++			vec4_t mag;
++			mag[0] = 0.35f; mag[1] = 0.0f; mag[2] = 0.30f;
++			mag[3] = 0.10f + 0.12f * pulse * bossHp / bossMax;
 +			CG_FillRect(0, 0, 640, 480, mag);
 +		}
 +	}
