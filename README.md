@@ -12,6 +12,16 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - **Waffen-Identität:** Spawn mit Railgun + Lightning Gun + Gauntlet. Andere
   Waffen-Pickups werden ignoriert – Rail/LG-Pickups dienen als Ammo-Nachschub.
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
+- **Wellen-Modifier** (ab Welle 5, nicht in Boss-Wellen): **GLASS DRONES**
+  (1 Treffer tot, aber aggressiver), **SWARM** (doppelte Drone-Zahl),
+  **LOW GRAVITY**, **DOUBLE POINTS**. Wird per Centerprint angesagt.
+- **Combo-System:** Kills innerhalb von 3 s ketten sich zu einer Serie.
+  Ab Best-Serie 5 gibt es Bonus-Upgrade-Punkte (+1 pro weitere 5er-Stufe).
+- **Upgrade-System:** Gesammelte Punkte in der Pause ausgeben —
+  F1 = HP (bis 6), F2 = DMG (bis 5, +10 %/Level), F3 = SPD (bis 5).
+  HUD zeigt Punkte + Level live.
+- **Run-Statistik & End-Screen:** Bei Victory/Game Over Overlay mit
+  überlebten Wellen, Kills, bester Combo und Laufzeit.
 - **Benannte Drones:** Killfeed zeigt `Drone W3-1` statt `sarge`.
 - **Belohnungen:** In der Wellen-Pause fallen Mega Health + Heavy Armor +
   Rail/LG-Ammo an deiner Position.
@@ -19,7 +29,18 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
   mit Welle/Best; FIRE startet neu.
 - **Wellen-Jingles:** Sound-Signal bei Wellenstart und -clear.
 - **Neon-Look:** Dunkle Skybox, Neon-Grid auf oa_shine, Cyan-Rail/LG mit D-Lights,
-  Drohnen-Cyan-Shell (Boss magenta), Energy statt Blut, Vignette-HUD.
+  Drohnen-Cyan-Shell (Boss magenta), Rail-Impact-Burst, LG-Sparks, Muzzle-Flare,
+  pulsierende Boss-Gefahr-Vignette, Energy statt Blut, Vignette-HUD.
+
+## Test-Hooks (Headless/CI)
+
+- `g_neonwave_autostart 1` — Wellen starten ohne menschlichen Spieler
+- `g_neonwave_startwave N` — erzwingt Start bei Welle N (fire-once)
+- `g_neonwave_autokill 1` — tötet alle Drones jeden Frame (Auto-Durchlauf)
+- `g_neonwave_fastbreak 1` — 500 ms statt 8 s Wellenpause
+
+Der CI-Workflow spielt damit eine komplette 20-Wellen-Partie headless durch
+und prüft Victory, Highscore und Upgrade-Punkte-Ökonomie.
 
 ## Schnellstart (Spieler)
 
@@ -61,13 +82,18 @@ OpenArena zum Testen).
 ```sh
 git clone https://github.com/OpenArena/gamecode.git oa-gamecode
 cd oa-gamecode
-for p in ../patches/*.patch; do git apply --recount --whitespace=fix "$p"; done
+for p in ../patches/0*.patch ../patches/1*.patch ../patches/2*.patch; do
+  git apply --recount --whitespace=fix "$p"
+done
 cp ../patches/g_neonwave.c code/game/
 cp ../Makefile.local .
 make          # QVMs + native Module
 cd ..
 ./build-mod.sh  # installiert nach ~/.openarena/neonarena/ + packt Look-PK3
 ```
+
+(Hinweis: `engine-quake3e-oa.patch` ist kein Mod-Patch — er wird nur beim
+Quake3e-Engine-Build angewendet, siehe Workflow `engine-quake3e.yml`.)
 
 ### Patch-Serie
 
@@ -89,6 +115,9 @@ cd ..
 | `180-neonwave-v05-boss-upgrades.patch` | v0.5: Boss-Railgun, HUD-Bossbar, Upgrade-System |
 | `190-neon-look-fx.patch` | Look v2: Drohnen-Glow, Rail/LG-Lights, Neon-HUD |
 | `200-neon-wave-feel.patch` | Echte Wellen-Pause, F1/F2/F3-Upgrades, Game-Over, One-Life |
+| `220-neonwave-upgrade-hud.patch` | Upgrade-HUD: Punkte + Level live via PERS_CAPTURES |
+| `230-neon-fx-package.patch` | Rail-Impact-Burst, LG-Sparks, Muzzle-Flare, Boss-Vignette |
+| `240-replay-combo-stats.patch` | Wellen-Modifier, Combo-Streaks, Run-Stats + End-Screen |
 
 `patches/g_neonwave.c` (Wellen-Logik) wird zusätzlich nach `code/game/` kopiert.
 
@@ -100,12 +129,26 @@ cd ..
   (oder `upgrade hp|dmg|speed`). 1 Punkt pro Clear, 2 auf Boss-Wellen.
   +25 MaxHP (max 6), +10% Damage (max 5), +5% Speed (max 5).
 
+### v0.8-Highlights (Replay-Wert)
+
+- **Wellen-Modifier:** ab Welle 5 rotieren GLASS DRONES / SWARM / LOW GRAVITY /
+  DOUBLE POINTS durch die Normalwellen (Boss-Wellen ausgenommen).
+- **Combos:** Kill-Serien innerhalb von 3 s; ab Best-Serie 5 Bonus-Upgrade-Punkte.
+- **End-Screen:** Waves / Kills / Best Combo / Zeit bei Victory und Game Over.
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod gegen aktuellen
-Upstream-Gamecode, führt einen **Headless-Smoke-Test** aus (Server mit
-Gametype 14 starten, Log auf `NeonArena-0.1` + `g_gametype 14` prüfen) und
-packt die `neonarena.pk3` als Artifact. Tag-Pushes erzeugen Releases.
+Upstream-Gamecode und führt drei Headless-Tests aus:
+
+1. **Smoke:** Mod lädt mit Gametype 14 (`NeonArena-0.1`, `g_gametype\14`).
+2. **Boss-Wave:** Force-Start Welle 10 → Boss-Spawn mit 4× HP verifiziert.
+3. **Full Run:** Kompletter 20-Wellen-Durchlauf (autokill+fastbreak) →
+   Victory, Highscore `NEW BEST wave 20`, ≥19 Upgrade-Punkte vergeben.
+
+Zusätzlich baut `.github/workflows/engine-quake3e.yml` die Quake3e-Engine
+(OpenGL2+Vulkan, Bloom) als optionales Binary-Artifact.
+Tag-Pushes erzeugen Releases.
 
 ## SDL2-Prototyp (`main.cpp`)
 
