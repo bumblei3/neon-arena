@@ -570,11 +570,19 @@ static gentity_t *NW_FindBoss( void ) {
 static void NW_BossMechanicsFrame( int *lastMini, int bots ) {
 	if ( nw_bossType == NW_BOSS_SWARM ) {
 		// swarm mother: keep spawning mini-drones while the boss lives;
-		// rage mode below 30% hp halves the spawn interval
+		// rage mode below 30% hp halves the spawn interval.
+		// test hook g_neonwave_rageforce 1 forces the rage state so CI can
+		// assert the ENRAGED log + faster spawns deterministically
 		gentity_t *boss = NW_FindBoss();
 		if ( boss ) {
+			char rfBuf[8];
 			int maxhp = boss->client->ps.stats[STAT_MAX_HEALTH];
-			qboolean rage = ( maxhp > 0
+			qboolean rage;
+			trap_Cvar_VariableStringBuffer( "g_neonwave_rageforce", rfBuf, sizeof(rfBuf) );
+			if ( atoi( rfBuf ) == 1 ) {
+				boss->health = maxhp * NW_BOSS_RAGE_HP / 2; // force rage window
+			}
+			rage = ( maxhp > 0
 				&& boss->health < maxhp * NW_BOSS_RAGE_HP ) ? qtrue : qfalse;
 			if ( rage && !*lastMini ) {
 				G_Printf( "NeonWave: SWARM MOTHER ENRAGED\n" );
@@ -618,13 +626,23 @@ static void NW_BossMechanicsFrame( int *lastMini, int bots ) {
 	}
 
 	if ( nw_bossType == NW_BOSS_SNIPER ) {
-		// sniper: teleport-dash away when hit below 50% (repositioning)
-		// implemented as periodic short-range relocation; log for CI assert
+		// sniper: teleport-dash away when hit below 50% (repositioning);
+		// test hook g_neonwave_bosshppct N forces the boss to spawn at
+		// maxhp*N/100 so the dash path is reachable deterministically
 		static int lastDash;
 		gentity_t *boss = NW_FindBoss();
 		if ( boss && level.time > lastDash ) {
 			int maxhp = boss->client->ps.stats[STAT_MAX_HEALTH];
 			lastDash = level.time + 9000;
+			{
+				char pctBuf[8];
+				int pct;
+				trap_Cvar_VariableStringBuffer( "g_neonwave_dashforce", pctBuf, sizeof(pctBuf) );
+				pct = atoi( pctBuf );
+				if ( pct > 0 ) {
+					boss->health = maxhp * pct / 100; // force low-hp state for tests
+				}
+			}
 			if ( maxhp > 0 && boss->health < maxhp / 2 ) {
 				vec3_t org = { 0, 0, 0 };
 				VectorCopy( boss->r.currentOrigin, org );

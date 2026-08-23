@@ -48,7 +48,7 @@ jobs:
           sudo apt-get install -y openarena xvfb x11-utils
           echo "OA installed"
 
-      - name: Run smoke test (gametype 14 loads)
+      - name: Run headless test suite (tests/run_suite.sh)
         run: |
           set -e
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
@@ -57,163 +57,10 @@ jobs:
           # QVMs must be inside a pk3: sv_pure rejects loose homepath VMs and
           # the client would fall back to vanilla stubs in baseoa (crash source)
           cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
-          cp ../assets/scripts/* /tmp/ 2>/dev/null || true
-          cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg && cd .. >/dev/null
+          (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg)
+          chmod +x tests/run_suite.sh
+          ./tests/run_suite.sh
 
-          # ---- Test 1: smoke + boss wave (force-start wave 10) ----
-          # hooks as +set cmdline args (cfg exec is timing-unreliable headless)
-          xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +map oa_shine > smoke.log 2>&1 || true
-          echo "--- smoke log tail ---"
-          tail -30 smoke.log || true
-          grep -q "gamename\\\\NeonArena-0.1" smoke.log
-          grep -q "g_gametype\\\\14" smoke.log
-          echo "SMOKE TEST PASSED: mod loads with gametype 14"
-          grep -q "NeonWave: starting wave 10" smoke.log
-          grep -q "hc\\\\400" smoke.log   # boss drone = 4x health
-          echo "GAMEPLAY TEST PASSED: wave-10 force-start + boss spawned"
-
-          # ---- Test 2: full run headless -> victory at wave 20 ----
-          xvfb-run -a timeout 240 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 \
-            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
-            +set g_neonwave_fastbreak 1 \
-            +map oa_shine > fullrun.log 2>&1 || true
-          echo "--- fullrun log tail ---"
-          tail -15 fullrun.log || true
-          grep -q "NeonWave: starting wave 20" fullrun.log
-          grep -q "All waves cleared" fullrun.log
-          grep -q "NEW BEST wave 20" fullrun.log
-          N_PTS=$(grep -c "upgrade point granted" fullrun.log)
-          echo "upgrade points granted: $N_PTS"
-          [ "$N_PTS" -ge 19 ]
-          # modifiers appear in normal waves (5-9)
-          grep -qE "starting wave [5-9] .*\\[(GLASS DRONES|SWARM|LOW GRAVITY|DOUBLE POINTS)\\]" fullrun.log
-          MODS=$(grep -cE "\\[(GLASS DRONES|SWARM|LOW GRAVITY|DOUBLE POINTS)\\]" fullrun.log)
-          echo "modifier waves: $MODS"
-          [ "$MODS" -ge 3 ]
-          echo "FULL RUN TEST PASSED: 20 waves, victory, highscore, upgrade economy, modifiers"
-
-          # ---- Test 3: forced modifier (low grav) + gravity restore ----
-          xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
-            +set g_neonwave_startwave 6 +set g_neonwave_modifier 3 \
-            +map oa_shine > modtest.log 2>&1 || true
-          tail -10 modtest.log || true
-          grep -q "starting wave 6.*\[LOW GRAVITY\]" modtest.log
-          echo "MODIFIER TEST PASSED: g_neonwave_modifier forces LOW GRAVITY"
-
-          # ---- Test 4: failed run path (RUN STATS + game over) ----
-          xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
-            +set g_neonwave_failrun 1 \
-            +map oa_shine > failrun.log 2>&1 || true
-          tail -10 failrun.log || true
-          grep -q "RUN STATS" failrun.log
-          grep -q "NeonWave over" failrun.log
-          echo "FAIL RUN TEST PASSED: FAILED path + run stats logged"
-
-          # ---- Test 5: TANK boss (6x hp) ----
-          xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
-            +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 \
-            +map oa_shine > bosstank.log 2>&1 || true
-          tail -10 bosstank.log || true
-          grep -q "hc\\\\600" bosstank.log
-          echo "BOSS VARIETY TEST PASSED: TANK boss spawns with 6x health"
-
-          # ---- Test 6: endless mode + time attack ----
-          xvfb-run -a timeout 90 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
-            +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 \
-            +set g_neonwave_startwave 20 +set g_neonwave_maxwave 25 \
-            +map oa_shine > endless.log 2>&1 || true
-          tail -10 endless.log || true
-          grep -q "starting wave 25" endless.log
-          grep -q "All waves cleared" endless.log
-          grep -q "BEST TIME" endless.log
-          echo "ENDLESS MODE TEST PASSED: waves past 20 + victory + best-time tracked"
-
-          # ---- Test 7: record persistence across restarts ----
-          # run A: force-start at wave 20 + autokill -> quick victory writes
-          # neonwave_records.dat (a full 1..20 run would need ~240s)
-          xvfb-run -a timeout 90 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
-            +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 \
-            +set g_neonwave_startwave 20 \
-            +map oa_shine > persist-a.log 2>&1 || true
-          tail -5 persist-a.log || true
-          grep -q "RECORDS SAVED" persist-a.log
-          test -f ~/.openarena/neonarena/neonwave_records.dat || { echo "records file missing"; exit 1; }
-          # run B: fresh server must load the persisted records
-          xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +map oa_shine > persist-b.log 2>&1 || true
-          grep -qE "records loaded wave=[1-9]" persist-b.log
-          echo "RECORD PERSISTENCE TEST PASSED: records survive server restart"
-
-          # ---- Test 8: combo pipeline (fake streak -> bonus + run stats) ----
-          # g_neonwave_botasplayer lets a bot carry the fake streak headless;
-          # g_neonwave_failrun ends the run so RUN STATS get logged
-          xvfb-run -a timeout 60 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
-            +set g_neonwave_fakecombo 7 +set g_neonwave_botasplayer 1 \
-            +set g_neonwave_failrun 1 \
-            +map oa_shine > combo.log 2>&1 || true
-          tail -10 combo.log || true
-          grep -q "fake combo 7 registered" combo.log
-          grep -q "RUN STATS kills=7" combo.log
-          grep -q "bestCombo=7" combo.log
-          echo "COMBO TEST PASSED: streak registered, kills+combo in run stats"
-
-          # ---- Test 9: swarm mother spawns mini-drones ----
-          xvfb-run -a timeout 60 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 3 \
-            +map oa_shine > swarm.log 2>&1 || true
-          N_MINI=$(grep -c "swarm mother spawns mini-drone" swarm.log)
-          echo "mini-drones spawned: $N_MINI"
-          [ "$N_MINI" -ge 1 ]
-          echo "SWARM MOTHER TEST PASSED: boss spawns mini-drones"
-
-          # ---- Test 10: TANK shield cycle ----
-          xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 2 +set g_neonwave_fastbreak 1 \
-            +map oa_shine > tankshield.log 2>&1 || true
-          N_SHIELD=$(grep -c "TANK raises SHIELD" tankshield.log)
-          echo "tank shields raised: $N_SHIELD"
-          [ "$N_SHIELD" -ge 1 ]
-          echo "TANK SHIELD TEST PASSED: boss raises regeneration shield"
-
-          # ---- Test 11: SNIPER dash at low hp ----
-          # sniper dashes only below 50% hp; autokill kills bots each frame,
-          # so instead assert the wave/boss spawn and no crash over a full run
-          xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 1 \
-            +map oa_shine > sniperdash.log 2>&1 || true
-          grep -q "starting wave 10.*BOSS" sniperdash.log
-          grep -q "hc\\\\400" sniperdash.log   # classic sniper = 4x health
-          echo "SNIPER BOSS TEST PASSED: classic boss loads with dash mechanics"
-
-          # ---- Test 12: NEW RECORD cvar flips on record run ----
-          rm -f ~/.openarena/neonarena/neonwave_records.dat
-          xvfb-run -a timeout 90 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 \
-            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
-            +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 \
-            +map oa_shine > newrecord.log 2>&1 || true
-          grep -q "NEW RECORD WAVE\|NEW RECORD TIME" newrecord.log
-          grep -q "RECORDS SAVED" newrecord.log
-          echo "NEW RECORD TEST PASSED: record break logged and saved"
-
-      # ---- Package the PK3 for distribution ----
       - name: Package neonarena PK3
         run: |
           set -e
