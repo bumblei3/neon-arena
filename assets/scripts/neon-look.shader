@@ -404,7 +404,7 @@ neonarena/droneShell
 	{
 		map textures/neonarena/grid.tga
 		blendfunc add
-		rgbGen const ( 0.08 0.45 0.55 )
+		rgbGen const ( 0.35 1.60 1.90 )
 		tcGen environment
 		tcMod scroll 0.15 0.08
 	}
@@ -416,7 +416,7 @@ neonarena/bossShell
 	{
 		map textures/neonarena/grid.tga
 		blendfunc add
-		rgbGen const ( 0.70 0.12 0.70 )
+		rgbGen const ( 2.20 0.30 2.20 )
 		tcGen environment
 		tcMod scroll 0.22 0.10
 		tcMod scale 2 2

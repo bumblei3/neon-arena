@@ -36,21 +36,22 @@ jobs:
       - name: Package engine binaries
         run: |
           mkdir -p dist/neonarena-engine/baseq3
-          cp /tmp/quake3e/build/release-linux-x86_64/quake3e.x64 dist/neonarena-engine/
-          cp /tmp/quake3e/build/release-linux-x86_64/quake3e_opengl_x86_64.so dist/neonarena-engine/
-          cp /tmp/quake3e/build/release-linux-x86_64/quake3e_vulkan_x86_64.so dist/neonarena-engine/ 2>/dev/null || echo "vulkan renderer not built (missing SDK) - shipping OpenGL only"
+          OUT=/tmp/quake3e/build/release-linux-x86_64
+          cp "$OUT/quake3e.x64" dist/neonarena-engine/
+          cp "$OUT/quake3e_opengl_x86_64.so" dist/neonarena-engine/
+          cp "$OUT/quake3e_vulkan_x86_64.so" dist/neonarena-engine/ || echo "vulkan renderer not built - shipping OpenGL only"
           # OpenArena base content must be supplied by the player (see README)
-          cd dist && zip -rq neonarena-engine-linux64.zip neonarena-engine && cd ..
-          ls -la neonarena-engine-linux64.zip
+          tar -czf dist/neonarena-engine-linux64.tar.gz -C dist neonarena-engine
+          ls -la dist/neonarena-engine-linux64.tar.gz
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: neonarena-engine
-          path: dist/neonarena-engine-linux64.zip
+          path: dist/neonarena-engine-linux64.tar.gz
 
       - name: Release engine (tags only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/neonarena-engine-linux64.zip
+          files: dist/neonarena-engine-linux64.tar.gz
