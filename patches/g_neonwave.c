@@ -227,9 +227,16 @@ static void NeonWave_UpdateHighscore( void ) {
 static void NW_PickModifier( int num ) {
 	static const int pool[4] = { NW_MOD_GLASS, NW_MOD_SWARM, NW_MOD_LOWGRAV, NW_MOD_DOUBLEPTS };
 	int idx;
+	char mbBuf[8];
 
 	nw_modifier = NW_MOD_NONE;
 	if ( num < 5 || num >= NW_BOSS_WAVE || num == NW_MAX_WAVE ) {
+		return;
+	}
+	// test hook: g_neonwave_modifier N forces modifier 1-4
+	trap_Cvar_VariableStringBuffer( "g_neonwave_modifier", mbBuf, sizeof(mbBuf) );
+	if ( atoi( mbBuf ) >= NW_MOD_GLASS && atoi( mbBuf ) <= NW_MOD_DOUBLEPTS ) {
+		nw_modifier = atoi( mbBuf );
 		return;
 	}
 	// deterministic-ish variety: rotate through the pool by wave number
@@ -441,6 +448,19 @@ void NeonWave_Frame( void ) {
 	if ( humans == 0 && !trap_Cvar_VariableValue( "g_neonwave_autostart" ) ) {
 		NW_GameOver( NW_EV_FAILED, "NeonWave over" );
 		return;
+	}
+
+	// test hook: g_neonwave_failrun 1 -> trigger failed game over once (tests
+	// the FAILED path + RUN STATS + end screen without a real player death)
+	{
+		static qboolean failFired = qfalse;
+		char frBuf[8];
+		trap_Cvar_VariableStringBuffer( "g_neonwave_failrun", frBuf, sizeof(frBuf) );
+		if ( !failFired && atoi( frBuf ) == 1 && nw_started && nw_wave > 0 ) {
+			failFired = qtrue;
+			NW_GameOver( NW_EV_FAILED, "NeonWave over" );
+			return;
+		}
 	}
 
 	if ( nw_inBreak ) {
