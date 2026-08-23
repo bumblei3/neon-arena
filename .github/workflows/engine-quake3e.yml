@@ -19,7 +19,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libsdl2-dev zip unzip libcurl4-openssl-dev
+          sudo apt-get install -y build-essential libsdl2-dev zip unzip libcurl4-openssl-dev libvulkan-dev glslang-tools
 
       # Quake3e: modern Q3 engine with OpenGL2 + Vulkan renderers (bloom support)
       - name: Clone Quake3e
@@ -38,7 +38,7 @@ jobs:
           mkdir -p dist/neonarena-engine/baseq3
           cp /tmp/quake3e/build/release-linux-x86_64/quake3e.x64 dist/neonarena-engine/
           cp /tmp/quake3e/build/release-linux-x86_64/quake3e_opengl_x86_64.so dist/neonarena-engine/
-          cp /tmp/quake3e/build/release-linux-x86_64/quake3e_vulkan_x86_64.so dist/neonarena-engine/
+          cp /tmp/quake3e/build/release-linux-x86_64/quake3e_vulkan_x86_64.so dist/neonarena-engine/ 2>/dev/null || echo "vulkan renderer not built (missing SDK) - shipping OpenGL only"
           # OpenArena base content must be supplied by the player (see README)
           cd dist && zip -rq neonarena-engine-linux64.zip neonarena-engine && cd ..
           ls -la neonarena-engine-linux64.zip
