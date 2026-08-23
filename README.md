@@ -60,8 +60,18 @@ cd ..
 | `110-neonwave-hud-best-sound.patch` | HUD (WAVE/BEST/CLEARED) + Jingles |
 | `120-neonwave-weapon-lock-spawn.patch` | Spawn nur Rail+LG+Gauntlet |
 | `130-neonwave-weapon-pickup-filter.patch` | Fremde Waffen-Pickups blockiert |
+| `140-170-*.patch` | Boss-Drones (Flag, Struct, Health, Glow, Warmup) |
+| `180-neonwave-v05-boss-upgrades.patch` | v0.5: Boss-Railgun, HUD-Bossbar, Upgrade-System |
 
 `patches/g_neonwave.c` (Wellen-Logik) wird zusätzlich nach `code/game/` kopiert.
+
+### v0.5-Highlights
+
+- **Boss-Railgun:** Der BOSS-W10+-Drone spawnt mit Railgun (999 Ammo) statt MG.
+- **Boss-Healthbar:** Magenta Balken im HUD, live über den Configstring.
+- **Upgrades:** Jede Clear-Welle gibt 1 Punkt (Boss-Wellen 2). Im Chat
+  `upgrade hp|dmg|speed` ausgeben — +25 MaxHP (max 6), +10% Damage (max 5),
+  +5% Speed (max 5). HUD zeigt unverbrauchte Punkte gold an.
 
 ## CI
 

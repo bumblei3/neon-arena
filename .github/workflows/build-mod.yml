@@ -54,6 +54,9 @@ jobs:
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
           mkdir -p ~/.openarena/neonarena/vm
           cp "$OUT/vm/"*.qvm ~/.openarena/neonarena/vm/
+          # QVMs must be inside a pk3: sv_pure rejects loose homepath VMs and
+          # the client would fall back to vanilla stubs in baseoa (crash source)
+          cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
           cp ../assets/scripts/* /tmp/ 2>/dev/null || true
           cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg && cd ..
           xvfb-run -a timeout 40 openarena +set dedicated 1 \
@@ -81,7 +84,9 @@ jobs:
           # pack look files into the same tree
           cd .. && cp -r assets/scripts dist/neonarena/ && cp assets/autoexec.cfg dist/neonarena/
           cd dist && zip -rq neonarena.pk3 neonarena && cd ..
-          ls -la dist/neonarena.pk3
+          # standalone QVM pk3 for players who just drop a pk3 into ~/.openarena/neonarena/
+          (cd oa-gamecode/build/release-linux-x86_64/neonarena && zip -q ../../../../../dist/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm)
+          ls -la dist/neonarena.pk3 dist/neonarena-qvm.pk3
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -89,6 +94,7 @@ jobs:
           name: neonarena-mod
           path: |
             dist/neonarena.pk3
+            dist/neonarena-qvm.pk3
             oa-gamecode/build/release-linux-x86_64/neonarena/vm/*.qvm
 
       # ---- Release on tag push ----
@@ -96,5 +102,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/neonarena.pk3
+          files: |
+            dist/neonarena.pk3
+            dist/neonarena-qvm.pk3
           generate_release_notes: true
