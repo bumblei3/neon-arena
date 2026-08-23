@@ -193,13 +193,20 @@ NW_SendStatus
 // ---- run statistics (aggregated over all humans) ----
 // (nw_runStartTime declared with the other statics at top)
 
+static int NW_TestPlayerSkipBots( void ) {
+	char buf[8];
+	trap_Cvar_VariableStringBuffer( "g_neonwave_botasplayer", buf, sizeof(buf) );
+	return atoi( buf );
+}
+
 static int NW_RunKills( void ) {
 	int i, kills = 0;
+	int skipBots = !NW_TestPlayerSkipBots();
 	gentity_t *ent;
 	for ( i = 0; i < level.maxclients; i++ ) {
 		ent = &g_entities[i];
 		if ( !ent->inuse || !ent->client ) continue;
-		if ( ent->r.svFlags & SVF_BOT ) continue;
+		if ( skipBots && ( ent->r.svFlags & SVF_BOT ) ) continue;
 		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
 		kills += ent->client->pers.nwKills;
 	}
@@ -208,11 +215,12 @@ static int NW_RunKills( void ) {
 
 static int NW_RunBestCombo( void ) {
 	int i, best = 0;
+	int skipBots = !NW_TestPlayerSkipBots();
 	gentity_t *ent;
 	for ( i = 0; i < level.maxclients; i++ ) {
 		ent = &g_entities[i];
 		if ( !ent->inuse || !ent->client ) continue;
-		if ( ent->r.svFlags & SVF_BOT ) continue;
+		if ( skipBots && ( ent->r.svFlags & SVF_BOT ) ) continue;
 		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
 		if ( ent->client->pers.nwBestCombo > best ) best = ent->client->pers.nwBestCombo;
 	}
@@ -575,17 +583,26 @@ void NeonWave_Frame( void ) {
 		if ( !fcFired && atoi( fcBuf ) > 0 && nw_started && nw_wave > 0 ) {
 			int i2, n = atoi( fcBuf );
 			gentity_t *h = NULL;
-			fcFired = qtrue;
-			// attribute the streak to the first connected non-bot client
+			// attribute the streak to the first connected client; with
+			// g_neonwave_botasplayer 1 a bot counts as the streak carrier
+			// (headless CI has no human client)
 			for ( i2 = 0; i2 < level.maxclients; i2++ ) {
 				ent = &g_entities[i2];
-				if ( ent->inuse && ent->client && !( ent->r.svFlags & SVF_BOT )
-						&& ent->client->pers.connected == CON_CONNECTED ) {
+				if ( ent->inuse && ent->client
+						&& ent->client->pers.connected == CON_CONNECTED
+						&& ( !autokillActive() || ( ent->r.svFlags & SVF_BOT )
+							|| NW_TestPlayerSkipBots() ) ) {
 					h = ent;
 					break;
 				}
 			}
-			if ( h && autokillActive() ) {
+			if ( !h ) {
+				// no client connected yet (bots spawn frames after wave start):
+				// do NOT consume the hook, retry next frame
+				return;
+			}
+			fcFired = qtrue;
+			{
 				int k;
 				for ( k = 0; k < n; k++ ) {
 					if ( k > 0 && level.time - h->client->nwLastKillTime >= 3000 ) {

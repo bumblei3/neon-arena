@@ -61,9 +61,11 @@ jobs:
           cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg && cd .. >/dev/null
 
           # ---- Test 1: smoke + boss wave (force-start wave 10) ----
-          printf 'set g_neonwave_autostart 1\nset g_neonwave_startwave 10\n' > "$HOME/.openarena/neonarena/nwtest.cfg"
+          # hooks as +set cmdline args (cfg exec is timing-unreliable headless)
           xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +exec nwtest.cfg +map oa_shine > smoke.log 2>&1 || true
+            +set fs_game neonarena +set g_gametype 14 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +map oa_shine > smoke.log 2>&1 || true
           echo "--- smoke log tail ---"
           tail -30 smoke.log || true
           grep -q "gamename\\\\NeonArena-0.1" smoke.log
@@ -74,9 +76,11 @@ jobs:
           echo "GAMEPLAY TEST PASSED: wave-10 force-start + boss spawned"
 
           # ---- Test 2: full run headless -> victory at wave 20 ----
-          printf 'set g_neonwave_autostart 1\nset g_neonwave_autokill 1\nset g_neonwave_fastbreak 1\n' > "$HOME/.openarena/neonarena/nwfull.cfg"
           xvfb-run -a timeout 240 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +exec nwfull.cfg +map oa_shine > fullrun.log 2>&1 || true
+            +set fs_game neonarena +set g_gametype 14 \
+            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
+            +set g_neonwave_fastbreak 1 \
+            +map oa_shine > fullrun.log 2>&1 || true
           echo "--- fullrun log tail ---"
           tail -15 fullrun.log || true
           grep -q "NeonWave: starting wave 20" fullrun.log
@@ -145,6 +149,30 @@ jobs:
             +set fs_game neonarena +set g_gametype 14 +map oa_shine > persist-b.log 2>&1 || true
           grep -qE "records loaded wave=[1-9]" persist-b.log
           echo "RECORD PERSISTENCE TEST PASSED: records survive server restart"
+
+          # ---- Test 8: combo pipeline (fake streak -> bonus + run stats) ----
+          # g_neonwave_botasplayer lets a bot carry the fake streak headless
+          xvfb-run -a timeout 60 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
+            +set g_neonwave_fakecombo 7 +set g_neonwave_botasplayer 1 \
+            +map oa_shine > combo.log 2>&1 || true
+          tail -10 combo.log || true
+          grep -q "fake combo 7 registered" combo.log
+          grep -q "RUN STATS kills=7" combo.log
+          grep -q "bestCombo=7" combo.log
+          echo "COMBO TEST PASSED: streak registered, kills+combo in run stats"
+
+          # ---- Test 9: swarm mother spawns mini-drones ----
+          xvfb-run -a timeout 60 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 3 \
+            +map oa_shine > swarm.log 2>&1 || true
+          N_MINI=$(grep -c "swarm mother spawns mini-drone" swarm.log)
+          echo "mini-drones spawned: $N_MINI"
+          [ "$N_MINI" -ge 1 ]
+          echo "SWARM MOTHER TEST PASSED: boss spawns mini-drones"
 
       # ---- Package the PK3 for distribution ----
       - name: Package neonarena PK3
