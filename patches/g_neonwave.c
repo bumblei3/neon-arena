@@ -53,6 +53,32 @@ void NeonWave_ForceStarted( void ) {
 	nw_over = qfalse;
 }
 
+// Sync upgrade state to the local player's HUD.
+// Packs points+levels into ps.persistant[PERS_CAPTURES] (unused in GT_NEONWAVE):
+// bits 0-7 points, 8-11 hp level, 12-15 dmg level, 16-19 speed level
+static void NW_SyncUpgrades( void ) {
+	char ptsBuf[16];
+	int pts, i, val;
+	gentity_t *ent;
+
+	trap_Cvar_VariableStringBuffer( "g_neonwave_upgradepoints", ptsBuf, sizeof(ptsBuf) );
+	pts = atoi( ptsBuf );
+	if ( pts < 0 ) pts = 0;
+	if ( pts > 255 ) pts = 255;
+
+	for ( i = 0; i < level.maxclients; i++ ) {
+		ent = &g_entities[i];
+		if ( !ent->inuse || !ent->client ) continue;
+		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
+		if ( ent->r.svFlags & SVF_BOT ) continue;
+		val = pts
+			| ( ( ent->client->pers.neonwaveUpHp   & 0xF ) << 8 )
+			| ( ( ent->client->pers.neonwaveDmg    & 0xF ) << 12 )
+			| ( ( ent->client->pers.neonwaveSpeed  & 0xF ) << 16 );
+		ent->client->ps.persistant[PERS_CAPTURES] = val;
+	}
+}
+
 static void NW_SpawnBot( int skill ) {
 	trap_SendConsoleCommand( EXEC_APPEND,
 		va("addbot sarge %i \"Drone W%d-%d\"\n", skill, nw_wave, ++nw_botCounter) );
@@ -295,6 +321,7 @@ void NeonWave_Frame( void ) {
 		}
 		if ( level.time > lastRefresh ) {
 			lastRefresh = level.time + 200;
+			NW_SyncUpgrades();
 			NW_SendStatus( NW_EV_CLEARED );
 		}
 		return;
@@ -314,6 +341,7 @@ void NeonWave_Frame( void ) {
 	if ( bots > 0 && nw_wave >= NW_BOSS_WAVE ) {
 		if ( level.time > lastRefresh ) {
 			lastRefresh = level.time + 250;
+			NW_SyncUpgrades();
 			NW_SendStatus( NW_EV_RUNNING );
 		}
 	}
