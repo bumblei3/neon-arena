@@ -9,6 +9,10 @@
 #define NW_MAX_WAVE			20
 #define NW_BOSS_WAVE		10	// from here on, each wave gets one boss drone
 
+// Test hooks (used by CI smoke test):
+//   g_neonwave_autostart 1   -> waves start without a human player (headless test)
+//   g_neonwave_startwave N   -> force-start wave N (polled in NeonWave_Frame)
+
 // CS_NEONWAVE payload: "<wave> <event> <bossHp> <bossMax> <breakMs> <pts> <best>"
 // event: 0 running, 1 cleared/break, 2 failed, 3 victory
 #define NW_EV_RUNNING		0
@@ -41,6 +45,12 @@ void NeonWave_Reset( void ) {
 
 qboolean NeonWave_IsBreak( void ) {
 	return ( nw_inBreak && !nw_over ) ? qtrue : qfalse;
+}
+
+// test hook: mark the wave loop as started (used by "nwstartwave" console cmd)
+void NeonWave_ForceStarted( void ) {
+	nw_started = qtrue;
+	nw_over = qfalse;
 }
 
 static void NW_SpawnBot( int skill ) {
@@ -242,15 +252,37 @@ void NeonWave_Frame( void ) {
 		nw_waveHadBots = qtrue;
 	}
 
+	// test hook: g_neonwave_startwave N forces wave N (polled every frame,
+	// works headless regardless of when the cvar is set)
+	if ( !nw_over ) {
+		char swBuf[8];
+		int sw;
+		trap_Cvar_VariableStringBuffer( "g_neonwave_startwave", swBuf, sizeof(swBuf) );
+		sw = atoi( swBuf );
+		if ( sw > 0 && sw != nw_wave ) {
+			NeonWave_ForceStarted();
+			nw_inBreak = qfalse;
+			trap_Cvar_Set( "g_neonwave_startwave", "0" ); // consume (fire once)
+			NeonWave_StartWave( sw );
+			return;
+		}
+	}
+
 	if ( !nw_started ) {
-		if ( humans > 0 && level.time > NW_FIRST_WAVE_DELAY ) {
+		qboolean autostart = qfalse;
+		{
+			char asBuf[8];
+			trap_Cvar_VariableStringBuffer( "g_neonwave_autostart", asBuf, sizeof(asBuf) );
+			autostart = ( atoi( asBuf ) != 0 ) ? qtrue : qfalse;
+		}
+		if ( ( humans > 0 || autostart ) && level.time > NW_FIRST_WAVE_DELAY ) {
 			nw_started = qtrue;
 			NeonWave_StartWave( 1 );
 		}
 		return;
 	}
 
-	if ( humans == 0 ) {
+	if ( humans == 0 && !trap_Cvar_VariableValue( "g_neonwave_autostart" ) ) {
 		NW_GameOver( NW_EV_FAILED, "NeonWave over" );
 		return;
 	}

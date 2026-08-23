@@ -58,14 +58,20 @@ jobs:
           # the client would fall back to vanilla stubs in baseoa (crash source)
           cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
           cp ../assets/scripts/* /tmp/ 2>/dev/null || true
-          cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg && cd ..
+          cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg && cd .. >/dev/null
+          # Gameplay test hooks (headless): autostart waves + force boss wave 10
+          printf 'set g_neonwave_autostart 1\nset g_neonwave_startwave 10\n' > "$HOME/.openarena/neonarena/nwtest.cfg"
           xvfb-run -a timeout 40 openarena +set dedicated 1 \
-            +set fs_game neonarena +set g_gametype 14 +map oa_shine > smoke.log 2>&1 || true
+            +set fs_game neonarena +set g_gametype 14 +exec nwtest.cfg +map oa_shine > smoke.log 2>&1 || true
           echo "--- smoke log tail ---"
           tail -30 smoke.log || true
           grep -q "gamename\\\\NeonArena-0.1" smoke.log
           grep -q "g_gametype\\\\14" smoke.log
           echo "SMOKE TEST PASSED: mod loads with gametype 14"
+          # gameplay assertions: forced wave start + boss spawn
+          grep -q "NeonWave: starting wave 10" smoke.log
+          grep -q "hc\\\\400" smoke.log   # boss drone = 4x health
+          echo "GAMEPLAY TEST PASSED: wave-10 force-start + boss spawned"
 
       # ---- Package the PK3 for distribution ----
       - name: Package neonarena PK3
