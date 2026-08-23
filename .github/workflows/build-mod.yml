@@ -137,11 +137,14 @@ jobs:
           echo "ENDLESS MODE TEST PASSED: waves past 20 + victory + best-time tracked"
 
           # ---- Test 7: record persistence across restarts ----
-          # run A: fast full run writes neonwave_records.dat
+          # run A: force-start at wave 20 + autokill -> quick victory writes
+          # neonwave_records.dat (a full 1..20 run would need ~240s)
           xvfb-run -a timeout 90 openarena +set dedicated 1 \
             +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
             +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 \
+            +set g_neonwave_startwave 20 \
             +map oa_shine > persist-a.log 2>&1 || true
+          tail -5 persist-a.log || true
           grep -q "RECORDS SAVED" persist-a.log
           test -f ~/.openarena/neonarena/neonwave_records.dat || { echo "records file missing"; exit 1; }
           # run B: fresh server must load the persisted records
