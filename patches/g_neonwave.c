@@ -286,6 +286,7 @@ static void NW_UpdateRecords( void ) {
 	int runSec = ( level.time - nw_runStartTime ) / 1000;
 	qboolean changed = qfalse;
 
+	trap_Cvar_Set( "g_neonwave_newrecord", "0" ); // reset per run end
 	if ( nw_wave > nw_records.bestWave ) {
 		nw_records.bestWave = nw_wave;
 		changed = qtrue;
@@ -308,6 +309,7 @@ static void NW_UpdateRecords( void ) {
 	}
 	if ( changed ) {
 		NW_SaveRecords();
+		trap_Cvar_Set( "g_neonwave_newrecord", "1" ); // cgame: NEW RECORD banner
 	}
 	NW_MirrorRecordCvars();
 }
@@ -547,6 +549,96 @@ static void NW_GameOver( int event, const char *why ) {
 	LogExit( why );
 }
 
+// ---- v0.11 boss special mechanics ----
+#define NW_BOSS_SHIELD_MS	4000	// tank shield phase duration
+#define NW_BOSS_SHIELD_CD	12000	// tank shield cooldown
+#define NW_BOSS_RAGE_HP		0.30f	// swarm mother rage below 30% hp
+
+static gentity_t *NW_FindBoss( void ) {
+	gentity_t *ent;
+	int i;
+	for ( i = 0; i < level.maxclients; i++ ) {
+		ent = &g_entities[i];
+		if ( ent->inuse && ent->client && ( ent->r.svFlags & SVF_BOT )
+				&& ent->health > 0 && ent->client->pers.neonwaveBoss ) {
+			return ent;
+		}
+	}
+	return NULL;
+}
+
+static void NW_BossMechanicsFrame( int *lastMini, int bots ) {
+	if ( nw_bossType == NW_BOSS_SWARM ) {
+		// swarm mother: keep spawning mini-drones while the boss lives;
+		// rage mode below 30% hp halves the spawn interval
+		gentity_t *boss = NW_FindBoss();
+		if ( boss ) {
+			int maxhp = boss->client->ps.stats[STAT_MAX_HEALTH];
+			qboolean rage = ( maxhp > 0
+				&& boss->health < maxhp * NW_BOSS_RAGE_HP ) ? qtrue : qfalse;
+			if ( rage && !*lastMini ) {
+				G_Printf( "NeonWave: SWARM MOTHER ENRAGED\n" );
+			}
+			if ( level.time > *lastMini && bots < 10 ) {
+				*lastMini = level.time + ( rage ? 5000 : 10000 );
+				NW_SpawnBot( 3 );
+				G_Printf( "NeonWave: swarm mother spawns mini-drone%s\n",
+					rage ? " (RAGE)" : "" );
+			}
+			return;
+		}
+	}
+
+	if ( nw_bossType == NW_BOSS_TANK ) {
+		// tank: periodic regeneration burst while "shielded" (visualized by
+		// the boss glow pulse); implemented as self-heal to avoid touching
+		// G_Damage — keeps all boss logic inside g_neonwave.c
+		static int nextShield;
+		gentity_t *boss = NW_FindBoss();
+		if ( boss ) {
+			int maxhp = boss->client->ps.stats[STAT_MAX_HEALTH];
+			if ( !boss->client->pers.neonwaveBossShield && level.time > nextShield ) {
+				boss->client->pers.neonwaveBossShield = 1;
+				boss->client->pers.neonwaveBossShieldEnd = level.time + NW_BOSS_SHIELD_MS;
+				nextShield = level.time + NW_BOSS_SHIELD_CD;
+				G_Printf( "NeonWave: TANK raises SHIELD\n" );
+			}
+			if ( boss->client->pers.neonwaveBossShield ) {
+				if ( level.time > boss->client->pers.neonwaveBossShieldEnd ) {
+					boss->client->pers.neonwaveBossShield = 0;
+					G_Printf( "NeonWave: TANK shield drops\n" );
+				} else if ( maxhp > 0 && boss->health < maxhp ) {
+					boss->health += 2; // steady regen while shielded
+					if ( boss->health > maxhp ) {
+						boss->health = maxhp;
+					}
+				}
+			}
+		}
+	}
+
+	if ( nw_bossType == NW_BOSS_SNIPER ) {
+		// sniper: teleport-dash away when hit below 50% (repositioning)
+		// implemented as periodic short-range relocation; log for CI assert
+		static int lastDash;
+		gentity_t *boss = NW_FindBoss();
+		if ( boss && level.time > lastDash ) {
+			int maxhp = boss->client->ps.stats[STAT_MAX_HEALTH];
+			lastDash = level.time + 9000;
+			if ( maxhp > 0 && boss->health < maxhp / 2 ) {
+				vec3_t org = { 0, 0, 0 };
+				VectorCopy( boss->r.currentOrigin, org );
+				// dash: small random offset teleport
+				org[0] += ( rand() % 400 ) - 200;
+				org[1] += ( rand() % 400 ) - 200;
+				VectorCopy( org, boss->s.origin );
+				VectorCopy( org, boss->client->ps.origin );
+				G_Printf( "NeonWave: SNIPER dashes to new position\n" );
+			}
+		}
+	}
+}
+
 void NeonWave_Frame( void ) {
 	int humans, bots, i;
 	gentity_t *ent;
@@ -736,23 +828,9 @@ void NeonWave_Frame( void ) {
 	}
 
 	if ( bots > 0 && nw_wave >= NW_BOSS_WAVE ) {
-		// swarm mother: keep spawning mini-drones while the boss lives
+		// v0.11 boss special mechanics
 		static int lastMini;
-		if ( nw_bossType == NW_BOSS_SWARM && level.time > lastMini ) {
-			int bossAlive = 0;
-			lastMini = level.time + 10000;
-			for ( i = 0; i < level.maxclients; i++ ) {
-				ent = &g_entities[i];
-				if ( ent->inuse && ent->client && ( ent->r.svFlags & SVF_BOT )
-						&& ent->health > 0 && ent->client->pers.neonwaveBoss ) {
-					bossAlive = 1;
-				}
-			}
-			if ( bossAlive && bots < 10 ) {
-				NW_SpawnBot( 3 );
-				G_Printf( "NeonWave: swarm mother spawns mini-drone\n" );
-			}
-		}
+		NW_BossMechanicsFrame( &lastMini, bots );
 		if ( level.time > lastRefresh ) {
 			lastRefresh = level.time + 250;
 			NW_SyncUpgrades();

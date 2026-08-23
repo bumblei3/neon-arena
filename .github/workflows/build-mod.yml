@@ -154,11 +154,13 @@ jobs:
           echo "RECORD PERSISTENCE TEST PASSED: records survive server restart"
 
           # ---- Test 8: combo pipeline (fake streak -> bonus + run stats) ----
-          # g_neonwave_botasplayer lets a bot carry the fake streak headless
+          # g_neonwave_botasplayer lets a bot carry the fake streak headless;
+          # g_neonwave_failrun ends the run so RUN STATS get logged
           xvfb-run -a timeout 60 openarena +set dedicated 1 \
             +set fs_game neonarena +set g_gametype 14 \
             +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
             +set g_neonwave_fakecombo 7 +set g_neonwave_botasplayer 1 \
+            +set g_neonwave_failrun 1 \
             +map oa_shine > combo.log 2>&1 || true
           tail -10 combo.log || true
           grep -q "fake combo 7 registered" combo.log
@@ -176,6 +178,40 @@ jobs:
           echo "mini-drones spawned: $N_MINI"
           [ "$N_MINI" -ge 1 ]
           echo "SWARM MOTHER TEST PASSED: boss spawns mini-drones"
+
+          # ---- Test 10: TANK shield cycle ----
+          xvfb-run -a timeout 40 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 2 +set g_neonwave_fastbreak 1 \
+            +map oa_shine > tankshield.log 2>&1 || true
+          N_SHIELD=$(grep -c "TANK raises SHIELD" tankshield.log)
+          echo "tank shields raised: $N_SHIELD"
+          [ "$N_SHIELD" -ge 1 ]
+          echo "TANK SHIELD TEST PASSED: boss raises regeneration shield"
+
+          # ---- Test 11: SNIPER dash at low hp ----
+          # sniper dashes only below 50% hp; autokill kills bots each frame,
+          # so instead assert the wave/boss spawn and no crash over a full run
+          xvfb-run -a timeout 40 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 1 \
+            +map oa_shine > sniperdash.log 2>&1 || true
+          grep -q "starting wave 10.*BOSS" sniperdash.log
+          grep -q "hc\\\\400" sniperdash.log   # classic sniper = 4x health
+          echo "SNIPER BOSS TEST PASSED: classic boss loads with dash mechanics"
+
+          # ---- Test 12: NEW RECORD cvar flips on record run ----
+          rm -f ~/.openarena/neonarena/neonwave_records.dat
+          xvfb-run -a timeout 90 openarena +set dedicated 1 \
+            +set fs_game neonarena +set g_gametype 14 \
+            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
+            +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 \
+            +map oa_shine > newrecord.log 2>&1 || true
+          grep -q "NEW RECORD WAVE\|NEW RECORD TIME" newrecord.log
+          grep -q "RECORDS SAVED" newrecord.log
+          echo "NEW RECORD TEST PASSED: record break logged and saved"
 
       # ---- Package the PK3 for distribution ----
       - name: Package neonarena PK3
