@@ -7,18 +7,19 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 
 ## Features (Mod `neonarena`, Gametype 14 „Neon Wave Survival")
 
-- **Wave-Survival:** Bis zu 20 Wellen; Welle N spawnt N+1 Bots. Game Over, wenn
-  alle Menschen tot sind.
+- **Wave-Survival:** Bis zu 20 Wellen; Welle N spawnt N+1 Bots. Ein Leben —
+  tot ist tot. 8 s Pause zwischen Wellen.
 - **Waffen-Identität:** Spawn mit Railgun + Lightning Gun + Gauntlet. Andere
   Waffen-Pickups werden ignoriert – Rail/LG-Pickups dienen als Ammo-Nachschub.
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
 - **Benannte Drones:** Killfeed zeigt `Drone W3-1` statt `sarge`.
-- **Belohnungen:** Nach jeder clearen Welle fallen Mega Health + Heavy Armor +
-  Lightning-Amunition an deiner Position.
-- **Highscore:** Beste Welle wird persistent gespeichert (`g_neonwave_best`),
-  HUD zeigt `WAVE N` / `WAVE N CLEARED` / `BEST N` in Cyan.
+- **Belohnungen:** In der Wellen-Pause fallen Mega Health + Heavy Armor +
+  Rail/LG-Ammo an deiner Position.
+- **Highscore:** Beste Welle persistent (`g_neonwave_best`). Game-Over-Screen
+  mit Welle/Best; FIRE startet neu.
 - **Wellen-Jingles:** Sound-Signal bei Wellenstart und -clear.
-- **Neon-Look:** Railtrails immer Cyan, Shader-Overrides im Look-Pack.
+- **Neon-Look:** Dunkle Skybox, Neon-Grid auf oa_shine, Cyan-Rail/LG mit D-Lights,
+  Drohnen-Cyan-Shell (Boss magenta), Energy statt Blut, Vignette-HUD.
 
 ## Schnellstart (Spieler)
 
@@ -27,6 +28,8 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 2. `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
 
 OpenArena 0.8.8 (oder kompatibel) muss installiert sein.
+
+Nach dem ersten Start einmal `vid_restart` in der Konsole (`~`), damit `r_mapoverbrightbits 1` die Map dunkler zieht und Neon besser knallt. Zurück zur hellen Map: `seta r_mapoverbrightbits 2` + `vid_restart`.
 
 ## Bauen (Entwickler)
 
@@ -62,6 +65,8 @@ cd ..
 | `130-neonwave-weapon-pickup-filter.patch` | Fremde Waffen-Pickups blockiert |
 | `140-170-*.patch` | Boss-Drones (Flag, Struct, Health, Glow, Warmup) |
 | `180-neonwave-v05-boss-upgrades.patch` | v0.5: Boss-Railgun, HUD-Bossbar, Upgrade-System |
+| `190-neon-look-fx.patch` | Look v2: Drohnen-Glow, Rail/LG-Lights, Neon-HUD |
+| `200-neon-wave-feel.patch` | Echte Wellen-Pause, F1/F2/F3-Upgrades, Game-Over, One-Life |
 
 `patches/g_neonwave.c` (Wellen-Logik) wird zusätzlich nach `code/game/` kopiert.
 
@@ -69,9 +74,9 @@ cd ..
 
 - **Boss-Railgun:** Der BOSS-W10+-Drone spawnt mit Railgun (999 Ammo) statt MG.
 - **Boss-Healthbar:** Magenta Balken im HUD, live über den Configstring.
-- **Upgrades:** Jede Clear-Welle gibt 1 Punkt (Boss-Wellen 2). Im Chat
-  `upgrade hp|dmg|speed` ausgeben — +25 MaxHP (max 6), +10% Damage (max 5),
-  +5% Speed (max 5). HUD zeigt unverbrauchte Punkte gold an.
+- **Upgrades:** Nur in der Wellen-Pause. **F1** +HP, **F2** +DMG, **F3** +SPEED
+  (oder `upgrade hp|dmg|speed`). 1 Punkt pro Clear, 2 auf Boss-Wellen.
+  +25 MaxHP (max 6), +10% Damage (max 5), +5% Speed (max 5).
 
 ## CI
 

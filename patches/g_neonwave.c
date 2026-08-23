@@ -5,105 +5,121 @@
 #ifdef NEONARENA_MOD
 
 #define NW_FIRST_WAVE_DELAY	5000	// ms after map start
-#define NW_WAVE_BREAK		4000	// ms between waves
+#define NW_WAVE_BREAK		8000	// ms between waves (upgrade window)
 #define NW_MAX_WAVE			20
 #define NW_BOSS_WAVE		10	// from here on, each wave gets one boss drone
 
-// CS_NEONWAVE payload: "<wave> <event> <bossHp> <bossMax>"
-// event: 0 = wave running, 1 = wave just cleared
+// CS_NEONWAVE payload: "<wave> <event> <bossHp> <bossMax> <breakMs> <pts> <best>"
+// event: 0 running, 1 cleared/break, 2 failed, 3 victory
 #define NW_EV_RUNNING		0
 #define NW_EV_CLEARED		1
+#define NW_EV_FAILED		2
+#define NW_EV_VICTORY		3
 
 static int nw_wave;				// current wave (1-based)
 static int nw_aliveBots;
-static int nw_nextSpawnTime;
 static qboolean nw_started;
-static int nw_botCounter;		// for unique bot names per wave
+static int nw_botCounter;
+static qboolean nw_inBreak;
+static int nw_breakEnd;
+static qboolean nw_waveHadBots;	// true once at least one bot connected this wave
+static qboolean nw_over;
+static int nw_event;
 
 void NeonWave_Reset( void ) {
 	nw_wave = 0;
 	nw_aliveBots = 0;
-	nw_nextSpawnTime = 0;
 	nw_started = qfalse;
 	nw_botCounter = 0;
+	nw_inBreak = qfalse;
+	nw_breakEnd = 0;
+	nw_waveHadBots = qfalse;
+	nw_over = qfalse;
+	nw_event = 0;
+	trap_Cvar_Set( "g_neonwave_upgradepoints", "0" );
+}
+
+qboolean NeonWave_IsBreak( void ) {
+	return ( nw_inBreak && !nw_over ) ? qtrue : qfalse;
 }
 
 static void NW_SpawnBot( int skill ) {
-	// uniquely named bot so the killfeed stays readable
 	trap_SendConsoleCommand( EXEC_APPEND,
 		va("addbot sarge %i \"Drone W%d-%d\"\n", skill, nw_wave, ++nw_botCounter) );
 }
 
-/*
-================
-NW_SpawnBoss
-
-Queue one boss drone (4x health via userinfo flag).
-================
-*/
 static void NW_SpawnBoss( void ) {
 	trap_Cvar_Set( "g_neonwave_nextboss", "1" );
 	trap_SendConsoleCommand( EXEC_APPEND,
 		va("addbot sarge 5 \"BOSS W%d\"\n", nw_wave) );
 }
 
-/*
-================
-NW_BossHealthPayload
-
-Find the live boss and append its health to the configstring payload.
-================
-*/
-static void NW_BossHealthPayload( char *buf, int size ) {
+static void NW_BossHealth( int *hp, int *maxhp ) {
 	gentity_t *ent;
 	int i;
 
-	buf[0] = '\0';
+	*hp = 0;
+	*maxhp = 0;
 	for ( i = 0; i < level.maxclients; i++ ) {
 		ent = &g_entities[i];
 		if ( !ent->inuse || !ent->client ) continue;
 		if ( !( ent->r.svFlags & SVF_BOT ) ) continue;
 		if ( ent->health <= 0 ) continue;
 		if ( !ent->client->pers.neonwaveBoss ) continue;
-		Com_sprintf( buf, size, " %i %i", ent->health,
-			ent->client->ps.stats[STAT_MAX_HEALTH] );
+		*hp = ent->health;
+		*maxhp = ent->client->ps.stats[STAT_MAX_HEALTH];
 		return;
 	}
+}
+
+static int NW_Points( void ) {
+	char buf[16];
+	trap_Cvar_VariableStringBuffer( "g_neonwave_upgradepoints", buf, sizeof(buf) );
+	return atoi( buf );
+}
+
+static int NW_Best( void ) {
+	char buf[16];
+	trap_Cvar_VariableStringBuffer( "g_neonwave_best", buf, sizeof(buf) );
+	return atoi( buf );
 }
 
 /*
 ================
 NW_SendStatus
 
-Push "<wave> <event><bossHealth>" onto the NEONWAVE configstring.
+"<wave> <event> <bossHp> <bossMax> <breakMs> <pts> <best>"
 ================
 */
 static void NW_SendStatus( int event ) {
-	char bossPart[32];
-	NW_BossHealthPayload( bossPart, sizeof(bossPart) );
-	trap_SetConfigstring( CS_NEONWAVE, va( "%i %i%s", nw_wave, event, bossPart ) );
+	int bossHp, bossMax, breakMs;
+
+	nw_event = event;
+	NW_BossHealth( &bossHp, &bossMax );
+	breakMs = 0;
+	if ( nw_inBreak && nw_breakEnd > level.time ) {
+		breakMs = nw_breakEnd - level.time;
+	}
+	trap_SetConfigstring( CS_NEONWAVE, va( "%i %i %i %i %i %i %i",
+		nw_wave, event, bossHp, bossMax, breakMs, NW_Points(), NW_Best() ) );
 }
 
-/*
-================
-NeonWave_DropReward
+void NeonWave_RefreshStatus( void ) {
+	NW_SendStatus( nw_event );
+}
 
-Spawn health/armor/ammo rewards at each living human's feet.
-Called after a wave is cleared, before the next one starts.
-================
-*/
 void NeonWave_DropReward( int clearedWave ) {
 	gentity_t *ent;
 	vec3_t origin, velocity = {0, 0, 20};
 	gitem_t *mega, *armor, *ammo, *ra;
 	int i;
 
+	(void)clearedWave;
 	mega  = BG_FindItem( "Mega Health" );
 	armor = BG_FindItem( "Heavy Armor" );
 	ammo  = BG_FindItemForWeapon( WP_LIGHTNING );
 	if (!mega)  mega  = BG_FindItem( "5 Health" );
 	if (!armor) armor = BG_FindItem( "Armor Shard" );
-	// rail slugs: keep the railgun fed (ammo economy)
 	ra = BG_FindItemForWeapon( WP_RAILGUN );
 
 	for ( i = 0; i < level.maxclients; i++ ) {
@@ -111,6 +127,7 @@ void NeonWave_DropReward( int clearedWave ) {
 		if ( !ent->inuse || !ent->client ) continue;
 		if ( ent->r.svFlags & SVF_BOT ) continue;
 		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
+		if ( ent->health <= 0 ) continue;
 
 		VectorCopy( ent->r.currentOrigin, origin );
 		origin[2] += 24;
@@ -121,18 +138,8 @@ void NeonWave_DropReward( int clearedWave ) {
 	}
 }
 
-/*
-================
-NeonWave_UpdateHighscore
-
-Persist best reached wave into an archived cvar so it survives restarts.
-================
-*/
 static void NeonWave_UpdateHighscore( void ) {
-	char bestBuf[16];
-	int best;
-	trap_Cvar_VariableStringBuffer( "g_neonwave_best", bestBuf, sizeof(bestBuf) );
-	best = atoi(bestBuf);
+	int best = NW_Best();
 	if ( nw_wave > best ) {
 		trap_Cvar_Set( "g_neonwave_best", va("%i", nw_wave) );
 		G_Printf( "NeonWave: NEW BEST wave %i (was %i)\n", nw_wave, best );
@@ -145,13 +152,16 @@ void NeonWave_StartWave( int num ) {
 	if ( skill > 5 ) skill = 5;
 	nw_wave = num;
 	nw_botCounter = 0;
+	nw_inBreak = qfalse;
+	nw_waveHadBots = qfalse;
 	NW_SendStatus( NW_EV_RUNNING );
+	trap_SendServerCommand( -1, va( "cp \"WAVE %i\n\"", num ) );
 	G_Printf( "NeonWave: starting wave %i (%i bots, skill %i)%s\n", num, num + 1, skill,
 		num >= NW_BOSS_WAVE ? " + BOSS" : "" );
 	if ( num >= NW_BOSS_WAVE ) {
 		NW_SpawnBoss();
 	}
-	for ( i = 0; i <= num && i < MAX_CLIENTS; i++ ) {
+	for ( i = 0; i <= num && i < MAX_CLIENTS - 2; i++ ) {
 		NW_SpawnBot( skill );
 	}
 }
@@ -160,26 +170,78 @@ int NeonWave_GetWave( void ) {
 	return nw_wave;
 }
 
-// called from G_RunFrame every server frame
+static void NW_GrantUpgradePoints( void ) {
+	int pts = NW_Points();
+	pts += ( nw_wave >= NW_BOSS_WAVE ? 2 : 1 );
+	trap_Cvar_Set( "g_neonwave_upgradepoints", va("%i", pts) );
+	G_Printf( "NeonWave: upgrade point granted (%i banked)\n", pts );
+}
+
+static void NW_EnterBreak( void ) {
+	nw_inBreak = qtrue;
+	nw_breakEnd = level.time + NW_WAVE_BREAK;
+	NW_GrantUpgradePoints();
+	NeonWave_DropReward( nw_wave );
+	NW_SendStatus( NW_EV_CLEARED );
+	trap_SendServerCommand( -1, va( "cp \"WAVE %i CLEARED\nF1 HP  F2 DMG  F3 SPEED\"", nw_wave ) );
+	G_Printf( "NeonWave: wave %i cleared, break %i ms\n", nw_wave, NW_WAVE_BREAK );
+}
+
+static void NW_KickBots( void ) {
+	int i;
+	gentity_t *ent;
+	for ( i = 0; i < level.maxclients; i++ ) {
+		ent = &g_entities[i];
+		if ( !ent->inuse || !ent->client ) continue;
+		if ( !( ent->r.svFlags & SVF_BOT ) ) continue;
+		trap_DropClient( i, "eliminated" );
+	}
+}
+
+static void NW_GameOver( int event, const char *why ) {
+	if ( nw_over ) {
+		return;
+	}
+	nw_over = qtrue;
+	nw_inBreak = qfalse;
+	NeonWave_UpdateHighscore();
+	NW_SendStatus( event );
+	NW_KickBots();
+	G_Printf( "NeonWave: %s (wave %i)\n", why, nw_wave );
+	LogExit( why );
+}
+
 void NeonWave_Frame( void ) {
 	int humans, bots, i;
 	gentity_t *ent;
+	static int lastRefresh;
 
 	if ( g_gametype.integer != GT_NEONWAVE ) {
 		return;
 	}
+	if ( level.intermissiontime || level.intermissionQueued ) {
+		return;
+	}
+	if ( nw_over ) {
+		return;
+	}
 
-	// count players
-	humans = 0; bots = 0;
+	humans = 0;
+	bots = 0;
 	for ( i = 0; i < level.maxclients; i++ ) {
 		ent = &g_entities[i];
 		if ( !ent->inuse || !ent->client ) continue;
+		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
+		if ( ent->health <= 0 ) continue;
+		if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) continue;
 		if ( ent->r.svFlags & SVF_BOT ) bots++;
-		else if ( ent->client->pers.connected == CON_CONNECTED ) humans++;
+		else humans++;
 	}
 	nw_aliveBots = bots;
+	if ( bots > 0 ) {
+		nw_waveHadBots = qtrue;
+	}
 
-	// wait for a human to be in game
 	if ( !nw_started ) {
 		if ( humans > 0 && level.time > NW_FIRST_WAVE_DELAY ) {
 			nw_started = qtrue;
@@ -188,43 +250,36 @@ void NeonWave_Frame( void ) {
 		return;
 	}
 
-	// player died -> game over
 	if ( humans == 0 ) {
-		G_Printf( "NeonWave: all humans dead - game over at wave %i\n", nw_wave );
-		NeonWave_UpdateHighscore();
-		LogExit( "NeonWave over" );
-		NeonWave_Reset();
+		NW_GameOver( NW_EV_FAILED, "NeonWave over" );
 		return;
 	}
 
-	// wave cleared -> next wave after break
-	if ( nw_aliveBots == 0 && level.time > nw_nextSpawnTime ) {
-		// announce clear event (cgame plays jingle) + grant an upgrade point
-		NW_SendStatus( NW_EV_CLEARED );
-		NeonWave_DropReward( nw_wave );
-
-		{
-			char ptsBuf[16];
-			int pts;
-			trap_Cvar_VariableStringBuffer( "g_neonwave_upgradepoints", ptsBuf, sizeof(ptsBuf) );
-			pts = atoi(ptsBuf);
-			pts += ( nw_wave >= NW_BOSS_WAVE ? 2 : 1 ); // boss waves grant 2
-			trap_Cvar_Set( "g_neonwave_upgradepoints", va("%i", pts) );
-			G_Printf( "NeonWave: upgrade point granted (%i banked)\n", pts );
-		}
-
-		if ( nw_wave >= NW_MAX_WAVE ) {
-			G_Printf( "NeonWave: all %i waves survived!\n", NW_MAX_WAVE );
-			NeonWave_UpdateHighscore();
-			LogExit( "All waves cleared" );
-			NeonWave_Reset();
+	if ( nw_inBreak ) {
+		if ( level.time >= nw_breakEnd ) {
+			nw_inBreak = qfalse;
+			NeonWave_StartWave( nw_wave + 1 );
 			return;
 		}
-		NeonWave_StartWave( nw_wave + 1 );
-		nw_nextSpawnTime = level.time + NW_WAVE_BREAK;
-	} else if ( nw_aliveBots > 0 && nw_wave >= NW_BOSS_WAVE ) {
-		// refresh boss health in the status string while a boss is alive
-		static int lastRefresh = 0;
+		if ( level.time > lastRefresh ) {
+			lastRefresh = level.time + 200;
+			NW_SendStatus( NW_EV_CLEARED );
+		}
+		return;
+	}
+
+	if ( nw_waveHadBots && bots == 0 ) {
+		if ( nw_wave >= NW_MAX_WAVE ) {
+			NW_GrantUpgradePoints();
+			NeonWave_DropReward( nw_wave );
+			NW_GameOver( NW_EV_VICTORY, "All waves cleared" );
+			return;
+		}
+		NW_EnterBreak();
+		return;
+	}
+
+	if ( bots > 0 && nw_wave >= NW_BOSS_WAVE ) {
 		if ( level.time > lastRefresh ) {
 			lastRefresh = level.time + 250;
 			NW_SendStatus( NW_EV_RUNNING );

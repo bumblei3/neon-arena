@@ -1,7 +1,8 @@
 #!/bin/bash
 # Build the NeonArena OpenArena mod and install it to ~/.openarena/neonarena
 set -e
-cd "$(dirname "$0")/oa-gamecode"
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT/oa-gamecode"
 
 make
 
@@ -18,10 +19,13 @@ rm -f "$DEST/neonarena-qvm.pk3"
 zip -q "$DEST/neonarena-qvm.pk3" vm/cgame.qvm vm/qagame.qvm vm/ui.qvm
 cd - >/dev/null
 
-# look pack (shaders + autoexec) from assets/
-cd ../assets
+# look pack (shaders + textures + cfg) from assets/
+cd "$ROOT/assets"
+if [ ! -f textures/neonarena/flare.tga ]; then
+	python3 gen_textures.py
+fi
 rm -f "$DEST/neon-look.pk3"
-zip -rq "$DEST/neon-look.pk3" scripts autoexec.cfg
+zip -rq "$DEST/neon-look.pk3" scripts textures gfx env autoexec.cfg neon-look.cfg
 
 echo "Installed NeonArena mod to $DEST:"
 ls -la "$DEST" "$DEST/vm"

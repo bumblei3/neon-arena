@@ -1,0 +1,255 @@
+diff --git a/code/cgame/cg_local.h b/code/cgame/cg_local.h
+--- a/code/cgame/cg_local.h
++++ b/code/cgame/cg_local.h
+@@ -863,6 +863,14 @@ typedef struct {
+ 	qhandle_t	bloodTrailShader;
+ 
++#ifdef NEONARENA_MOD
++	qhandle_t	neonDroneShellShader;
++	qhandle_t	neonBossShellShader;
++	qhandle_t	neonFlareShader;
++	qhandle_t	neonVignetteShader;
++	qhandle_t	neonBarShader;
++#endif
++
+ 	// LEILEI shaders
+diff --git a/code/cgame/cg_main.c b/code/cgame/cg_main.c
+--- a/code/cgame/cg_main.c
++++ b/code/cgame/cg_main.c
+@@ -1250,6 +1250,14 @@ static void CG_RegisterGraphics(void) {
+ 	cgs.media.bloodExplosionShader = trap_R_RegisterShader("bloodExplosion");
+ 
++#ifdef NEONARENA_MOD
++	cgs.media.neonDroneShellShader = trap_R_RegisterShader("neonarena/droneShell");
++	cgs.media.neonBossShellShader = trap_R_RegisterShader("neonarena/bossShell");
++	cgs.media.neonFlareShader = trap_R_RegisterShader("neonarena/flare");
++	cgs.media.neonVignetteShader = trap_R_RegisterShader("gfx/2d/neon_vignette");
++	cgs.media.neonBarShader = trap_R_RegisterShader("gfx/2d/neon_bar");
++#endif
++
+ 	cgs.media.bulletFlashModel = trap_R_RegisterModel("models/weaphits/bullet.md3");
+@@ -2523,6 +2531,9 @@ void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum) {
+ 	trap_Cvar_Set("ui_loading", "0");
+ 	cg.consoleValid = qtrue;
+ #endif
+ 	// end loadingscreen
++#ifdef NEONARENA_MOD
++	trap_SendConsoleCommand("exec neon-look.cfg\n");
++#endif
+ }
+diff --git a/code/cgame/cg_weapons.c b/code/cgame/cg_weapons.c
+--- a/code/cgame/cg_weapons.c
++++ b/code/cgame/cg_weapons.c
+@@ -233,7 +233,11 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end)
+ 	refEntity_t   *re;
+ 
++#ifdef NEONARENA_MOD
++#define RADIUS   6
++#else
+ #define RADIUS   4
++#endif
+ #define ROTATION 1
+ #define SPACING  5
+@@ -345,8 +349,13 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end)
+ 			re->shaderTime = cg.time / 1000.0f;
+ 			re->reType = RT_SPRITE;
++#ifdef NEONARENA_MOD
++			re->radius = 1.6f;
++#else
+ 			re->radius = 1.1f;
++#endif
+ 			re->customShader = cgs.media.railRingsShader;
+ 
++#ifdef NEONARENA_MOD
++			re->shaderRGBA[0] = 255;
++			re->shaderRGBA[1] = 40;
++			re->shaderRGBA[2] = 255;
++			re->shaderRGBA[3] = 255;
++
++			le->color[0] = 0.85f;
++			le->color[1] = 0.15f;
++			le->color[2] = 0.85f;
++			le->color[3] = 1.0f;
++#else
+ 			re->shaderRGBA[0] = ci->color2[0] * 255;
+ 			re->shaderRGBA[1] = ci->color2[1] * 255;
+ 			re->shaderRGBA[2] = ci->color2[2] * 255;
+ 			re->shaderRGBA[3] = 255;
+ 
+ 			le->color[0] = ci->color2[0] * 0.75;
+ 			le->color[1] = ci->color2[1] * 0.75;
+ 			le->color[2] = ci->color2[2] * 0.75;
+ 			le->color[3] = 1.0f;
++#endif
+ 
+ 			le->pos.trType = TR_LINEAR;
+@@ -373,6 +397,16 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end)
+ 		j = (j + ROTATION) % 36;
+ 	}
++
++#ifdef NEONARENA_MOD
++	{
++		localEntity_t *ex;
++		qhandle_t flare = cgs.media.neonFlareShader ? cgs.media.neonFlareShader : cgs.media.railRingsShader;
++		ex = CG_MakeExplosion(end, vec3_origin, 0, flare, 380, qtrue);
++		ex->light = 260;
++		ex->lightColor[0] = 0.15f;
++		ex->lightColor[1] = 0.90f;
++		ex->lightColor[2] = 1.00f;
++	}
++#endif
+ }
+@@ -933,7 +968,11 @@ static void CG_RegisterWeapon( int weaponNum ) {
+ 
+ 	case WP_LIGHTNING:
++#ifdef NEONARENA_MOD
++		MAKERGB( weaponInfo->flashDlightColor, 0.20f, 1.00f, 1.00f );
++#else
+ 		MAKERGB( weaponInfo->flashDlightColor, 0.6f, 0.6f, 1.0f );
++#endif
+ 		weaponInfo->readySound = trap_S_RegisterSound( "sound/weapons/melee/fsthum.wav", qfalse );
+@@ -1063,7 +1101,11 @@ static void CG_RegisterWeapon( int weaponNum ) {
+ 	case WP_RAILGUN:
+ 		weaponInfo->readySound = trap_S_RegisterSound( "sound/weapons/railgun/rg_hum.wav", qfalse );
++#ifdef NEONARENA_MOD
++		MAKERGB( weaponInfo->flashDlightColor, 0.20f, 1.00f, 1.00f );
++#else
+ 		MAKERGB( weaponInfo->flashDlightColor, 1, 0.5f, 0 );
++#endif
+ 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/railgun/railgf1a.wav", qfalse );
+@@ -1397,6 +1441,18 @@ static void CG_LightningBolt( centity_t *cent, vec3_t origin )
+ 	beam.customShader = cgs.media.lightningShader;
+ 	trap_R_AddRefEntityToScene( &beam );
+ 
++#ifdef NEONARENA_MOD
++	{
++		vec3_t mid;
++		VectorAdd( origin, trace.endpos, mid );
++		VectorScale( mid, 0.5f, mid );
++		trap_R_AddLightToScene( mid, 160, 0.15f, 0.85f, 1.0f );
++		if ( trace.fraction < 1.0 ) {
++			trap_R_AddLightToScene( trace.endpos, 220, 0.20f, 1.00f, 1.00f );
++		}
++	}
++#endif
++
+ 	// add the impact flare if it hit something
+diff --git a/code/cgame/cg_players.c b/code/cgame/cg_players.c
+--- a/code/cgame/cg_players.c
++++ b/code/cgame/cg_players.c
+@@ -2592,6 +2592,22 @@ void CG_AddRefEntityWithPowerups(refEntity_t *ent, entityState_t *state, int team
+ 		if (cg_alternateShell.integer > 1)	// NOW add the entity for the glow
+ 		trap_R_AddRefEntityToScene(ent);
++
++#ifdef NEONARENA_MOD
++		if (cgs.gametype == GT_NEONWAVE && !isMissile && !(state->eFlags & EF_DEAD)
++			&& state->number >= 0 && state->number < MAX_CLIENTS) {
++			clientInfo_t *nci = &cgs.clientinfo[state->number];
++			if (nci->botSkill > 0) {
++				int cl = state->constantLight;
++				qboolean boss = ((cl & 0xFF) > 200) && (((cl >> 8) & 0xFF) < 40);
++				qhandle_t shell = boss ? cgs.media.neonBossShellShader : cgs.media.neonDroneShellShader;
++				if (shell) {
++					ent->customShader = shell;
++					trap_R_AddRefEntityToScene(ent);
++					ent->customShader = 0;
++				}
++			}
++		}
++#endif
+ 	}
+ }
+diff --git a/code/cgame/cg_draw.c b/code/cgame/cg_draw.c
+--- a/code/cgame/cg_draw.c
++++ b/code/cgame/cg_draw.c
+@@ -1236,7 +1236,16 @@ static float CG_DrawDomStatus(float y) {
+ CG_DrawNeonWave
+ =================
+  */
+ #ifdef NEONARENA_MOD
++static void CG_DrawNeonLook(void) {
++	vec4_t dim = {0.00f, 0.02f, 0.05f, 0.20f};
++	CG_FillRect(0, 0, 640, 480, dim);
++	if (cgs.media.neonVignetteShader) {
++		CG_DrawPic(0, 0, 640, 480, cgs.media.neonVignetteShader);
++	}
++}
++
+ static float CG_DrawNeonWave(float y) {
+ 	char s[64];
+@@ -1265,8 +1274,16 @@ static float CG_DrawNeonWave(float y) {
+ 	}
+ 	if (!s[0]) return y;
+ 
++	color[3] = 0.78f + 0.22f * (float)sin(cg.time / 220.0);
+ 	w = CG_DrawStrlen(s) * BIGCHAR_WIDTH;
++	{
++		vec4_t frame = {0.05f, 0.18f, 0.22f, 0.55f};
++		CG_FillRect(320 - w/2 - 12, y - 4, w + 24, BIGCHAR_HEIGHT + 8, frame);
++		if (cgs.media.neonBarShader) {
++			CG_DrawPic(320 - w/2 - 14, y - 6, w + 28, BIGCHAR_HEIGHT + 12, cgs.media.neonBarShader);
++		}
++	}
+ 	CG_DrawBigStringColor(320 - w/2, y, s, color);
+ 	y += BIGCHAR_HEIGHT + 8;
+@@ -1287,18 +1304,22 @@ static float CG_DrawNeonWave(float y) {
+ 		if (cs && cs[0] && sscanf(cs, "%*i %*i %i %i", &bossHp, &bossMax) == 2
+ 			&& bossHp > 0 && bossMax > 0) {
+ 			vec4_t magenta = {1.0f, 0.2f, 1.0f, 1.0f};
+-			vec4_t magentaDim = {0.3f, 0.05f, 0.3f, 0.8f};
+-			int barW = 240, barH = 10;
++			vec4_t magentaDim = {0.18f, 0.04f, 0.22f, 0.85f};
++			vec4_t magentaGlow = {0.55f, 0.08f, 0.55f, 0.35f};
++			int barW = 260, barH = 12;
+ 			int fill = bossHp * (barW - 4) / bossMax;
+ 			int bx = 320 - barW / 2;
+ 			Com_sprintf(s, sizeof(s), "BOSS");
+ 			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
+ 			CG_DrawSmallStringColor(320 - w/2, y, s, magenta);
+ 			y += SMALLCHAR_HEIGHT + 2;
++			CG_FillRect(bx - 3, y - 2, barW + 6, barH + 4, magentaGlow);
+ 			CG_FillRect(bx, y, barW, barH, magentaDim);
+ 			CG_FillRect(bx + 2, y + 2, fill, barH - 4, magenta);
++			if (cgs.media.neonBarShader) {
++				CG_DrawPic(bx - 4, y - 4, barW + 8, barH + 8, cgs.media.neonBarShader);
++			}
+ 			y += barH + 6;
+ 		}
+ 	}
+@@ -3663,6 +3684,12 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
+ 		CG_DrawIntermission();
+ 		return;
+ 	}
++
++#ifdef NEONARENA_MOD
++	if (cgs.gametype == GT_NEONWAVE) {
++		CG_DrawNeonLook();
++	}
++#endif
+ 
+ 	/*
+ 		if (cg.cameraMode) {
+diff --git a/code/game/g_client.c b/code/game/g_client.c
+--- a/code/game/g_client.c
++++ b/code/game/g_client.c
+@@ -1925,12 +1925,16 @@ void ClientSpawn(gentity_t *ent) {
+ 	VectorCopy( spawn_origin, client->ps.origin );
+ 
+ #ifdef NEONARENA_MOD
+-	// NeonWave boss: magenta constant glow so it's instantly recognizable
+-	if ( g_gametype.integer == GT_NEONWAVE && ent->client->pers.neonwaveBoss ) {
+-		ent->s.constantLight = 255 | ( 0 << 8 ) | ( 255 << 16 ) | ( 128 << 24 );
+-		// boss armament: railgun with deep ammo pool
+-		ent->client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_RAILGUN );
+-		ent->client->ps.ammo[WP_RAILGUN] = 999;
++	// NeonWave: cyan dlight on drones, stronger magenta on the boss
++	if ( g_gametype.integer == GT_NEONWAVE ) {
++		if ( ent->client->pers.neonwaveBoss ) {
++			ent->s.constantLight = 255 | ( 0 << 8 ) | ( 255 << 16 ) | ( 120 << 24 );
++			ent->client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_RAILGUN );
++			ent->client->ps.ammo[WP_RAILGUN] = 999;
++		} else if ( ent->r.svFlags & SVF_BOT ) {
++			ent->s.constantLight = 0 | ( 180 << 8 ) | ( 255 << 16 ) | ( 28 << 24 );
++		}
+ 	}
+ #endif
