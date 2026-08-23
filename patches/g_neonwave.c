@@ -32,6 +32,14 @@ static int nw_aliveBots;
 static int nw_modifier = NW_MOD_NONE;
 static int nw_bossType = 0;		// current boss type (NW_BOSS_*)
 static int nw_runStartTime;		// run stats: level.time of first wave start
+
+// test helper: is g_neonwave_autokill active? (used by fakecombo hook)
+static qboolean autokillActive( void ) {
+	char akBuf[8];
+	trap_Cvar_VariableStringBuffer( "g_neonwave_autokill", akBuf, sizeof(akBuf) );
+	return ( atoi( akBuf ) == 1 ) ? qtrue : qfalse;
+}
+
 static qboolean nw_started;
 static int nw_botCounter;
 static qboolean nw_inBreak;
@@ -378,8 +386,12 @@ static void NW_GrantUpgradePoints( void ) {
 
 static void NW_EnterBreak( void ) {
 	nw_inBreak = qtrue;
-	// restore gravity after low-grav wave
-	trap_Cvar_Set( "g_gravity", "800" );
+	// restore gravity after low-grav wave; log it so headless tests can assert
+	// that the modifier side effect is properly undone
+	if ( nw_modifier == NW_MOD_LOWGRAV ) {
+		trap_Cvar_Set( "g_gravity", "800" );
+		G_Printf( "NeonWave: gravity restored to 800\\n" );
+	}
 	nw_breakEnd = level.time + NW_WAVE_BREAK;
 	// test hook: shorten break window when g_neonwave_fastbreak is set
 	{
@@ -451,6 +463,44 @@ void NeonWave_Frame( void ) {
 		else humans++;
 	}
 	nw_aliveBots = bots;
+	// test hook: g_neonwave_fakecombo N simulates a human kill streak of N
+	// (tests the combo bonus + RUN STATS pipeline without real players)
+	{
+		static qboolean fcFired = qfalse;
+		char fcBuf[8];
+		trap_Cvar_VariableStringBuffer( "g_neonwave_fakecombo", fcBuf, sizeof(fcBuf) );
+		if ( !fcFired && atoi( fcBuf ) > 0 && nw_started && nw_wave > 0 ) {
+			int i2, n = atoi( fcBuf );
+			gentity_t *h = NULL;
+			fcFired = qtrue;
+			// attribute the streak to the first connected non-bot client
+			for ( i2 = 0; i2 < level.maxclients; i2++ ) {
+				ent = &g_entities[i2];
+				if ( ent->inuse && ent->client && !( ent->r.svFlags & SVF_BOT )
+						&& ent->client->pers.connected == CON_CONNECTED ) {
+					h = ent;
+					break;
+				}
+			}
+			if ( h && autokillActive() ) {
+				int k;
+				for ( k = 0; k < n; k++ ) {
+					if ( k > 0 && level.time - h->client->nwLastKillTime >= 3000 ) {
+						level.time -= 2000; // keep the chain alive for long streaks
+					}
+					h->client->nwLastKillTime = level.time;
+					h->client->nwCombo++;
+					h->client->pers.nwKills++;
+				}
+				if ( h->client->nwCombo > h->client->pers.nwBestCombo ) {
+					h->client->pers.nwBestCombo = h->client->nwCombo;
+				}
+				G_Printf( "NeonWave: fake combo %i registered (best %i)\n",
+					n, h->client->pers.nwBestCombo );
+			}
+		}
+	}
+
 	if ( bots > 0 ) {
 		nw_waveHadBots = qtrue;
 		// test hook: g_neonwave_autokill 1 -> kill all drones each frame
