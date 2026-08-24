@@ -142,6 +142,19 @@ archiviert im Branch `archive/patches`.
   Test-Hook `g_neonwave_bosstype 1..3`.
 - **Boss-Kill-Bonus:** +3 Upgrade-Punkte pro bezwungenem Boss.
 
+### v0.13-Highlights
+
+- **GLASS CANNON (Boss #4):** schnell (140 % Speed), nur 2× HP, Railgun —
+  fragile Gefahr. Rotiert ab der 4. Boss-Welle in den Zyklus;
+  Test-Hook `g_neonwave_bosstype 4`.
+- **Mega-Combo-Reward:** Best-Serie ≥ 8 droppt einen Quad-Damage-Pickup
+  beim Wellen-Abschluss.
+- **Combo-Bonus-Fix:** Run-Best-Serie überlebt Bot-Disconnects (globaler
+  Tracker) — der ≥5-Bonus greift jetzt zuverlässig auch headless.
+- **Gamecode als Submodule** (`bumblei3/oa-gamecode`): gepinnte Versionen,
+  CI baut direkt aus dem getaggten Stand; Patch-Serie archiviert.
+- **Suite 15/15 grün** unter ioq3ded.
+
 ### v0.12-Highlights (Juice)
 
 - **Combo-Sounds:** Pentatonik-Synth-Blips (C5→E6) pro Combo-Stufe 1–8 —

@@ -181,6 +181,14 @@ assert_13() {
   report $ok "mega-combo-reward"
 }
 
+# TEST 14: GLASS CANNON boss — forced via bosstype 4, 2x HP (hc\200)
+assert_14() {
+  local ok=0
+  check "$1" "boss spawned: GLASS CANNON (hc 200)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" 'hc\\200';                             [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "boss-glass-cannon"
+}
+
 TEST_NUM=""
 
 # wrappers that bundle cvar sets per test
@@ -228,13 +236,14 @@ t12() {
 }
 
 t13() { run_test 13 "mega-combo-reward" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1; }
+t14() { run_test 14 "boss-glass-cannon" 40 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 4; }
 
 [ -d "$HOME_DIR/vm" ] || { echo "mod not installed: $HOME_DIR/vm missing (run build-mod.sh first)"; exit 2; }
 
 case "$MODE" in
   quick)  t1; t3; t4; t7; t8; t10; t12; t13 ;;
   single) t"$SELECTED" ;;
-  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13; do "t$n"; done ;;
+  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14; do "t$n"; done ;;
 esac
 
 echo
