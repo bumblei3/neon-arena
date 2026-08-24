@@ -54,7 +54,8 @@ jobs:
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
           ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
           # generic version check: extract GAMEVERSION from source and assert it is NeonArena-*
-          V=$(grep -oP 'GAMEVERSION\s+\\"NeonArena-\K[0-9.]+' oa-gamecode/code/game/g_local.h | head -1)
+          V=$(grep -m1 'define[[:space:]]*GAMEVERSION' oa-gamecode/code/game/g_local.h \
+              | sed -n 's/.*NeonArena-\([0-9.]*\).*/\1/p')
           [ -n "$V" ] || { echo "GAMEVERSION not found"; exit 1; }
           echo "mod version: NeonArena-$V" >> "$GITHUB_STEP_SUMMARY"
 
