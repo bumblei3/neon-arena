@@ -20,18 +20,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential bison flex zip
 
-      - name: Clone OpenArena gamecode
-        run: git clone --depth 1 https://github.com/OpenArena/gamecode.git oa-gamecode
-
-      - name: Apply NeonArena patches
-        run: |
-          cd oa-gamecode
-          for p in ../patches/0*.patch ../patches/1*.patch ../patches/2*.patch; do
-            echo "Applying $p"
-            git apply --recount --whitespace=fix "$p"
-          done
-          cp ../patches/g_neonwave.c code/game/g_neonwave.c
-          cp ../Makefile.local .
+      - name: Clone NeonArena gamecode (tagged, pre-patched)
+        run: git clone --depth 1 --branch v0.12 https://github.com/bumblei3/oa-gamecode.git oa-gamecode
+        # The old patch-series step was removed: the patches have corrupted
+        # hunk counters and 280 is cumulative, so CI applied them in the
+        # wrong state. The bumblei3/oa-gamecode repo carries the fully
+        # patched tree per release tag instead.
 
       - name: Build mod
         run: make -C oa-gamecode
@@ -41,7 +35,7 @@ jobs:
           set -e
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
           ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
-          grep -r "NeonArena-0.1" oa-gamecode/code/game/g_local.h
+          grep -r "NeonArena-0.12" oa-gamecode/code/game/g_local.h
 
       # ---- Smoke test: run the real engine headless with our mod ----
       - name: Install OpenArena (smoke test)
