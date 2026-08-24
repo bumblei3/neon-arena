@@ -1,4 +1,4 @@
-oa-gamecode/
+# oa-gamecode is a git submodule now
 build/
 *.o
 neon-arena

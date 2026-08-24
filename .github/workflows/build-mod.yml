@@ -7,25 +7,41 @@ on:
   pull_request:
   workflow_dispatch:
 
+# one run per ref: supersede in-progress runs on rapid pushes
+concurrency:
+  group: build-mod-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
+          # oa-gamecode is pinned as a submodule; the checkout sha IS the version under test
+
+      - name: Gamecode version under test
+        run: |
+          cd oa-gamecode
+          echo "gamecode commit: $(git rev-parse HEAD)"
+          git log --oneline -1
+          grep GAMEVERSION code/game/g_local.h | head -2 >> "$GITHUB_STEP_SUMMARY"
 
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential bison flex zip
+          sudo apt-get install -y build-essential bison flex zip xvfb openarena x11-utils
 
-      - name: Clone NeonArena gamecode (tagged, pre-patched)
-        run: git clone --depth 1 --branch v0.12 https://github.com/bumblei3/oa-gamecode.git oa-gamecode
-        # The old patch-series step was removed: the patches have corrupted
-        # hunk counters and 280 is cumulative, so CI applied them in the
-        # wrong state. The bumblei3/oa-gamecode repo carries the fully
-        # patched tree per release tag instead.
+      - name: Cache lcc toolchain + objects
+        uses: actions/cache@v4
+        with:
+          path: oa-gamecode/build
+          key: oa-build-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
+          restore-keys: oa-build-${{ runner.os }}-
 
       - name: Build mod
         run: |
@@ -37,15 +53,15 @@ jobs:
           set -e
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
           ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
-          grep -r "NeonArena-0.12" oa-gamecode/code/game/g_local.h
+          # generic version check: extract GAMEVERSION from source and assert it is NeonArena-*
+          V=$(grep -oP 'GAMEVERSION\s+\\"NeonArena-\K[0-9.]+' oa-gamecode/code/game/g_local.h | head -1)
+          [ -n "$V" ] || { echo "GAMEVERSION not found"; exit 1; }
+          echo "mod version: NeonArena-$V" >> "$GITHUB_STEP_SUMMARY"
 
-      # ---- Smoke test: run the real engine headless with our mod ----
-      - name: Install OpenArena (smoke test)
-        run: |
-          sudo apt-get install -y openarena xvfb x11-utils
-          echo "OA installed"
-
+      # ---- Headless test suite ----
       - name: Run headless test suite (tests/run_suite.sh)
+        id: suite
+        continue-on-error: true
         run: |
           set -e
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
@@ -56,7 +72,31 @@ jobs:
           cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
           (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg)
           chmod +x tests/run_suite.sh
-          ./tests/run_suite.sh
+          ./tests/run_suite.sh | tee /tmp/suite-output.txt
+          exit "${PIPESTATUS[0]}"
+
+      - name: Suite summary
+        if: always()
+        run: |
+          if [ -f /tmp/suite-output.txt ]; then
+            {
+              echo "### Test suite"
+              echo '```'
+              cat /tmp/suite-output.txt
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            # fail the job if the suite failed
+            grep -q "0 failed" /tmp/suite-output.txt || exit 1
+          fi
+
+      - name: Upload test logs (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: /tmp/nw-suite-*/test*.log
+          if-no-files-found: ignore
+          retention-days: 7
 
       - name: Package neonarena PK3
         run: |
