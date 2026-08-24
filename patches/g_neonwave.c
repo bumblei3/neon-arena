@@ -29,6 +29,8 @@
 
 static int nw_wave;				// current wave (1-based)
 static int nw_aliveBots;
+static qboolean nw_fcFired;
+static qboolean nw_failFired;
 static int nw_modifier = NW_MOD_NONE;
 static int nw_bossType = 0;		// current boss type (NW_BOSS_*)
 static int nw_runStartTime;		// run stats: level.time of first wave start
@@ -684,51 +686,51 @@ void NeonWave_Frame( void ) {
 		else humans++;
 	}
 	nw_aliveBots = bots;
+
 	// test hook: g_neonwave_fakecombo N simulates a human kill streak of N
 	// (tests the combo bonus + RUN STATS pipeline without real players)
 	{
-		static qboolean fcFired = qfalse;
-		char fcBuf[8];
-		trap_Cvar_VariableStringBuffer( "g_neonwave_fakecombo", fcBuf, sizeof(fcBuf) );
-		if ( !fcFired && atoi( fcBuf ) > 0 && nw_started && nw_wave > 0 ) {
-			int i2, n = atoi( fcBuf );
-			gentity_t *h = NULL;
-			// attribute the streak to the first connected client; with
-			// g_neonwave_botasplayer 1 a bot counts as the streak carrier
-			// (headless CI has no human client)
-			for ( i2 = 0; i2 < level.maxclients; i2++ ) {
-				ent = &g_entities[i2];
-				if ( ent->inuse && ent->client
-						&& ent->client->pers.connected == CON_CONNECTED
-						&& ( !autokillActive() || ( ent->r.svFlags & SVF_BOT )
-							|| NW_TestPlayerSkipBots() ) ) {
-					h = ent;
-					break;
-				}
-			}
-			if ( !h ) {
-				// no client connected yet (bots spawn frames after wave start):
-				// do NOT consume the hook, retry next frame
-				return;
-			}
-			fcFired = qtrue;
-			{
-				int k;
-				for ( k = 0; k < n; k++ ) {
-					if ( k > 0 && level.time - h->client->nwLastKillTime >= 3000 ) {
-						level.time -= 2000; // keep the chain alive for long streaks
-					}
-					h->client->nwLastKillTime = level.time;
-					h->client->nwCombo++;
-					h->client->pers.nwKills++;
-				}
-				if ( h->client->nwCombo > h->client->pers.nwBestCombo ) {
-					h->client->pers.nwBestCombo = h->client->nwCombo;
-				}
-				G_Printf( "NeonWave: fake combo %i registered (best %i)\n",
-					n, h->client->pers.nwBestCombo );
+	char fcBuf[8];
+	trap_Cvar_VariableStringBuffer( "g_neonwave_fakecombo", fcBuf, sizeof(fcBuf) );
+	if ( !nw_fcFired && atoi( fcBuf ) > 0 && nw_started && nw_wave > 0 ) {
+		int i2, n = atoi( fcBuf );
+		gentity_t *h = NULL;
+		// attribute the streak to the first connected client; with
+		// g_neonwave_botasplayer 1 a bot counts as the streak carrier
+		// (headless CI has no human client)
+		for ( i2 = 0; i2 < level.maxclients; i2++ ) {
+			ent = &g_entities[i2];
+			if ( ent->inuse && ent->client
+					&& ent->client->pers.connected == CON_CONNECTED
+					&& ( !autokillActive() || ( ent->r.svFlags & SVF_BOT )
+						|| NW_TestPlayerSkipBots() ) ) {
+				h = ent;
+				break;
 			}
 		}
+		if ( !h ) {
+			// no client connected yet (bots spawn frames after wave start):
+			// do NOT consume the hook, retry next frame
+			return;
+		}
+		nw_fcFired = qtrue;
+		{
+			int k;
+			for ( k = 0; k < n; k++ ) {
+				if ( k > 0 && level.time - h->client->nwLastKillTime >= 3000 ) {
+					level.time -= 2000; // keep the chain alive for long streaks
+				}
+				h->client->nwLastKillTime = level.time;
+				h->client->nwCombo++;
+				h->client->pers.nwKills++;
+			}
+			if ( h->client->nwCombo > h->client->pers.nwBestCombo ) {
+				h->client->pers.nwBestCombo = h->client->nwCombo;
+			}
+			G_Printf( "NeonWave: fake combo %i registered (best %i)\n",
+				n, h->client->pers.nwBestCombo );
+		}
+	}
 	}
 
 	if ( bots > 0 ) {
@@ -788,12 +790,16 @@ void NeonWave_Frame( void ) {
 
 	// test hook: g_neonwave_failrun 1 -> trigger failed game over once (tests
 	// the FAILED path + RUN STATS + end screen without a real player death)
+	// test hook: g_neonwave_failrun 1 -> trigger failed game over once
 	{
-		static qboolean failFired = qfalse;
 		char frBuf[8];
 		trap_Cvar_VariableStringBuffer( "g_neonwave_failrun", frBuf, sizeof(frBuf) );
-		if ( !failFired && atoi( frBuf ) == 1 && nw_started && nw_wave > 0 ) {
-			failFired = qtrue;
+		// NOTE: failFired/fcFired are declared in the shared wrapper block
+		// above; wait for the fakecombo hook so a combined fakecombo+failrun
+		// test exercises the combo pipeline before the run ends
+		if ( !nw_failFired && atoi( frBuf ) == 1 && nw_started && nw_wave > 0
+				&& nw_fcFired ) {
+			nw_failFired = qtrue;
 			NW_GameOver( NW_EV_FAILED, "NeonWave over" );
 			return;
 		}

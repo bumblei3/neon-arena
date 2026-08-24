@@ -23,6 +23,14 @@ while [ $# -gt 0 ]; do
 done
 
 OA_BIN="${OA_BIN:-openarena}"
+# Debian's openarena wrapper only sets the cvars for the client binary;
+# with ioq3ded as OA_BIN we must pass the basepath/homepath cvars ourselves.
+OA_EXTRA=()
+if [ "${OA_BIN##*/}" = "ioq3ded" ] || [ "$OA_BIN" = "/usr/lib/ioquake3/ioq3ded" ]; then
+  OA_EXTRA=(+set com_basegame baseoa +set fs_basepath /usr/lib/openarena
+            +set fs_homepath "$HOME/.openarena" +set com_legacyprotocol 71
+            +set com_protocol 71)
+fi
 HOME_DIR="$HOME/.openarena/neonarena"
 PASS=0; FAIL=0; FAILED_NAMES=""
 
@@ -47,7 +55,8 @@ run_test() {
   local log="$LOGDIR/test${num}.log"
   TEST_NUM="$num"
   printf '%s' "TEST $num: $name ... "
-  $RUNNER timeout "$timeout_s" "$OA_BIN" +set dedicated 1 \
+  $RUNNER timeout "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
+    +set sv_maxclients 24 \
     +set fs_game neonarena +set g_gametype 14 +map oa_shine \
     "$@" > "$log" 2>&1 || true
   eval "assert_$num \"$log\""
@@ -72,7 +81,7 @@ report() { # report <ok> <name>
 # TEST 1: smoke + boss wave force-start (wave 10, classic sniper 4x hp)
 assert_1() {
   local ok=0
-  check "$1" 'gamename\\NeonArena-0.1';        [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" 'gamename\\NeonArena-0.12';       [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" 'g_gametype\\14';                 [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "NeonWave: starting wave 10";     [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" 'hc\\400';                        [ $LAST_RESULT -eq 0 ] || ok=1
@@ -168,9 +177,11 @@ TEST_NUM=""
 # wrappers that bundle cvar sets per test
 t1()  { run_test 1 "smoke+boss"        40 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10; }
 reset_progress() {
-  # g_neonwave_* test cvars persist via q3config.cfg between runs and would
-  # suppress "NEW BEST" assertions; wipe them for a deterministic baseline
+  # g_neonwave_* test cvars persist via q3config.cfg (and, on dedicated
+  # servers, q3config_server.cfg) between runs and would suppress
+  # "NEW BEST" assertions; wipe them for a deterministic baseline
   sed -i '/g_neonwave_/d' "$HOME_DIR/q3config.cfg" 2>/dev/null || true
+  sed -i '/g_neonwave_/d' "$HOME_DIR/q3config_server.cfg" 2>/dev/null || true
   rm -f "$HOME_DIR/neonwave_records.dat"
 }
 t2()  { reset_progress; run_test 2 "full-run-victory" 240 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1; }
@@ -182,13 +193,15 @@ t7()  {
   TEST_NUM=7
   printf '%s' "TEST 7: record-persistence ... "
   rm -f "$HOME_DIR/neonwave_records.dat"
-  $RUNNER timeout 90 "$OA_BIN" +set dedicated 1 +set fs_game neonarena +set g_gametype 14 \
+  $RUNNER timeout 90 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
+    +set fs_game neonarena +set g_gametype 14 \
     +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 \
     +set g_neonwave_startwave 20 +map oa_shine > "$LOGDIR/test7a.log" 2>&1 || true
   local ok=0
   grep -q "RECORDS SAVED" "$LOGDIR/test7a.log" || ok=1
   [ -f "$HOME_DIR/neonwave_records.dat" ] || { ok=1; echo "records file missing"; }
-  $RUNNER timeout 40 "$OA_BIN" +set dedicated 1 +set fs_game neonarena +set g_gametype 14 \
+  $RUNNER timeout 40 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
+    +set fs_game neonarena +set g_gametype 14 \
     +map oa_shine > "$LOGDIR/test7b.log" 2>&1 || true
   grep -qE "records loaded wave=[1-9]" "$LOGDIR/test7b.log" || ok=1
   report $ok "record-persistence"

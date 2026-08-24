@@ -148,6 +148,18 @@ Quake3e-Engine-Build angewendet, siehe Workflow `engine-quake3e.yml`.)
   Test-Hook `g_neonwave_bosstype 1..3`.
 - **Boss-Kill-Bonus:** +3 Upgrade-Punkte pro bezwungenem Boss.
 
+### v0.12-Highlights (Juice)
+
+- **Combo-Sounds:** Pentatonik-Synth-Blips (C5→E6) pro Combo-Stufe 1–8 —
+  jede höhere Stufe klingt höher, nur beim Aufsteigen der Serie.
+- **Boss-Hit-Shake:** Screenshake (180 ms, decaying) bei Boss-Treffern,
+  serverseitig rate-limitet (400 ms).
+- **NEW-RECORD-Fanfare:** Arpeggio-Jingle einmalig pro Lauf, wenn neue
+  Bestwerte (Welle/Zeit) erreicht werden.
+- **Test-Suite 13/13 grün unter ioq3ded** (dedicated-Headless): FFA-Fix
+  für GT_NEONWAVE, entkoppelter failrun-Hook, Mini-Drone-Cap angehoben,
+  Cvar-Reset deckt `q3config_server.cfg` ab.
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod gegen aktuellen

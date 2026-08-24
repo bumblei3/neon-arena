@@ -25,7 +25,7 @@ if [ ! -f textures/neonarena/flare.tga ]; then
 	python3 gen_textures.py
 fi
 rm -f "$DEST/neon-look.pk3"
-zip -rq "$DEST/neon-look.pk3" scripts textures gfx env autoexec.cfg neon-look.cfg
+zip -rq "$DEST/neon-look.pk3" scripts textures gfx env sound autoexec.cfg neon-look.cfg
 
 echo "Installed NeonArena mod to $DEST:"
 ls -la "$DEST" "$DEST/vm"

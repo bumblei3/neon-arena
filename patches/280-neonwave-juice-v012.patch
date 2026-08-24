@@ -1,0 +1,1984 @@
+diff --git a/Makefile b/Makefile
+index a32ee5c..425993d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -1318,6 +1318,8 @@ ifndef TOOLS_CC
+   # A compiler which probably produces native binaries
+   TOOLS_CC = gcc
+ endif
++# lcc sources use 'constexpr' as identifier, illegal in newer C standards
++TOOLS_CFLAGS += -std=gnu89
+ 
+ TOOLS_OPTIMIZE = -g -Wall -fno-strict-aliasing
+ TOOLS_CFLAGS += $(TOOLS_OPTIMIZE) \
+@@ -2405,6 +2407,7 @@ Q3GOBJ_ = \
+   $(B)/$(BASEGAME)/game/g_items.o \
+   $(B)/$(BASEGAME)/game/g_killspree.o \
+   $(B)/$(BASEGAME)/game/g_misc.o \
++  $(B)/$(BASEGAME)/game/g_neonwave.o \
+   $(B)/$(BASEGAME)/game/g_missile.o \
+   $(B)/$(BASEGAME)/game/g_mover.o \
+   $(B)/$(BASEGAME)/game/g_playerstore.o \
+@@ -2466,6 +2469,7 @@ MPGOBJ_ = \
+   $(B)/$(MISSIONPACK)/game/g_items.o \
+   $(B)/$(MISSIONPACK)/game/g_killspree.o \
+   $(B)/$(MISSIONPACK)/game/g_misc.o \
++  $(B)/$(MISSIONPACK)/game/g_neonwave.o \
+   $(B)/$(MISSIONPACK)/game/g_missile.o \
+   $(B)/$(MISSIONPACK)/game/g_mover.o \
+   $(B)/$(MISSIONPACK)/game/g_playerstore.o \
+diff --git a/code/cgame/cg_draw.c b/code/cgame/cg_draw.c
+index 8cc4bc2..080947e 100644
+--- a/code/cgame/cg_draw.c
++++ b/code/cgame/cg_draw.c
+@@ -1231,6 +1231,273 @@ static float CG_DrawDomStatus(float y) {
+ 	return y;
+ }
+ 
++/*
++=================
++CG_DrawNeonWave
++=================
++ */
++#ifdef NEONARENA_MOD
++static void CG_DrawNeonLook(void) {
++	vec4_t dim = {0.00f, 0.02f, 0.05f, 0.20f};
++	int bossHp = 0, bossMax = 0;
++
++	// boss alive? -> pulsing magenta danger vignette
++	{
++		const char *cs = CG_ConfigString(CS_NEONWAVE);
++		if (cs && cs[0] && sscanf(cs, "%*i %*i %i %i", &bossHp, &bossMax) == 2
++			&& bossHp > 0 && bossMax > 0) {
++			float pulse = 0.5f + 0.5f * (float)sin(cg.time / 350.0);
++			vec4_t mag;
++			mag[0] = 0.35f; mag[1] = 0.0f; mag[2] = 0.30f;
++			mag[3] = 0.10f + 0.12f * pulse * bossHp / bossMax;
++			CG_FillRect(0, 0, 640, 480, mag);
++		}
++	}
++
++	CG_FillRect(0, 0, 640, 480, dim);
++	if (cgs.media.neonVignetteShader) {
++		CG_DrawPic(0, 0, 640, 480, cgs.media.neonVignetteShader);
++	}
++}
++
++static float CG_DrawNeonWave(float y) {
++	char s[64];
++	int w, wave, ev, best;
++	vec4_t color = {0.2f, 1.0f, 1.0f, 1.0f};
++	static int lastWaveEvent = -1;
++	static qboolean setCvar = qfalse;
++
++	trap_Cvar_VariableStringBuffer("ui_neonwave", s, sizeof(s));
++	if (!s[0]) {
++		const char *cs = CG_ConfigString(CS_NEONWAVE);
++		if (cs && cs[0]) {
++			sscanf(cs, "%i %i", &wave, &ev);
++			if (wave > 0) {
++				Com_sprintf(s, sizeof(s), "WAVE %i%s", wave,
++					ev == 1 ? " CLEARED" : "");
++				// jingle on transitions
++				if (lastWaveEvent != wave * 10 + ev) {
++					if (!setCvar) setCvar = qtrue;
++					lastWaveEvent = wave * 10 + ev;
++					if (ev == 1) trap_S_StartLocalSound(cgs.media.count3Sound, CHAN_ANNOUNCER);
++					else trap_S_StartLocalSound(cgs.media.countPrepareSound, CHAN_ANNOUNCER);
++				}
++			}
++		}
++	}
++	if (!s[0]) return y;
++
++	color[3] = 0.78f + 0.22f * (float)sin(cg.time / 220.0);
++	w = CG_DrawStrlen(s) * BIGCHAR_WIDTH;
++	{
++		vec4_t frame = {0.05f, 0.18f, 0.22f, 0.55f};
++		CG_FillRect(320 - w/2 - 12, y - 4, w + 24, BIGCHAR_HEIGHT + 8, frame);
++		if (cgs.media.neonBarShader) {
++			CG_DrawPic(320 - w/2 - 14, y - 6, w + 28, BIGCHAR_HEIGHT + 12, cgs.media.neonBarShader);
++		}
++	}
++	CG_DrawBigStringColor(320 - w/2, y, s, color);
++	y += BIGCHAR_HEIGHT + 8;
++
++	// live combo popup: field 12 of the payload; shows while a streak of 2+
++	// is hot (3s window maintained by g_combat.c)
++	{
++		const char *csC = CG_ConfigString(CS_NEONWAVE);
++		int liveCombo = 0;
++		static int shownCombo = 0;
++		if (csC && csC[0] && sscanf(csC,
++				"%*i %*i %*i %*i %*i %*i %*i %*i %*i %*i %*i %i", &liveCombo) == 1
++			&& liveCombo >= 2 && ev == 0) {
++			float pulse = 0.7f + 0.3f * (float)sin(cg.time / 90.0);
++			vec4_t comboColor = {1.0f, 0.55f, 0.1f, 1.0f};
++			comboColor[3] = pulse;
++			Com_sprintf(s, sizeof(s), "COMBO x%i!", liveCombo);
++			w = CG_DrawStrlen(s) * BIGCHAR_WIDTH * 2;
++			CG_DrawBigStringColor(320 - w/2, y + 4, s, comboColor);
++			shownCombo = liveCombo;
++		} else if (shownCombo >= 5 && ev == 1) {
++			// streak survived the wave: brief golden flash on clear
++			vec4_t gold = {1.0f, 0.85f, 0.2f, 1.0f};
++			Com_sprintf(s, sizeof(s), "COMBO x%i SAVED", shownCombo);
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, y + 4, s, gold);
++		} else {
++			shownCombo = 0;
++		}
++		y += BIGCHAR_HEIGHT + 10;
++	}
++
++	// modifier color coding: field 8 of the payload tints the screen edge
++	// GLASS=cyan pulse SWARM=orange LOWGRAV=violet DOUBLEPTS=gold
++	{
++		const char *csM = CG_ConfigString(CS_NEONWAVE);
++		int mod = 0;
++		if (csM && csM[0] && sscanf(csM,
++				"%*i %*i %*i %*i %*i %*i %*i %i", &mod) == 1 && mod > 0
++			&& ev == 0) {
++			vec4_t tint;
++			float pulse = 0.5f + 0.5f * (float)sin(cg.time / 300.0);
++			switch (mod) {
++			case 1: tint[0]=0.0f; tint[1]=0.6f; tint[2]=0.8f; break; // glass: cyan
++			case 2: tint[0]=0.8f; tint[1]=0.4f; tint[2]=0.0f; break; // swarm: orange
++			case 3: tint[0]=0.5f; tint[1]=0.0f; tint[2]=0.8f; break; // lowgrav: violet
++			default: tint[0]=0.7f; tint[1]=0.6f; tint[2]=0.0f; break; // dbl pts: gold
++			}
++			tint[3] = 0.06f + 0.08f * pulse;
++			// top and bottom edge bars instead of full-screen fill
++			CG_FillRect(0, 0, 640, 24, tint);
++			CG_FillRect(0, 456, 640, 24, tint);
++		}
++	}
++
++	// best-wave line
++	{
++		char bestBuf[16];
++		trap_Cvar_VariableStringBuffer("g_neonwave_best", bestBuf, sizeof(bestBuf));
++		best = atoi(bestBuf);
++	}
++	if (best > 0) {
++		Com_sprintf(s, sizeof(s), "BEST %i", best);
++		w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++		CG_DrawSmallStringColor(320 - w/2, y, s, color);
++		y += SMALLCHAR_HEIGHT + 4;
++	}
++
++	// boss health bar (payload: "<wave> <ev> <bossHp> <bossMax>")
++	{
++		const char *cs = CG_ConfigString(CS_NEONWAVE);
++		int bossHp = 0, bossMax = 0;
++		if (cs && cs[0] && sscanf(cs, "%*i %*i %i %i", &bossHp, &bossMax) == 2
++			&& bossHp > 0 && bossMax > 0) {
++			vec4_t magenta = {1.0f, 0.2f, 1.0f, 1.0f};
++			vec4_t magentaDim = {0.18f, 0.04f, 0.22f, 0.85f};
++			vec4_t magentaGlow = {0.55f, 0.08f, 0.55f, 0.35f};
++			int barW = 260, barH = 12;
++			int fill = bossHp * (barW - 4) / bossMax;
++			int bx = 320 - barW / 2;
++			Com_sprintf(s, sizeof(s), "BOSS");
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, y, s, magenta);
++			y += SMALLCHAR_HEIGHT + 2;
++			CG_FillRect(bx - 3, y - 2, barW + 6, barH + 4, magentaGlow);
++			CG_FillRect(bx, y, barW, barH, magentaDim);
++			CG_FillRect(bx + 2, y + 2, fill, barH - 4, magenta);
++			if (cgs.media.neonBarShader) {
++				CG_DrawPic(bx - 4, y - 4, barW + 8, barH + 8, cgs.media.neonBarShader);
++			}
++			y += barH + 6;
++		}
++	}
++
++	// upgrade status: points + levels (packed by NW_SyncUpgrades into
++	// ps.persistant[PERS_CAPTURES]: bits 0-7 pts, 8-11 hp, 12-15 dmg, 16-19 spd)
++	{
++		int up = cg.snap->ps.persistant[PERS_CAPTURES];
++		int pts = up & 0xFF;
++		int lvHp = (up >> 8) & 0xF, lvDmg = (up >> 12) & 0xF, lvSpd = (up >> 16) & 0xF;
++		vec4_t gold = {1.0f, 0.85f, 0.2f, 1.0f};
++		vec4_t dimw = {0.55f, 0.55f, 0.6f, 1.0f};
++
++		if (pts > 0) {
++			Com_sprintf(s, sizeof(s), "UPGRADE POINTS: %i", pts);
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, y, s, gold);
++			y += SMALLCHAR_HEIGHT + 2;
++			Com_sprintf(s, sizeof(s), "F1 HP   F2 DMG   F3 SPD");
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, y, s, dimw);
++			y += SMALLCHAR_HEIGHT + 4;
++		}
++		if (lvHp || lvDmg || lvSpd) {
++			Com_sprintf(s, sizeof(s), "HP %i/6  DMG %i/5  SPD %i/5", lvHp, lvDmg, lvSpd);
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, y, s, gold);
++			y += SMALLCHAR_HEIGHT + 4;
++		}
++	}
++
++	// run-end stats overlay: "<wave> <ev> ... <mod> <kills> <bestcombo> <runsec>"
++	if (ev == 2 || ev == 3) {
++		const char *cs = CG_ConfigString(CS_NEONWAVE);
++		int kills = 0, combo = 0, runsec = 0;
++		vec4_t endColor;
++		vec4_t statw = {0.85f, 0.85f, 0.9f, 1.0f};
++		vec4_t panel = {0.03f, 0.05f, 0.10f, 0.72f};
++
++		if (ev == 3) {
++			endColor[0] = 0.2f; endColor[1] = 1.0f; endColor[2] = 0.35f; endColor[3] = 1.0f;
++		} else {
++			endColor[0] = 1.0f; endColor[1] = 0.25f; endColor[2] = 0.25f; endColor[3] = 1.0f;
++		}
++
++		if (cs && cs[0] && sscanf(cs, "%*i %*i %*i %*i %*i %*i %*i %*i %i %i %i",
++				&kills, &combo, &runsec) == 3) {
++			int py = 150;
++			CG_FillRect(170, py - 20, 300, 130, panel);
++			Com_sprintf(s, sizeof(s), ev == 3 ? "VICTORY" : "RUN OVER");
++			w = CG_DrawStrlen(s) * BIGCHAR_WIDTH * 2;
++			// draw scaled-up title via big string at center
++			CG_DrawBigStringColor(320 - CG_DrawStrlen(s)*BIGCHAR_WIDTH/2, py, s, endColor);
++			py += BIGCHAR_HEIGHT + 12;
++
++			Com_sprintf(s, sizeof(s), "WAVES SURVIVED: %i", wave > 0 ? wave : 0);
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, py, s, statw); py += SMALLCHAR_HEIGHT + 6;
++
++			Com_sprintf(s, sizeof(s), "KILLS: %i", kills);
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, py, s, statw); py += SMALLCHAR_HEIGHT + 6;
++
++			Com_sprintf(s, sizeof(s), "BEST COMBO: %ix", combo);
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, py, s, statw); py += SMALLCHAR_HEIGHT + 6;
++
++			Com_sprintf(s, sizeof(s), "TIME: %i:%02i", runsec / 60, runsec % 60);
++			w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++			CG_DrawSmallStringColor(320 - w/2, py, s, statw); py += SMALLCHAR_HEIGHT + 6;
++
++			// all-time records (mirrored to cvars by NW_UpdateRecords)
++			{
++				char rw[8], rt[16], rk[8], rc[8], nr[8];
++				int riw, rit, rik, ric;
++				trap_Cvar_VariableStringBuffer("g_neonwave_recwave", rw, sizeof(rw));
++				trap_Cvar_VariableStringBuffer("g_neonwave_rectime", rt, sizeof(rt));
++				trap_Cvar_VariableStringBuffer("g_neonwave_reckills", rk, sizeof(rk));
++				trap_Cvar_VariableStringBuffer("g_neonwave_reccombo", rc, sizeof(rc));
++				trap_Cvar_VariableStringBuffer("g_neonwave_newrecord", nr, sizeof(nr));
++				riw = atoi(rw); rit = atoi(rt); rik = atoi(rk); ric = atoi(rc);
++				if (riw > 0) {
++					vec4_t recGold = {1.0f, 0.85f, 0.2f, 1.0f};
++					if (rit > 0) {
++						Com_sprintf(s, sizeof(s), "RECORDS: WAVE %i  TIME %i:%02i  KILLS %i  COMBO %ix",
++							riw, rit / 60, rit % 60, rik, ric);
++					} else {
++						Com_sprintf(s, sizeof(s), "RECORDS: WAVE %i  KILLS %i  COMBO %ix",
++							riw, rik, ric);
++					}
++					w = CG_DrawStrlen(s) * SMALLCHAR_WIDTH;
++					CG_DrawSmallStringColor(320 - w/2, py, s, recGold);
++					py += SMALLCHAR_HEIGHT + 6;
++				}
++				if (atoi(nr) == 1) {
++					// fresh record this run: pulsing banner
++					vec4_t nrColor = {1.0f, 0.9f, 0.1f, 1.0f};
++					float pulse = 0.6f + 0.4f * (float)sin(cg.time / 120.0);
++					nrColor[3] = pulse;
++					Com_sprintf(s, sizeof(s), "** NEW RECORD **");
++					w = CG_DrawStrlen(s) * BIGCHAR_WIDTH * 2;
++					CG_DrawBigStringColor(320 - w/2, py + 4, s, nrColor);
++					py += BIGCHAR_HEIGHT + 10;
++				}
++			}
++
++			y += 8; // keep flow stable
++		}
++	}
++	return y;
++}
++#endif
++
+ /*
+ =================
+ CG_DrawCountdownTimer
+@@ -1680,6 +1947,11 @@ static void CG_DrawUpperRight(stereoFrame_t stereoFrame) {
+ 	} else if (cgs.gametype == GT_POSSESSION) {
+ 		y = CG_DrawPossessionString(y);
+ 	}
++#ifdef NEONARENA_MOD
++	else if (cgs.gametype == GT_NEONWAVE) {
++		y = CG_DrawNeonWave(y);
++	}
++#endif
+ 
+ 	if (cg_drawSnapshot.integer) {
+ 		y = CG_DrawSnapshot(y);
+@@ -3572,6 +3844,12 @@ static void CG_Draw2D(stereoFrame_t stereoFrame) {
+ 		return;
+ 	}
+ 
++#ifdef NEONARENA_MOD
++	if (cgs.gametype == GT_NEONWAVE) {
++		CG_DrawNeonLook();
++	}
++#endif
++
+ 	/*
+ 		if (cg.cameraMode) {
+ 			return;
+diff --git a/code/cgame/cg_local.h b/code/cgame/cg_local.h
+index 68a25d1..5efdf68 100644
+--- a/code/cgame/cg_local.h
++++ b/code/cgame/cg_local.h
+@@ -864,6 +864,13 @@ typedef struct {
+ 
+ 
+ 
++#ifdef NEONARENA_MOD
++	qhandle_t	neonDroneShellShader;
++	qhandle_t	neonBossShellShader;
++	qhandle_t	neonFlareShader;
++	qhandle_t	neonVignetteShader;
++	qhandle_t	neonBarShader;
++#endif
+ 	// LEILEI shaders
+ 
+ 	qhandle_t	lsmkShader1;
+diff --git a/code/cgame/cg_main.c b/code/cgame/cg_main.c
+index f0d6b33..1309878 100644
+--- a/code/cgame/cg_main.c
++++ b/code/cgame/cg_main.c
+@@ -1251,6 +1251,14 @@ static void CG_RegisterGraphics(void) {
+ 
+ 	cgs.media.bloodExplosionShader = trap_R_RegisterShader("bloodExplosion");
+ 
++#ifdef NEONARENA_MOD
++	cgs.media.neonDroneShellShader = trap_R_RegisterShader("neonarena/droneShell");
++	cgs.media.neonBossShellShader = trap_R_RegisterShader("neonarena/bossShell");
++	cgs.media.neonFlareShader = trap_R_RegisterShader("neonarena/flare");
++	cgs.media.neonVignetteShader = trap_R_RegisterShader("gfx/2d/neon_vignette");
++	cgs.media.neonBarShader = trap_R_RegisterShader("gfx/2d/neon_bar");
++#endif
++
+ 	cgs.media.bulletFlashModel = trap_R_RegisterModel("models/weaphits/bullet.md3");
+ 	cgs.media.ringFlashModel = trap_R_RegisterModel("models/weaphits/ring02.md3");
+ 	cgs.media.dishFlashModel = trap_R_RegisterModel("models/weaphits/boom01.md3");
+@@ -2525,6 +2533,9 @@ void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum) {
+ 	cg.consoleValid = qtrue;
+ #endif
+ 	// end loadingscreen
++#ifdef NEONARENA_MOD
++	trap_SendConsoleCommand("exec neon-look.cfg\n");
++#endif
+ }
+ 
+ /*
+diff --git a/code/cgame/cg_players.c b/code/cgame/cg_players.c
+index a060fc4..2b9e3b1 100644
+--- a/code/cgame/cg_players.c
++++ b/code/cgame/cg_players.c
+@@ -2592,6 +2592,23 @@ void CG_AddRefEntityWithPowerups(refEntity_t *ent, entityState_t *state, int tea
+ 		}
+ 		if (cg_alternateShell.integer > 1)	// NOW add the entity for the glow
+ 		trap_R_AddRefEntityToScene(ent);
++
++#ifdef NEONARENA_MOD
++		if (cgs.gametype == GT_NEONWAVE && !isMissile && !(state->eFlags & EF_DEAD)
++			&& state->number >= 0 && state->number < MAX_CLIENTS) {
++			clientInfo_t *nci = &cgs.clientinfo[state->number];
++			if (nci->botSkill > 0) {
++				int cl = state->constantLight;
++				qboolean boss = ((cl & 0xFF) > 200) && (((cl >> 8) & 0xFF) < 40);
++				qhandle_t shell = boss ? cgs.media.neonBossShellShader : cgs.media.neonDroneShellShader;
++				if (shell) {
++					ent->customShader = shell;
++					trap_R_AddRefEntityToScene(ent);
++					ent->customShader = 0;
++				}
++			}
++		}
++#endif
+ 	}
+ }
+ 
+diff --git a/code/cgame/cg_weapons.c b/code/cgame/cg_weapons.c
+index 3ebb88a..4482434 100644
+--- a/code/cgame/cg_weapons.c
++++ b/code/cgame/cg_weapons.c
+@@ -233,7 +233,11 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end)
+ 	localEntity_t *le;
+ 	refEntity_t   *re;
+ 
++#ifdef NEONARENA_MOD
++#define RADIUS   6
++#else
+ #define RADIUS   4
++#endif
+ #define ROTATION 1
+ #define SPACING  5
+ 
+@@ -254,14 +258,15 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end)
+ 	VectorCopy(start, re->origin);
+ 	VectorCopy(end, re->oldorigin);
+ 
+-	re->shaderRGBA[0] = ci->color1[0] * 255;
+-	re->shaderRGBA[1] = ci->color1[1] * 255;
+-	re->shaderRGBA[2] = ci->color1[2] * 255;
++	// NeonArena mod: force neon-cyan rail trail
++	re->shaderRGBA[0] = 0;
++	re->shaderRGBA[1] = 255;
++	re->shaderRGBA[2] = 255;
+ 	re->shaderRGBA[3] = 255;
+ 
+-	le->color[0] = ci->color1[0] * 0.75;
+-	le->color[1] = ci->color1[1] * 0.75;
+-	le->color[2] = ci->color1[2] * 0.75;
++	le->color[0] = 0.0f;
++	le->color[1] = 0.75f;
++	le->color[2] = 0.75f;
+ 	le->color[3] = 1.0f;
+ 
+ 	AxisClear( re->axis );
+@@ -343,9 +348,24 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end)
+ 
+ 			re->shaderTime = cg.time / 1000.0f;
+ 			re->reType = RT_SPRITE;
++#ifdef NEONARENA_MOD
++			re->radius = 1.6f;
++#else
+ 			re->radius = 1.1f;
++#endif
+ 			re->customShader = cgs.media.railRingsShader;
+ 
++#ifdef NEONARENA_MOD
++			re->shaderRGBA[0] = 255;
++			re->shaderRGBA[1] = 40;
++			re->shaderRGBA[2] = 255;
++			re->shaderRGBA[3] = 255;
++
++			le->color[0] = 0.85f;
++			le->color[1] = 0.15f;
++			le->color[2] = 0.85f;
++			le->color[3] = 1.0f;
++#else
+ 			re->shaderRGBA[0] = ci->color2[0] * 255;
+ 			re->shaderRGBA[1] = ci->color2[1] * 255;
+ 			re->shaderRGBA[2] = ci->color2[2] * 255;
+@@ -355,6 +375,7 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end)
+ 			le->color[1] = ci->color2[1] * 0.75;
+ 			le->color[2] = ci->color2[2] * 0.75;
+ 			le->color[3] = 1.0f;
++#endif
+ 
+ 			le->pos.trType = TR_LINEAR;
+ 			le->pos.trTime = cg.time;
+@@ -372,6 +393,18 @@ void CG_RailTrail (clientInfo_t *ci, vec3_t start, vec3_t end)
+ 
+ 		j = (j + ROTATION) % 36;
+ 	}
++
++#ifdef NEONARENA_MOD
++	{
++		localEntity_t *ex;
++		qhandle_t flare = cgs.media.neonFlareShader ? cgs.media.neonFlareShader : cgs.media.railRingsShader;
++		ex = CG_MakeExplosion(end, vec3_origin, 0, flare, 380, qtrue);
++		ex->light = 260;
++		ex->lightColor[0] = 0.15f;
++		ex->lightColor[1] = 0.90f;
++		ex->lightColor[2] = 1.00f;
++	}
++#endif
+ }
+ 
+ /*
+@@ -932,7 +965,11 @@ void CG_RegisterWeapon( int weaponNum )
+ 		break;
+ 
+ 	case WP_LIGHTNING:
++#ifdef NEONARENA_MOD
++		MAKERGB( weaponInfo->flashDlightColor, 0.20f, 1.00f, 1.00f );
++#else
+ 		MAKERGB( weaponInfo->flashDlightColor, 0.6f, 0.6f, 1.0f );
++#endif
+ 		weaponInfo->readySound = trap_S_RegisterSound( "sound/weapons/melee/fsthum.wav", qfalse );
+ 		weaponInfo->firingSound = trap_S_RegisterSound( "sound/weapons/lightning/lg_hum.wav", qfalse );
+ 
+@@ -1061,7 +1098,11 @@ void CG_RegisterWeapon( int weaponNum )
+ 
+ 	case WP_RAILGUN:
+ 		weaponInfo->readySound = trap_S_RegisterSound( "sound/weapons/railgun/rg_hum.wav", qfalse );
++#ifdef NEONARENA_MOD
++		MAKERGB( weaponInfo->flashDlightColor, 0.20f, 1.00f, 1.00f );
++#else
+ 		MAKERGB( weaponInfo->flashDlightColor, 1, 0.5f, 0 );
++#endif
+ 		weaponInfo->flashSound[0] = trap_S_RegisterSound( "sound/weapons/railgun/railgf1a.wav", qfalse );
+ 		cgs.media.railExplosionShader = trap_R_RegisterShader( "railExplosion" );
+ 		cgs.media.railRingsShader = trap_R_RegisterShader( "railDisc" );
+@@ -1397,6 +1438,18 @@ static void CG_LightningBolt( centity_t *cent, vec3_t origin )
+ 	beam.customShader = cgs.media.lightningShader;
+ 	trap_R_AddRefEntityToScene( &beam );
+ 
++#ifdef NEONARENA_MOD
++	{
++		vec3_t mid;
++		VectorAdd( origin, trace.endpos, mid );
++		VectorScale( mid, 0.5f, mid );
++		trap_R_AddLightToScene( mid, 160, 0.15f, 0.85f, 1.0f );
++		if ( trace.fraction < 1.0 ) {
++			trap_R_AddLightToScene( trace.endpos, 220, 0.20f, 1.00f, 1.00f );
++		}
++	}
++#endif
++
+ 	// add the impact flare if it hit something
+ 	if ( trace.fraction < 1.0 ) {
+ 		vec3_t	angles;
+@@ -1639,6 +1692,25 @@ static void MuzzleFlashStyleQ1(refEntity_t *parent, playerState_t *ps, centity_t
+ 
+ 	CG_PositionRotatedEntityOnTag( &flash, gun, weapon->weaponModel, "tag_flash");
+ 
++#ifdef NEONARENA_MOD
++	// NeonArena: neon flare sprite at the muzzle on railgun fire
++	if ( weaponNum == WP_RAILGUN && cgs.media.neonFlareShader
++		&& cg.time - cent->muzzleFlashTime < 100 ) {
++		refEntity_t flare;
++		memset( &flare, 0, sizeof( flare ) );
++		flare.reType = RT_SPRITE;
++		VectorCopy( flash.origin, flare.origin );
++		flare.radius = 22.0f;
++		flare.rotation = (float)(cg.time % 360);
++		flare.customShader = cgs.media.neonFlareShader;
++		flare.shaderRGBA[0] = 80;
++		flare.shaderRGBA[1] = 255;
++		flare.shaderRGBA[2] = 255;
++		flare.shaderRGBA[3] = 255;
++		trap_R_AddRefEntityToScene( &flare );
++	}
++#endif
++
+ 	// leilei - allow the flash to go away 
+ 	trap_R_AddRefEntityToScene( &flash );
+ 
+@@ -3637,6 +3709,18 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, im
+ 		}
+ 		mark = cgs.media.holeMarkShader;
+ 		radius = 12;
++#ifdef NEONARENA_MOD
++		// NeonArena: cyan spark flash at LG impact point
++		if ( cgs.media.neonFlareShader ) {
++			shader = cgs.media.neonFlareShader;
++			isSprite = qtrue;
++			duration = 150;
++			light = 90;
++			lightColor[0] = 0.2f;
++			lightColor[1] = 1.0f;
++			lightColor[2] = 1.0f;
++		}
++#endif
+ 		break;
+ //#ifdef MISSIONPACK
+ 	case WP_PROX_LAUNCHER:
+@@ -3694,6 +3778,18 @@ void CG_MissileHitWall( int weapon, int clientNum, vec3_t origin, vec3_t dir, im
+ 		sfx = cgs.media.sfx_plasmaexp;
+ 		mark = cgs.media.energyMarkShader;
+ 		radius = 24;
++#ifdef NEONARENA_MOD
++		// NeonArena: cyan energy burst + tinted dlight on rail impact
++		if ( cgs.media.neonFlareShader ) {
++			shader = cgs.media.neonFlareShader;
++			isSprite = qtrue;
++			duration = 350;
++			light = 220;
++			lightColor[0] = 0.2f;
++			lightColor[1] = 1.0f;
++			lightColor[2] = 1.0f;
++		}
++#endif
+ 		if (cg_leiEnhancement.integer) {
+ 			duration = 10;
+ 			trap_R_LFX_ParticleEffect(30, origin, dir); // that was easy.
+diff --git a/code/game/ai_dmq3.c b/code/game/ai_dmq3.c
+index f2f3c56..8cc1c2d 100644
+--- a/code/game/ai_dmq3.c
++++ b/code/game/ai_dmq3.c
+@@ -3041,6 +3041,12 @@ int BotFindEnemy(bot_state_t *bs, int curenemy) {
+ 	for (i = 0; i < level.maxclients; i++) {
+ 
+ 		if (i == bs->client) continue;
++#ifdef NEONARENA_MOD
++		// NeonWave: bots only hunt humans, never each other
++		if ( gametype == GT_NEONWAVE && (g_entities[i].r.svFlags & SVF_BOT) ) {
++			continue;
++		}
++#endif
+ 		//if it's the current enemy
+ 		if (i == curenemy) continue;
+ 		//if the enemy has targeting disabled
+diff --git a/code/game/bg_public.h b/code/game/bg_public.h
+index e581d94..d0c2a81 100644
+--- a/code/game/bg_public.h
++++ b/code/game/bg_public.h
+@@ -99,9 +99,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ #define	CS_SOUNDS				(CS_MODELS+MAX_MODELS)
+ #define	CS_PLAYERS				(CS_SOUNDS+MAX_SOUNDS)
+ #define CS_LOCATIONS			(CS_PLAYERS+MAX_CLIENTS)
+-#define CS_PARTICLES			(CS_LOCATIONS+MAX_LOCATIONS)
++#define CS_PARTICLES		(CS_LOCATIONS+MAX_LOCATIONS)
+ 
+-#define CS_MAX				(CS_PARTICLES+MAX_LOCATIONS)
++// NeonArena: wave status configstring (wave + score)
++#define CS_NEONWAVE			CS_PARTICLES
++#define CS_MAX				(CS_NEONWAVE+1)
+ 
+ #if (CS_MAX) > MAX_CONFIGSTRINGS
+ #error overflow: (CS_MAX) > MAX_CONFIGSTRINGS
+@@ -131,6 +133,7 @@ typedef enum {
+ 	GT_DOUBLE_D,			// Double Domination
+ 	GT_DOMINATION,			// Standard domination 12
+ 	GT_POSSESSION,
++	GT_NEONWAVE,			// NeonArena wave survival
+ 	GT_MAX_GAME_TYPE
+ 	
+ } gametype_t;
+diff --git a/code/game/g_active.c b/code/game/g_active.c
+index 3e8ff38..50122cb 100644
+--- a/code/game/g_active.c
++++ b/code/game/g_active.c
+@@ -973,6 +973,24 @@ void ClientThink_real( gentity_t *ent ) {
+ 	// set speed
+ 	client->ps.speed = g_speed.value;
+ 
++#ifdef NEONARENA_MOD
++	// NeonWave TANK boss: 60% speed (slow brute)
++	if ( g_gametype.integer == GT_NEONWAVE
++			&& ( ent->r.svFlags & SVF_BOT )
++			&& ent->client->pers.nwBossTank ) {
++		client->ps.speed = client->ps.speed * 6 / 10;
++	}
++
++	// NeonWave player speed upgrade: +5% per level (x10 fixed point)
++	if ( g_gametype.integer == GT_NEONWAVE
++			&& !( ent->r.svFlags & SVF_BOT )
++			&& client->pers.neonwaveSpeed > 0 ) {
++		int mul = 10 + client->pers.neonwaveSpeed;
++		if ( mul > 15 ) mul = 15;
++		client->ps.speed = client->ps.speed * mul / 10;
++	}
++#endif
++
+ 	if( bg_itemlist[client->ps.stats[STAT_PERSISTANT_POWERUP]].giTag == PW_SCOUT ) {
+ 		client->ps.speed *= 1.5;
+ 	}
+@@ -1131,6 +1149,16 @@ void ClientThink_real( gentity_t *ent ) {
+ 
+ 	// check for respawning
+ 	if ( client->ps.stats[STAT_HEALTH] <= 0 ) {
++#ifdef NEONARENA_MOD
++		// NeonWave: one life. Bots disconnect so they free a slot; humans stay
++		// dead until NeonWave_Frame trips game over.
++		if ( g_gametype.integer == GT_NEONWAVE ) {
++			if ( ( ent->r.svFlags & SVF_BOT ) && level.time > client->respawnTime ) {
++				trap_DropClient( ent - g_entities, "eliminated" );
++			}
++			return;
++		}
++#endif
+ 		// wait for the attack button to be pressed
+ 		// forcerespawn is to prevent users from waiting out powerups
+ 		// In Last man standing, we force a quick respawn, since
+diff --git a/code/game/g_bot.c b/code/game/g_bot.c
+index 87cacff..c8a6735 100644
+--- a/code/game/g_bot.c
++++ b/code/game/g_bot.c
+@@ -734,6 +734,18 @@ static void G_AddBot( const char *name, float skill, const char *team, int delay
+ 	}
+ 	Info_SetValueForKey( userinfo, "characterfile", s );
+ 
++#ifdef NEONARENA_MOD
++	// NeonWave boss flag (set by addbot console command via +set)
++	{
++		char bossBuf[4];
++		trap_Cvar_VariableStringBuffer( "g_neonwave_nextboss", bossBuf, sizeof(bossBuf) );
++		if ( bossBuf[0] == '1' ) {
++			Info_SetValueForKey( userinfo, "neonwave_boss", "1" );
++			trap_Cvar_Set( "g_neonwave_nextboss", "0" );
++		}
++	}
++#endif
++
+ 	// don't send tinfo to bots, they don't parse it
+ 	Info_SetValueForKey( userinfo, "teamoverlay", "0" );
+ 
+diff --git a/code/game/g_client.c b/code/game/g_client.c
+index e14bf27..2b81182 100644
+--- a/code/game/g_client.c
++++ b/code/game/g_client.c
+@@ -1191,9 +1191,31 @@ void ClientUserinfoChanged( int clientNum ) {
+ 		if ( client->pers.maxHealth < 1 || client->pers.maxHealth > 100 ) {
+ 			client->pers.maxHealth = 100;
+ 		}
++#ifdef NEONARENA_MOD
++		// NeonWave boss drones: 4x health
++		if ( atoi( Info_ValueForKey( userinfo, "neonwave_boss" ) ) == 1 ) {
++			char hcBuf[8];
++			trap_Cvar_VariableStringBuffer( "g_neonwave_bosshc", hcBuf, sizeof(hcBuf) );
++			client->pers.maxHealth = atoi( hcBuf );
++			if ( client->pers.maxHealth < 400 ) {
++				client->pers.maxHealth = 400;
++			}
++			client->pers.neonwaveBoss = qtrue;
++			if ( client->pers.maxHealth >= 600 ) {
++				client->pers.nwBossTank = qtrue;
++			}
++		}
++		// NeonWave player upgrades: +25 max HP per level (cap +150)
++		else if ( g_gametype.integer == GT_NEONWAVE
++				&& !( ent->r.svFlags & SVF_BOT )
++				&& client->pers.neonwaveUpHp > 0 ) {
++			int bonus = client->pers.neonwaveUpHp * 25;
++			if ( bonus > 150 ) bonus = 150;
++			client->pers.maxHealth = 100 + bonus;
++		}
++#endif
+ 	}
+ 	client->ps.stats[STAT_MAX_HEALTH] = client->pers.maxHealth;
+-
+ 	// set model
+ 	if( g_gametype.integer >= GT_TEAM && g_ffa_gt==0) {
+ 		Q_strncpyz( model, Info_ValueForKey (userinfo, "team_model"), sizeof( model ) );
+@@ -1811,6 +1833,14 @@ void ClientSpawn(gentity_t *ent) {
+ 
+ 	if(g_gametype.integer != GT_ELIMINATION && g_gametype.integer != GT_CTF_ELIMINATION && g_gametype.integer != GT_LMS && !g_elimination_allgametypes.integer)
+ 	{
++#ifdef NEONARENA_MOD
++		// NeonWave: railgun + lightning only (neon identity)
++		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_RAILGUN ) | ( 1 << WP_LIGHTNING ) | ( 1 << WP_GAUNTLET );
++		client->ps.ammo[WP_RAILGUN] = 20;
++		client->ps.ammo[WP_LIGHTNING] = 150;
++		client->ps.ammo[WP_GAUNTLET] = -1;
++		client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
++#else
+ 		client->ps.stats[STAT_WEAPONS] = ( 1 << WP_MACHINEGUN );
+ 		if ( g_gametype.integer == GT_TEAM ) {
+ 			client->ps.ammo[WP_MACHINEGUN] = 50;
+@@ -1821,6 +1851,7 @@ void ClientSpawn(gentity_t *ent) {
+ 		client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
+ 		client->ps.ammo[WP_GAUNTLET] = -1;
+ 		client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
++#endif
+ 
+ 		// health will count down towards max_health
+ 		ent->health = client->ps.stats[STAT_HEALTH] = client->ps.stats[STAT_MAX_HEALTH] + 25;
+@@ -1901,6 +1932,28 @@ void ClientSpawn(gentity_t *ent) {
+ 	G_SetOrigin( ent, spawn_origin );
+ 	VectorCopy( spawn_origin, client->ps.origin );
+ 
++#ifdef NEONARENA_MOD
++	// NeonWave: cyan dlight on drones, stronger magenta on the boss
++	if ( g_gametype.integer == GT_NEONWAVE ) {
++		if ( ent->client->pers.neonwaveBoss ) {
++			char btBuf[8];
++			int bossType;
++			trap_Cvar_VariableStringBuffer( "g_neonwave_bosstype_eff", btBuf, sizeof(btBuf) );
++			bossType = atoi( btBuf );
++			ent->s.constantLight = 255 | ( 0 << 8 ) | ( 255 << 16 ) | ( 120 << 24 );
++			if ( bossType == 2 ) {
++				ent->client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_MACHINEGUN );
++				ent->client->ps.ammo[WP_MACHINEGUN] = 999;
++			} else {
++				ent->client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_RAILGUN );
++				ent->client->ps.ammo[WP_RAILGUN] = 999;
++			}
++		} else if ( ent->r.svFlags & SVF_BOT ) {
++			ent->s.constantLight = 0 | ( 180 << 8 ) | ( 255 << 16 ) | ( 28 << 24 );
++		}
++	}
++#endif
++
+ 	// the respawned flag will be cleared after the attack and jump keys come up
+ 	client->ps.pm_flags |= PMF_RESPAWNED;
+ 	if(g_gametype.integer==GT_ELIMINATION || g_gametype.integer==GT_CTF_ELIMINATION || g_gametype.integer==GT_LMS)	
+diff --git a/code/game/g_cmds.c b/code/game/g_cmds.c
+index fd9d170..1b41c46 100644
+--- a/code/game/g_cmds.c
++++ b/code/game/g_cmds.c
+@@ -1631,7 +1631,10 @@ static const char *gameNames[] = {
+ 	"Last Man Standing",
+ 	"Double Domination",
+ 	"Domination",
+-	"Possession"
++	"Possession",
++#ifdef NEONARENA_MOD
++	"Neon Wave Survival",
++#endif
+ };
+ 
+ 
+@@ -2255,9 +2258,88 @@ void Cmd_GetMappage_f( gentity_t *ent ) {
+ 	trap_SendServerCommand( ent-g_entities, string );
+ }
+ 
++/*
++===============
++Cmd_NeonUpgrade_f
++
++NeonWave: spend a banked upgrade point.
++Usage: upgrade hp | dmg | speed
++Levels: hp max 6, dmg max 5, speed max 5.
++===============
++*/
++#ifdef NEONARENA_MOD
++static void Cmd_NeonUpgrade_f( gentity_t *ent ) {
++	char arg[16], ptsBuf[16];
++	int pts, *level, cap;
++	const char *what;
++
++	if ( g_gametype.integer != GT_NEONWAVE ) {
++		trap_SendServerCommand( ent - g_entities, "print \"Upgrades only in NeonWave\n\"" );
++		return;
++	}
++	if ( ent->r.svFlags & SVF_BOT ) {
++		return;
++	}
++	if ( !NeonWave_IsBreak() ) {
++		trap_SendServerCommand( ent - g_entities,
++			"print \"Spend upgrades between waves (F1 HP / F2 DMG / F3 SPEED)\n\"" );
++		return;
++	}
++
++	trap_Cvar_VariableStringBuffer( "g_neonwave_upgradepoints", ptsBuf, sizeof(ptsBuf) );
++	pts = atoi( ptsBuf );
++	if ( pts < 1 ) {
++		trap_SendServerCommand( ent - g_entities,
++			"print \"No upgrade points banked\n\"" );
++		return;
++	}
++
++	trap_Argv( 1, arg, sizeof(arg) );
++	if ( !Q_stricmp( arg, "hp" ) || !Q_stricmp( arg, "1" ) ) {
++		level = &ent->client->pers.neonwaveUpHp; cap = 6; what = "+25 max HP";
++	} else if ( !Q_stricmp( arg, "dmg" ) || !Q_stricmp( arg, "2" ) ) {
++		level = &ent->client->pers.neonwaveDmg; cap = 5; what = "+10% damage";
++	} else if ( !Q_stricmp( arg, "speed" ) || !Q_stricmp( arg, "3" ) ) {
++		level = &ent->client->pers.neonwaveSpeed; cap = 5; what = "+5% speed";
++	} else {
++		trap_SendServerCommand( ent - g_entities,
++			"print \"usage: upgrade hp|dmg|speed  (F1/F2/F3 between waves)\n\"" );
++		return;
++	}
++
++	if ( *level >= cap ) {
++		trap_SendServerCommand( ent - g_entities,
++			va("print \"%s already at max level %i\n\"", arg, cap) );
++		return;
++	}
++	(*level)++;
++	pts--;
++	trap_Cvar_Set( "g_neonwave_upgradepoints", va("%i", pts) );
++
++	// apply immediately: raise max + heal on HP upgrade
++	if ( level == &ent->client->pers.neonwaveUpHp ) {
++		ent->client->pers.maxHealth += 25;
++		ent->client->ps.stats[STAT_MAX_HEALTH] = ent->client->pers.maxHealth;
++		ent->health += 25;
++		ent->client->ps.stats[STAT_HEALTH] = ent->health;
++	}
++
++	trap_SendServerCommand( ent - g_entities,
++		va("print \"UPGRADE: %s -> level %i (%i points left)\n\"", what, *level, pts) );
++	trap_SendServerCommand( ent - g_entities,
++		va("cp \"%s  LV %i\n\"", what, *level) );
++	G_Printf( "NeonWave: %s upgraded %s to level %i\n",
++		ent->client->pers.netname, arg, *level );
++	NeonWave_RefreshStatus();
++}
++#endif
++
+ //KK-OAX This is the table that ClientCommands runs the console entry against. 
+-commands_t cmds[ ] = 
++commands_t cmds[ ] =
+ {
++#ifdef NEONARENA_MOD
++	{ "upgrade", 0, Cmd_NeonUpgrade_f },
++#endif
+ 	// normal commands
+ 	{ "team", 0, Cmd_Team_f },
+ 	{ "vote", 0, Cmd_Vote_f },
+diff --git a/code/game/g_combat.c b/code/game/g_combat.c
+index 6302035..d3e388f 100644
+--- a/code/game/g_combat.c
++++ b/code/game/g_combat.c
+@@ -505,6 +505,26 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
+ 		return;
+ 	}
+ 
++#ifdef NEONARENA_MOD
++	// NeonWave: drone killed by a human -> count kills + combo streak
++	if ( g_gametype.integer == GT_NEONWAVE
++			&& attacker && attacker->client && attacker != self
++			&& !( attacker->r.svFlags & SVF_BOT )
++			&& ( self->r.svFlags & SVF_BOT ) ) {
++		int now = level.time;
++		if ( now - attacker->client->nwLastKillTime < 3000 ) {
++			attacker->client->nwCombo++;
++		} else {
++			attacker->client->nwCombo = 1;
++		}
++		attacker->client->nwLastKillTime = now;
++		attacker->client->pers.nwKills++;
++		if ( attacker->client->nwCombo > attacker->client->pers.nwBestCombo ) {
++			attacker->client->pers.nwBestCombo = attacker->client->nwCombo;
++		}
++	}
++#endif
++
+ //unlagged - backward reconciliation #2
+ 	// make sure the body shows up in the client's current position
+ 	G_UnTimeShiftClient( self );
+@@ -1266,6 +1286,18 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
+ 		damage *= g_damageModifier.value;
+ 	}
+ 
++#ifdef NEONARENA_MOD
++	// NeonWave player damage upgrade: +10% per level (x10 fixed point)
++	if ( g_gametype.integer == GT_NEONWAVE
++			&& attacker->client && targ != attacker
++			&& !(attacker->r.svFlags & SVF_BOT)
++			&& attacker->client->pers.neonwaveDmg > 0 ) {
++		int mul = 10 + attacker->client->pers.neonwaveDmg;
++		if ( mul > 20 ) mul = 20;
++		damage = damage * mul / 10;
++	}
++#endif
++
+ 	if ( damage < 1 ) {
+ 		damage = 1;
+ 	}
+diff --git a/code/game/g_items.c b/code/game/g_items.c
+index 8b13e1a..fb595b1 100644
+--- a/code/game/g_items.c
++++ b/code/game/g_items.c
+@@ -239,6 +239,16 @@ int Pickup_Weapon (gentity_t *ent, gentity_t *other)
+ {
+ 	int		quantity;
+ 
++#ifdef NEONARENA_MOD
++	// NeonWave: only railgun/lightning/gauntlet pickups allowed
++	if ( g_gametype.integer == GT_NEONWAVE ) {
++		int w = ent->item->giTag;
++		if ( w != WP_RAILGUN && w != WP_LIGHTNING && w != WP_GAUNTLET ) {
++			return 0; // leave item on the ground
++		}
++	}
++#endif
++
+ 	if ( ent->count < 0 ) {
+ 		quantity = 0; // None for you, sir!
+ 	}
+diff --git a/code/game/g_local.h b/code/game/g_local.h
+index b9931c5..fd856e3 100644
+--- a/code/game/g_local.h
++++ b/code/game/g_local.h
+@@ -30,7 +30,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ //==================================================================
+ 
+ // the "gameversion" client command will print this plus compile date
++#ifdef NEONARENA_MOD
++#define	GAMEVERSION	"NeonArena-0.1"
++#else
+ #define	GAMEVERSION	BASEGAME
++#endif
+ 
+ #define BODY_QUEUE_SIZE		8
+ 
+@@ -310,6 +314,17 @@ typedef struct {
+ 	int         nameChanges;
+ 
+ 	qboolean    cannotWin; // Set to true if the players joins a leading team or the team with the most players
++#ifdef NEONARENA_MOD
++	qboolean    neonwaveBoss; // NeonWave boss drone
++	qboolean    nwBossTank;   // NeonWave TANK boss (slow, 6x HP, MG)
++	int         neonwaveBossShield;    // TANK shield active (damage halved)
++	int         neonwaveBossShieldEnd; // time when the tank shield expires
++	int         neonwaveUpHp;   // +25 max HP per level
++	int         neonwaveDmg;    // damage level (+10% per level, x10 fixed point)
++	int         neonwaveSpeed;  // speed level (+5% per level, x10 fixed point)
++	int         nwKills;        // NeonWave run statistics: total drone kills
++	int         nwBestCombo;    // NeonWave run statistics: best kill streak
++#endif
+ } clientPersistant_t;
+ 
+ //unlagged - backward reconciliation #1
+@@ -375,6 +390,10 @@ struct gclient_s {
+ 	int			airOutTime;
+ 
+ 	int			lastKillTime;		// for multiple kill rewards
++#ifdef NEONARENA_MOD
++	int			nwLastKillTime;		// NeonWave combo: last drone kill time
++	int			nwCombo;			// NeonWave combo: current kill streak
++#endif
+ 
+ 	qboolean	fireHeld;			// used for hook
+ 	gentity_t	*hook;				// grapple hook if out
+@@ -873,7 +892,16 @@ void SendYourTeamMessageToTeam( team_t team );
+ void QDECL G_Printf( const char *fmt, ... ) __attribute__((format (printf, 1, 2)));
+ void QDECL G_Error( const char *fmt, ... ) __attribute__((noreturn,format (printf, 1, 2)));
+ //KK-OAX Made Accessible for g_admin.c
+-void LogExit( const char *string ); 
++void LogExit( const char *string );
++
++// NeonArena wave survival (g_neonwave.c)
++void NeonWave_Reset( void );
++void NeonWave_StartWave( int num );
++int  NeonWave_GetWave( void );
++void NeonWave_Frame( void );
++void NeonWave_DropReward( int clearedWave );
++qboolean NeonWave_IsBreak( void );
++void NeonWave_RefreshStatus( void );
+ void CheckTeamVote( int team );
+ 
+ //
+@@ -1029,10 +1057,13 @@ extern	gentity_t		g_entities[MAX_GENTITIES];
+ 
+ #define	FOFS(x) ((size_t)&(((gentity_t *)0)->x))
+ 
+-//CVARS 
++//CVARS
+ extern vmCvar_t g_gametype;
+ extern vmCvar_t g_dedicated;
+ extern vmCvar_t g_cheats;
++#ifdef NEONARENA_MOD
++extern vmCvar_t g_neonwaveBest;
++#endif
+ extern vmCvar_t g_maxclients;			// allow this many total, including spectators
+ extern vmCvar_t g_maxGameClients;		// allow this many active
+ extern vmCvar_t g_restarted;
+diff --git a/code/game/g_main.c b/code/game/g_main.c
+index e9e9cf1..7edc400 100644
+--- a/code/game/g_main.c
++++ b/code/game/g_main.c
+@@ -40,6 +40,9 @@ gentity_t		g_entities[MAX_GENTITIES];
+ gclient_t		g_clients[MAX_CLIENTS];
+ 
+ vmCvar_t g_gametype;
++#ifdef NEONARENA_MOD
++vmCvar_t g_neonwaveBest;
++#endif
+ vmCvar_t g_dmflags;
+ vmCvar_t g_videoflags;
+ vmCvar_t g_elimflags;
+@@ -212,6 +215,9 @@ static cvarTable_t gameCvarTable[] = {
+ 	{ &g_gametype, "g_gametype", "0", CVAR_SERVERINFO | CVAR_USERINFO | CVAR_LATCH, 0, qfalse  },
+ 
+ 	{ &g_maxclients, "sv_maxclients", "8", CVAR_SERVERINFO | CVAR_LATCH | CVAR_ARCHIVE, 0, qfalse  },
++#ifdef NEONARENA_MOD
++	{ NULL, "g_neonwave_best", "0", CVAR_ARCHIVE, 0, qtrue  },
++#endif
+ 	{ &g_maxGameClients, "g_maxGameClients", "0", CVAR_SERVERINFO | CVAR_LATCH | CVAR_ARCHIVE, 0, qfalse  },
+ 
+ 	// change anytime vars
+@@ -605,6 +611,10 @@ void G_RegisterCvars( void )
+ 		g_ffa_gt = 0;	//If >GT_CTF use bases
+ 	}
+ 
++#ifdef NEONARENA_MOD
++	NeonWave_Reset();
++#endif
++
+ 	level.warmupModificationCount = g_warmup.modificationCount;
+ }
+ 
+@@ -2742,6 +2752,16 @@ void G_RunFrame( int levelTime )
+ 		Possession_SpawnFlag();
+ 	}
+ 
++	// NeonArena wave-survival logic
++#ifdef NEONARENA_MOD
++	if ( g_gametype.integer == GT_NEONWAVE ) {
++		// hold waves until warmup is over (-1 = waiting, 0 = done)
++		if ( level.warmupTime == 0 ) {
++			NeonWave_Frame();
++		}
++	}
++#endif
++
+ 	// see if it is time to end the level
+ 	CheckExitRules();
+ 
+diff --git a/code/game/g_neonwave.c b/code/game/g_neonwave.c
+new file mode 100644
+index 0000000..e6cbf9e
+--- /dev/null
++++ b/code/game/g_neonwave.c
+@@ -0,0 +1,866 @@
++// NeonArena wave-survival gametype logic (GT_NEONWAVE)
++// Spawns escalating bot waves, tracks score + best-wave highscore.
++#include "g_local.h"
++
++#ifdef NEONARENA_MOD
++
++#define NW_FIRST_WAVE_DELAY	5000	// ms after map start
++#define NW_WAVE_BREAK		8000	// ms between waves (upgrade window)
++#define NW_MAX_WAVE			20
++#define NW_BOSS_WAVE		10	// from here on, each wave gets one boss drone
++
++// Test hooks (used by CI smoke test):
++//   g_neonwave_autostart 1   -> waves start without a human player (headless test)
++//   g_neonwave_startwave N   -> force-start wave N (polled in NeonWave_Frame)
++
++// CS_NEONWAVE payload: "<wave> <event> <bossHp> <bossMax> <breakMs> <pts> <best> <modifier>"
++// event: 0 running, 1 cleared/break, 2 failed, 3 victory
++#define NW_EV_RUNNING		0
++#define NW_EV_CLEARED		1
++#define NW_EV_FAILED		2
++#define NW_EV_VICTORY		3
++
++// wave modifiers (from wave 5, one per wave, boss waves excluded)
++#define NW_MOD_NONE			0
++#define NW_MOD_GLASS		1	// all drones die to one hit, but +2 skill aggression
++#define NW_MOD_SWARM		2	// double drone count, skill capped lower
++#define NW_MOD_LOWGRAV		3	// g_gravity halved for the wave
++#define NW_MOD_DOUBLEPTS	4	// wave clear grants x2 upgrade points
++
++static int nw_wave;				// current wave (1-based)
++static int nw_aliveBots;
++static qboolean nw_fcFired;
++static qboolean nw_failFired;
++static int nw_modifier = NW_MOD_NONE;
++static int nw_bossType = 0;		// current boss type (NW_BOSS_*)
++static int nw_runStartTime;		// run stats: level.time of first wave start
++
++// test helper: is g_neonwave_autokill active? (used by fakecombo hook)
++static qboolean autokillActive( void ) {
++	char akBuf[8];
++	trap_Cvar_VariableStringBuffer( "g_neonwave_autokill", akBuf, sizeof(akBuf) );
++	return ( atoi( akBuf ) == 1 ) ? qtrue : qfalse;
++}
++
++static qboolean nw_started;
++static int nw_botCounter;
++static qboolean nw_inBreak;
++static int nw_breakEnd;
++static qboolean nw_waveHadBots;	// true once at least one bot connected this wave
++static qboolean nw_over;
++static int nw_event;
++static qboolean nw_overVictory;		// last run ended in victory (record time only counts then)
++
++// forward declarations (records block is defined further down)
++static void NW_LoadRecords( void );
++static void NW_MirrorRecordCvars( void );
++
++void NeonWave_Reset( void ) {
++	nw_wave = 0;
++	nw_aliveBots = 0;
++	nw_modifier = NW_MOD_NONE;
++	nw_runStartTime = level.time;
++	nw_started = qfalse;
++	nw_botCounter = 0;
++	nw_inBreak = qfalse;
++	nw_breakEnd = 0;
++	nw_waveHadBots = qfalse;
++	nw_overVictory = qfalse;
++	NW_LoadRecords();
++	nw_over = qfalse;
++	nw_event = 0;
++	trap_Cvar_Set( "g_neonwave_upgradepoints", "0" );
++}
++
++qboolean NeonWave_IsBreak( void ) {
++	return ( nw_inBreak && !nw_over ) ? qtrue : qfalse;
++}
++
++// test hook: mark the wave loop as started (used by "nwstartwave" console cmd)
++void NeonWave_ForceStarted( void ) {
++	nw_started = qtrue;
++	nw_over = qfalse;
++}
++
++// Sync upgrade state to the local player's HUD.
++// Packs points+levels into ps.persistant[PERS_CAPTURES] (unused in GT_NEONWAVE):
++// bits 0-7 points, 8-11 hp level, 12-15 dmg level, 16-19 speed level
++static void NW_SyncUpgrades( void ) {
++	char ptsBuf[16];
++	int pts, i, val;
++	gentity_t *ent;
++
++	trap_Cvar_VariableStringBuffer( "g_neonwave_upgradepoints", ptsBuf, sizeof(ptsBuf) );
++	pts = atoi( ptsBuf );
++	if ( pts < 0 ) pts = 0;
++	if ( pts > 255 ) pts = 255;
++
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( !ent->inuse || !ent->client ) continue;
++		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
++		if ( ent->r.svFlags & SVF_BOT ) continue;
++		val = pts
++			| ( ( ent->client->pers.neonwaveUpHp   & 0xF ) << 8 )
++			| ( ( ent->client->pers.neonwaveDmg    & 0xF ) << 12 )
++			| ( ( ent->client->pers.neonwaveSpeed  & 0xF ) << 16 );
++		ent->client->ps.persistant[PERS_CAPTURES] = val;
++	}
++}
++
++static void NW_SpawnBot( int skill ) {
++	trap_SendConsoleCommand( EXEC_APPEND,
++		va("addbot sarge %i \"Drone W%d-%d\"\n", skill, nw_wave, ++nw_botCounter) );
++}
++
++// boss types: rotate per boss wave, forceable via g_neonwave_bosstype for tests
++#define NW_BOSS_SNIPER	1	// railgun sniper (classic)
++#define NW_BOSS_TANK	2	// slow, huge HP, chaingun-style MG spam
++#define NW_BOSS_SWARM	3	// spawns mini-drones during the wave
++
++static int NW_PickBossType( void ) {
++	char btBuf[8];
++	int forced;
++
++	// test hook: g_neonwave_bosstype N forces the type
++	trap_Cvar_VariableStringBuffer( "g_neonwave_bosstype", btBuf, sizeof(btBuf) );
++	forced = atoi( btBuf );
++	if ( forced >= NW_BOSS_SNIPER && forced <= NW_BOSS_SWARM ) {
++		return forced;
++	}
++	// rotate by boss-wave count: wave 10 = sniper, 20 = tank, 30 = swarm, ...
++	return NW_BOSS_SNIPER + (( nw_wave / NW_BOSS_WAVE - 1 ) % 3);
++}
++
++static const char *NW_BossName( int type ) {
++	switch ( type ) {
++	case NW_BOSS_TANK:	return "TANK";
++	case NW_BOSS_SWARM:	return "SWARM MOTHER";
++	default:			return "SNIPER";
++	}
++}
++
++static void NW_SpawnBoss( void ) {
++	int type = NW_PickBossType();
++	int hc = 400; // classic 4x
++
++	if ( type == NW_BOSS_TANK ) {
++		hc = 600; // 6x
++	}
++	nw_bossType = type;
++	trap_Cvar_Set( "g_neonwave_nextboss", "1" );
++	trap_Cvar_Set( "g_neonwave_bosshc", va("%i", hc) );
++	trap_SendServerCommand( -1, va( "cp \"BOSS: %s\\n\"", NW_BossName( type ) ) );
++	trap_SendConsoleCommand( EXEC_APPEND,
++		va("addbot sarge 5 \"BOSS W%d %s\"\n", nw_wave, NW_BossName( type )) );
++}
++
++static void NW_BossHealth( int *hp, int *maxhp ) {
++	gentity_t *ent;
++	int i;
++
++	*hp = 0;
++	*maxhp = 0;
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( !ent->inuse || !ent->client ) continue;
++		if ( !( ent->r.svFlags & SVF_BOT ) ) continue;
++		if ( ent->health <= 0 ) continue;
++		if ( !ent->client->pers.neonwaveBoss ) continue;
++		*hp = ent->health;
++		*maxhp = ent->client->ps.stats[STAT_MAX_HEALTH];
++		return;
++	}
++}
++
++static int NW_Points( void ) {
++	char buf[16];
++	trap_Cvar_VariableStringBuffer( "g_neonwave_upgradepoints", buf, sizeof(buf) );
++	return atoi( buf );
++}
++
++static int NW_Best( void ) {
++	char buf[16];
++	trap_Cvar_VariableStringBuffer( "g_neonwave_best", buf, sizeof(buf) );
++	return atoi( buf );
++}
++
++/*
++================
++NW_SendStatus
++
++"<wave> <event> <bossHp> <bossMax> <breakMs> <pts> <best>"
++================
++*/
++// ---- run statistics (aggregated over all humans) ----
++// (nw_runStartTime declared with the other statics at top)
++
++static int NW_TestPlayerSkipBots( void ) {
++	char buf[8];
++	trap_Cvar_VariableStringBuffer( "g_neonwave_botasplayer", buf, sizeof(buf) );
++	return atoi( buf );
++}
++
++static int NW_RunKills( void ) {
++	int i, kills = 0;
++	int skipBots = !NW_TestPlayerSkipBots();
++	gentity_t *ent;
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( !ent->inuse || !ent->client ) continue;
++		if ( skipBots && ( ent->r.svFlags & SVF_BOT ) ) continue;
++		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
++		kills += ent->client->pers.nwKills;
++	}
++	return kills;
++}
++
++static int NW_RunBestCombo( void ) {
++	int i, best = 0;
++	int skipBots = !NW_TestPlayerSkipBots();
++	gentity_t *ent;
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( !ent->inuse || !ent->client ) continue;
++		if ( skipBots && ( ent->r.svFlags & SVF_BOT ) ) continue;
++		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
++		if ( ent->client->pers.nwBestCombo > best ) best = ent->client->pers.nwBestCombo;
++	}
++	return best;
++}
++
++// live combo streak (highest current nwCombo among humans) for the HUD popup
++static int NW_RunCurrentCombo( void ) {
++	int i, cur = 0;
++	gentity_t *ent;
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( !ent->inuse || !ent->client ) continue;
++		if ( ent->r.svFlags & SVF_BOT ) continue;
++		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
++		if ( ent->client->nwCombo > cur ) cur = ent->client->nwCombo;
++	}
++	return cur;
++}
++
++// ---- persistent records (survive map change / restart) ----
++#define NW_RECORDS_FILE		"neonwave_records.dat"
++
++typedef struct {
++	int	bestWave;
++	int	bestTime;	// fastest victory, seconds (0 = none)
++	int	bestKills;
++	int	bestCombo;
++} nwRecords_t;
++
++static nwRecords_t nw_records;
++
++static void NW_LoadRecords( void ) {
++	fileHandle_t f;
++	memset( &nw_records, 0, sizeof( nw_records ) );
++	if ( trap_FS_FOpenFile( NW_RECORDS_FILE, &f, FS_READ ) >= 0 && f ) {
++		trap_FS_Read( &nw_records, sizeof( nw_records ), f );
++		trap_FS_FCloseFile( f );
++	}
++	G_Printf( "NeonWave: records loaded wave=%i time=%is kills=%i combo=%i\n",
++		nw_records.bestWave, nw_records.bestTime,
++		nw_records.bestKills, nw_records.bestCombo );
++	NW_MirrorRecordCvars();
++}
++
++static void NW_SaveRecords( void ) {
++	fileHandle_t f;
++	int len = trap_FS_FOpenFile( NW_RECORDS_FILE, &f, FS_WRITE );
++	if ( len < 0 || !f ) {
++		G_Printf( "NeonWave: WARNING cannot write " NW_RECORDS_FILE "\n" );
++		return;
++	}
++	trap_FS_Write( &nw_records, sizeof( nw_records ), f );
++	trap_FS_FCloseFile( f );
++	G_Printf( "NeonWave: RECORDS SAVED wave=%i time=%is kills=%i combo=%i\n",
++		nw_records.bestWave, nw_records.bestTime,
++		nw_records.bestKills, nw_records.bestCombo );
++}
++
++static void NW_UpdateRecords( void ) {
++	int kills = NW_RunKills();
++	int combo = NW_RunBestCombo();
++	int runSec = ( level.time - nw_runStartTime ) / 1000;
++	qboolean changed = qfalse;
++
++	trap_Cvar_Set( "g_neonwave_newrecord", "0" ); // reset per run end
++	if ( nw_wave > nw_records.bestWave ) {
++		nw_records.bestWave = nw_wave;
++		changed = qtrue;
++		G_Printf( "NeonWave: NEW RECORD WAVE %i\n", nw_wave );
++	}
++	if ( nw_overVictory && ( nw_records.bestTime <= 0 || runSec < nw_records.bestTime ) ) {
++		nw_records.bestTime = runSec;
++		changed = qtrue;
++		G_Printf( "NeonWave: NEW RECORD TIME %is\n", runSec );
++	}
++	if ( kills > nw_records.bestKills ) {
++		nw_records.bestKills = kills;
++		changed = qtrue;
++		G_Printf( "NeonWave: NEW RECORD KILLS %i\n", kills );
++	}
++	if ( combo > nw_records.bestCombo ) {
++		nw_records.bestCombo = combo;
++		changed = qtrue;
++		G_Printf( "NeonWave: NEW RECORD COMBO %ix\n", combo );
++	}
++	if ( changed ) {
++		NW_SaveRecords();
++		trap_Cvar_Set( "g_neonwave_newrecord", "1" ); // cgame: NEW RECORD banner
++	}
++	NW_MirrorRecordCvars();
++}
++
++// mirror current record values to cvars (called on load and on record update)
++static void NW_MirrorRecordCvars( void ) {
++	trap_Cvar_Set( "g_neonwave_recwave", va("%i", nw_records.bestWave) );
++	trap_Cvar_Set( "g_neonwave_rectime", va("%i", nw_records.bestTime) );
++	trap_Cvar_Set( "g_neonwave_reckills", va("%i", nw_records.bestKills) );
++	trap_Cvar_Set( "g_neonwave_reccombo", va("%i", nw_records.bestCombo) );
++}
++
++static void NW_SendStatus( int event ) {
++	int bossHp, bossMax, breakMs;
++
++	nw_event = event;
++	NW_BossHealth( &bossHp, &bossMax );
++	breakMs = 0;
++	if ( nw_inBreak && nw_breakEnd > level.time ) {
++		breakMs = nw_breakEnd - level.time;
++	}
++	// append run stats: "<wave> <ev> <bhp> <bmax> <brk> <pts> <best> <mod> <kills> <bestcombo> <runsec> <livecombo>"
++	trap_SetConfigstring( CS_NEONWAVE, va( "%i %i %i %i %i %i %i %i %i %i %i %i",
++		nw_wave, event, bossHp, bossMax, breakMs, NW_Points(), NW_Best(), nw_modifier,
++		NW_RunKills(), NW_RunBestCombo(), ( level.time - nw_runStartTime ) / 1000,
++		NW_RunCurrentCombo() ) );
++}
++
++void NeonWave_RefreshStatus( void ) {
++	NW_SendStatus( nw_event );
++}
++
++void NeonWave_DropReward( int clearedWave ) {
++	gentity_t *ent;
++	vec3_t origin, velocity = {0, 0, 20};
++	gitem_t *mega, *armor, *ammo, *ra;
++	int i;
++
++	(void)clearedWave;
++	mega  = BG_FindItem( "Mega Health" );
++	armor = BG_FindItem( "Heavy Armor" );
++	ammo  = BG_FindItemForWeapon( WP_LIGHTNING );
++	if (!mega)  mega  = BG_FindItem( "5 Health" );
++	if (!armor) armor = BG_FindItem( "Armor Shard" );
++	ra = BG_FindItemForWeapon( WP_RAILGUN );
++
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( !ent->inuse || !ent->client ) continue;
++		if ( ent->r.svFlags & SVF_BOT ) continue;
++		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
++		if ( ent->health <= 0 ) continue;
++
++		VectorCopy( ent->r.currentOrigin, origin );
++		origin[2] += 24;
++		if ( mega )  LaunchItem( mega,  origin, velocity );
++		if ( armor ) LaunchItem( armor, origin, velocity );
++		if ( ammo )  LaunchItem( ammo,  origin, velocity );
++		if ( ra )    LaunchItem( ra,    origin, velocity );
++	}
++}
++
++static void NeonWave_UpdateHighscore( void ) {
++	int best = NW_Best();
++	if ( nw_wave > best ) {
++		trap_Cvar_Set( "g_neonwave_best", va("%i", nw_wave) );
++		G_Printf( "NeonWave: NEW BEST wave %i (was %i)\n", nw_wave, best );
++	}
++}
++
++static void NW_PickModifier( int num ) {
++	static const int pool[4] = { NW_MOD_GLASS, NW_MOD_SWARM, NW_MOD_LOWGRAV, NW_MOD_DOUBLEPTS };
++	int idx;
++	char mbBuf[8];
++
++	nw_modifier = NW_MOD_NONE;
++	if ( num < 5 || num >= NW_BOSS_WAVE || num == NW_MAX_WAVE ) {
++		return;
++	}
++	// test hook: g_neonwave_modifier N forces modifier 1-4
++	trap_Cvar_VariableStringBuffer( "g_neonwave_modifier", mbBuf, sizeof(mbBuf) );
++	if ( atoi( mbBuf ) >= NW_MOD_GLASS && atoi( mbBuf ) <= NW_MOD_DOUBLEPTS ) {
++		nw_modifier = atoi( mbBuf );
++		return;
++	}
++	// deterministic-ish variety: rotate through the pool by wave number
++	idx = ( num / 2 + num % 3 ) % 4;
++	nw_modifier = pool[idx];
++}
++
++static const char *NW_ModifierName( int mod ) {
++	switch ( mod ) {
++	case NW_MOD_GLASS:		return "GLASS DRONES";
++	case NW_MOD_SWARM:		return "SWARM";
++	case NW_MOD_LOWGRAV:	return "LOW GRAVITY";
++	case NW_MOD_DOUBLEPTS:	return "DOUBLE POINTS";
++	default:				return "";
++	}
++}
++
++void NeonWave_StartWave( int num ) {
++	int i;
++	int skill = 1 + num / 3;
++	int botCount;
++	char mwBuf[8];
++	int maxWave;
++
++	NW_PickModifier( num );
++	if ( skill > 5 ) skill = 5;
++	nw_wave = num;
++	nw_botCounter = 0;
++	nw_inBreak = qfalse;
++	nw_waveHadBots = qfalse;
++
++	// endless mode: past the classic max wave, keep scaling difficulty
++	trap_Cvar_VariableStringBuffer( "g_neonwave_maxwave", mwBuf, sizeof(mwBuf) );
++	maxWave = atoi( mwBuf );
++	if ( maxWave <= 0 ) {
++		maxWave = NW_MAX_WAVE;
++	}
++	if ( num > maxWave ) {
++		// +2 bots every 3 waves past max, capped at client limit
++		botCount = maxWave + 1 + ((num - maxWave) / 3) * 2;
++	} else {
++		botCount = num + 1;
++	}
++
++	// apply modifier side effects
++	if ( nw_modifier == NW_MOD_LOWGRAV ) {
++		trap_Cvar_Set( "g_gravity", "400" ); // half of default 800
++	} else {
++		trap_Cvar_Set( "g_gravity", "800" );
++	}
++	if ( nw_modifier == NW_MOD_GLASS && skill < 4 ) {
++		skill += 1; // glass drones are fast/aggressive
++	}
++	if ( nw_modifier == NW_MOD_SWARM ) {
++		botCount *= 2;
++	}
++
++	NW_SendStatus( NW_EV_RUNNING );
++	if ( nw_modifier != NW_MOD_NONE ) {
++		trap_SendServerCommand( -1, va( "cp \"WAVE %i: %s\\n\"", num, NW_ModifierName( nw_modifier ) ) );
++	} else {
++		trap_SendServerCommand( -1, va( "cp \"WAVE %i\\n\"", num ) );
++	}
++	G_Printf( "NeonWave: starting wave %i (%i bots, skill %i)%s%s\n", num, botCount, skill,
++		num >= NW_BOSS_WAVE ? " + BOSS" : "",
++		nw_modifier != NW_MOD_NONE ? va(" [%s]", NW_ModifierName( nw_modifier )) : "" );
++	if ( num >= NW_BOSS_WAVE ) {
++		NW_SpawnBoss();
++	}
++	for ( i = 0; i < botCount && i < MAX_CLIENTS - 2; i++ ) {
++		NW_SpawnBot( skill );
++	}
++}
++
++int NeonWave_GetWave( void ) {
++	return nw_wave;
++}
++
++static void NW_GrantUpgradePoints( void ) {
++	int pts = NW_Points();
++	int gain = ( nw_wave >= NW_BOSS_WAVE ? 2 : 1 );
++	int combo;
++
++	if ( nw_modifier == NW_MOD_DOUBLEPTS ) {
++		gain *= 2;
++	}
++	// boss kill bonus: +3 for taking down a boss wave
++	if ( nw_wave % NW_BOSS_WAVE == 0 ) {
++		gain += 3;
++		G_Printf( "NeonWave: boss kill bonus +3\n" );
++	}
++	// combo bonus: +1 point for streaks of 5+ kills
++	combo = NW_RunBestCombo();
++	if ( combo >= 5 ) {
++		gain += combo / 5;
++		G_Printf( "NeonWave: combo bonus +%i (best streak %i)\n", combo / 5, combo );
++	}
++	pts += gain;
++	trap_Cvar_Set( "g_neonwave_upgradepoints", va("%i", pts) );
++	G_Printf( "NeonWave: upgrade point granted (%i banked)\n", pts );
++}
++
++static void NW_EnterBreak( void ) {
++	nw_inBreak = qtrue;
++	// restore gravity after low-grav wave; log it so headless tests can assert
++	// that the modifier side effect is properly undone
++	if ( nw_modifier == NW_MOD_LOWGRAV ) {
++		trap_Cvar_Set( "g_gravity", "800" );
++		G_Printf( "NeonWave: gravity restored to 800\\n" );
++	}
++	nw_breakEnd = level.time + NW_WAVE_BREAK;
++	// test hook: shorten break window when g_neonwave_fastbreak is set
++	{
++		char fbBuf[8];
++		trap_Cvar_VariableStringBuffer( "g_neonwave_fastbreak", fbBuf, sizeof(fbBuf) );
++		if ( atoi( fbBuf ) == 1 ) {
++			nw_breakEnd = level.time + 500;
++		}
++	}
++	NW_GrantUpgradePoints();
++	NeonWave_DropReward( nw_wave );
++	NW_SendStatus( NW_EV_CLEARED );
++	trap_SendServerCommand( -1, va( "cp \"WAVE %i CLEARED\nF1 HP  F2 DMG  F3 SPEED\"", nw_wave ) );
++	G_Printf( "NeonWave: wave %i cleared, break %i ms\n", nw_wave, NW_WAVE_BREAK );
++}
++
++static void NW_KickBots( void ) {
++	int i;
++	gentity_t *ent;
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( !ent->inuse || !ent->client ) continue;
++		if ( !( ent->r.svFlags & SVF_BOT ) ) continue;
++		trap_DropClient( i, "eliminated" );
++	}
++}
++
++static void NW_GameOver( int event, const char *why ) {
++	if ( nw_over ) {
++		return;
++	}
++	nw_over = qtrue;
++	nw_inBreak = qfalse;
++	nw_overVictory = ( event == NW_EV_VICTORY ) ? qtrue : qfalse;
++	// restore gravity in case we ended during a low-grav wave
++	trap_Cvar_Set( "g_gravity", "800" );
++	NeonWave_UpdateHighscore();
++	NW_UpdateRecords();
++	NW_SendStatus( event );
++	G_Printf( "NeonWave: RUN STATS kills=%i bestCombo=%i time=%is\n",
++		NW_RunKills(), NW_RunBestCombo(), ( level.time - nw_runStartTime ) / 1000 );
++	NW_KickBots();
++	G_Printf( "NeonWave: %s (wave %i)\n", why, nw_wave );
++	LogExit( why );
++}
++
++// ---- v0.11 boss special mechanics ----
++#define NW_BOSS_SHIELD_MS	4000	// tank shield phase duration
++#define NW_BOSS_SHIELD_CD	12000	// tank shield cooldown
++#define NW_BOSS_RAGE_HP		0.30f	// swarm mother rage below 30% hp
++
++static gentity_t *NW_FindBoss( void ) {
++	gentity_t *ent;
++	int i;
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( ent->inuse && ent->client && ( ent->r.svFlags & SVF_BOT )
++				&& ent->health > 0 && ent->client->pers.neonwaveBoss ) {
++			return ent;
++		}
++	}
++	return NULL;
++}
++
++static void NW_BossMechanicsFrame( int *lastMini, int bots ) {
++	if ( nw_bossType == NW_BOSS_SWARM ) {
++		// swarm mother: keep spawning mini-drones while the boss lives;
++		// rage mode below 30% hp halves the spawn interval.
++		// test hook g_neonwave_rageforce 1 forces the rage state so CI can
++		// assert the ENRAGED log + faster spawns deterministically
++		gentity_t *boss = NW_FindBoss();
++		if ( boss ) {
++			char rfBuf[8];
++			int maxhp = boss->client->ps.stats[STAT_MAX_HEALTH];
++			qboolean rage;
++			trap_Cvar_VariableStringBuffer( "g_neonwave_rageforce", rfBuf, sizeof(rfBuf) );
++			if ( atoi( rfBuf ) == 1 ) {
++				boss->health = maxhp * NW_BOSS_RAGE_HP / 2; // force rage window
++			}
++			rage = ( maxhp > 0
++				&& boss->health < maxhp * NW_BOSS_RAGE_HP ) ? qtrue : qfalse;
++			if ( rage && !*lastMini ) {
++				G_Printf( "NeonWave: SWARM MOTHER ENRAGED\n" );
++			}
++			if ( level.time > *lastMini && bots < 10 ) {
++				*lastMini = level.time + ( rage ? 5000 : 10000 );
++				NW_SpawnBot( 3 );
++				G_Printf( "NeonWave: swarm mother spawns mini-drone%s\n",
++					rage ? " (RAGE)" : "" );
++			}
++			return;
++		}
++	}
++
++	if ( nw_bossType == NW_BOSS_TANK ) {
++		// tank: periodic regeneration burst while "shielded" (visualized by
++		// the boss glow pulse); implemented as self-heal to avoid touching
++		// G_Damage — keeps all boss logic inside g_neonwave.c
++		static int nextShield;
++		gentity_t *boss = NW_FindBoss();
++		if ( boss ) {
++			int maxhp = boss->client->ps.stats[STAT_MAX_HEALTH];
++			if ( !boss->client->pers.neonwaveBossShield && level.time > nextShield ) {
++				boss->client->pers.neonwaveBossShield = 1;
++				boss->client->pers.neonwaveBossShieldEnd = level.time + NW_BOSS_SHIELD_MS;
++				nextShield = level.time + NW_BOSS_SHIELD_CD;
++				G_Printf( "NeonWave: TANK raises SHIELD\n" );
++			}
++			if ( boss->client->pers.neonwaveBossShield ) {
++				if ( level.time > boss->client->pers.neonwaveBossShieldEnd ) {
++					boss->client->pers.neonwaveBossShield = 0;
++					G_Printf( "NeonWave: TANK shield drops\n" );
++				} else if ( maxhp > 0 && boss->health < maxhp ) {
++					boss->health += 2; // steady regen while shielded
++					if ( boss->health > maxhp ) {
++						boss->health = maxhp;
++					}
++				}
++			}
++		}
++	}
++
++	if ( nw_bossType == NW_BOSS_SNIPER ) {
++		// sniper: teleport-dash away when hit below 50% (repositioning);
++		// test hook g_neonwave_bosshppct N forces the boss to spawn at
++		// maxhp*N/100 so the dash path is reachable deterministically
++		static int lastDash;
++		gentity_t *boss = NW_FindBoss();
++		if ( boss && level.time > lastDash ) {
++			int maxhp = boss->client->ps.stats[STAT_MAX_HEALTH];
++			lastDash = level.time + 9000;
++			{
++				char pctBuf[8];
++				int pct;
++				trap_Cvar_VariableStringBuffer( "g_neonwave_dashforce", pctBuf, sizeof(pctBuf) );
++				pct = atoi( pctBuf );
++				if ( pct > 0 ) {
++					boss->health = maxhp * pct / 100; // force low-hp state for tests
++				}
++			}
++			if ( maxhp > 0 && boss->health < maxhp / 2 ) {
++				vec3_t org = { 0, 0, 0 };
++				VectorCopy( boss->r.currentOrigin, org );
++				// dash: small random offset teleport
++				org[0] += ( rand() % 400 ) - 200;
++				org[1] += ( rand() % 400 ) - 200;
++				VectorCopy( org, boss->s.origin );
++				VectorCopy( org, boss->client->ps.origin );
++				G_Printf( "NeonWave: SNIPER dashes to new position\n" );
++			}
++		}
++	}
++}
++
++void NeonWave_Frame( void ) {
++	int humans, bots, i;
++	gentity_t *ent;
++	static int lastRefresh;
++
++	if ( g_gametype.integer != GT_NEONWAVE ) {
++		return;
++	}
++	if ( level.intermissiontime || level.intermissionQueued ) {
++		return;
++	}
++	if ( nw_over ) {
++		return;
++	}
++
++	humans = 0;
++	bots = 0;
++	for ( i = 0; i < level.maxclients; i++ ) {
++		ent = &g_entities[i];
++		if ( !ent->inuse || !ent->client ) continue;
++		if ( ent->client->pers.connected != CON_CONNECTED ) continue;
++		if ( ent->health <= 0 ) continue;
++		if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) continue;
++		if ( ent->r.svFlags & SVF_BOT ) bots++;
++		else humans++;
++	}
++	nw_aliveBots = bots;
++
++	// test hook: g_neonwave_fakecombo N simulates a human kill streak of N
++	// (tests the combo bonus + RUN STATS pipeline without real players)
++	{
++	char fcBuf[8];
++	trap_Cvar_VariableStringBuffer( "g_neonwave_fakecombo", fcBuf, sizeof(fcBuf) );
++	if ( !nw_fcFired && atoi( fcBuf ) > 0 && nw_started && nw_wave > 0 ) {
++		int i2, n = atoi( fcBuf );
++		gentity_t *h = NULL;
++		// attribute the streak to the first connected client; with
++		// g_neonwave_botasplayer 1 a bot counts as the streak carrier
++		// (headless CI has no human client)
++		for ( i2 = 0; i2 < level.maxclients; i2++ ) {
++			ent = &g_entities[i2];
++			if ( ent->inuse && ent->client
++					&& ent->client->pers.connected == CON_CONNECTED
++					&& ( !autokillActive() || ( ent->r.svFlags & SVF_BOT )
++						|| NW_TestPlayerSkipBots() ) ) {
++				h = ent;
++				break;
++			}
++		}
++		if ( !h ) {
++			// no client connected yet (bots spawn frames after wave start):
++			// do NOT consume the hook, retry next frame
++			return;
++		}
++		nw_fcFired = qtrue;
++		{
++			int k;
++			for ( k = 0; k < n; k++ ) {
++				if ( k > 0 && level.time - h->client->nwLastKillTime >= 3000 ) {
++					level.time -= 2000; // keep the chain alive for long streaks
++				}
++				h->client->nwLastKillTime = level.time;
++				h->client->nwCombo++;
++				h->client->pers.nwKills++;
++			}
++			if ( h->client->nwCombo > h->client->pers.nwBestCombo ) {
++				h->client->pers.nwBestCombo = h->client->nwCombo;
++			}
++			G_Printf( "NeonWave: fake combo %i registered (best %i)\n",
++				n, h->client->pers.nwBestCombo );
++		}
++	}
++	}
++
++	if ( bots > 0 ) {
++		nw_waveHadBots = qtrue;
++		// test hook: g_neonwave_autokill 1 -> kill all drones each frame
++		// so a headless run plays through waves up to victory automatically
++		{
++			char akBuf[8];
++			trap_Cvar_VariableStringBuffer( "g_neonwave_autokill", akBuf, sizeof(akBuf) );
++			if ( atoi( akBuf ) == 1 ) {
++				for ( i = 0; i < level.maxclients; i++ ) {
++					ent = &g_entities[i];
++					if ( !ent->inuse || !ent->client ) continue;
++					if ( !( ent->r.svFlags & SVF_BOT ) ) continue;
++					if ( ent->health <= 0 ) continue;
++					ent->health = 0;
++					ent->client->ps.stats[STAT_HEALTH] = 0;
++				}
++			}
++		}
++	}
++
++	// test hook: g_neonwave_startwave N forces wave N (polled every frame,
++	// works headless regardless of when the cvar is set)
++	if ( !nw_over ) {
++		char swBuf[8];
++		int sw;
++		trap_Cvar_VariableStringBuffer( "g_neonwave_startwave", swBuf, sizeof(swBuf) );
++		sw = atoi( swBuf );
++		if ( sw > 0 && sw != nw_wave ) {
++			NeonWave_ForceStarted();
++			nw_inBreak = qfalse;
++			trap_Cvar_Set( "g_neonwave_startwave", "0" ); // consume (fire once)
++			NeonWave_StartWave( sw );
++			return;
++		}
++	}
++
++	if ( !nw_started ) {
++		qboolean autostart = qfalse;
++		{
++			char asBuf[8];
++			trap_Cvar_VariableStringBuffer( "g_neonwave_autostart", asBuf, sizeof(asBuf) );
++			autostart = ( atoi( asBuf ) != 0 ) ? qtrue : qfalse;
++		}
++		if ( ( humans > 0 || autostart ) && level.time > NW_FIRST_WAVE_DELAY ) {
++			nw_started = qtrue;
++			NeonWave_StartWave( 1 );
++		}
++		return;
++	}
++
++	if ( humans == 0 && !trap_Cvar_VariableValue( "g_neonwave_autostart" ) ) {
++		NW_GameOver( NW_EV_FAILED, "NeonWave over" );
++		return;
++	}
++
++	// test hook: g_neonwave_failrun 1 -> trigger failed game over once (tests
++	// the FAILED path + RUN STATS + end screen without a real player death)
++	// test hook: g_neonwave_failrun 1 -> trigger failed game over once
++	{
++		char frBuf[8];
++		trap_Cvar_VariableStringBuffer( "g_neonwave_failrun", frBuf, sizeof(frBuf) );
++		// NOTE: failFired/fcFired are declared in the shared wrapper block
++		// above; wait for the fakecombo hook so a combined fakecombo+failrun
++		// test exercises the combo pipeline before the run ends
++		if ( !nw_failFired && atoi( frBuf ) == 1 && nw_started && nw_wave > 0
++				&& nw_fcFired ) {
++			nw_failFired = qtrue;
++			NW_GameOver( NW_EV_FAILED, "NeonWave over" );
++			return;
++		}
++	}
++
++	if ( nw_inBreak ) {
++		if ( level.time >= nw_breakEnd ) {
++			nw_inBreak = qfalse;
++			NeonWave_StartWave( nw_wave + 1 );
++			return;
++		}
++		if ( level.time > lastRefresh ) {
++			lastRefresh = level.time + 200;
++			NW_SyncUpgrades();
++			NW_SendStatus( NW_EV_CLEARED );
++		}
++		return;
++	}
++
++	if ( nw_waveHadBots && bots == 0 ) {
++		// endless mode: g_neonwave_maxwave 0 = unlimited waves; victory only
++		// when the current wave reaches the (cvar-set) final wave
++		char mwBuf[8];
++		int maxWave;
++		trap_Cvar_VariableStringBuffer( "g_neonwave_maxwave", mwBuf, sizeof(mwBuf) );
++		maxWave = atoi( mwBuf );
++		if ( maxWave <= 0 ) {
++			maxWave = NW_MAX_WAVE;
++		}
++		if ( nw_wave >= maxWave ) {
++			int runSec = ( level.time - nw_runStartTime ) / 1000;
++			char btBuf[16];
++			int bestTime;
++			// time attack: g_neonwave_besttime tracks fastest victory (seconds)
++			trap_Cvar_VariableStringBuffer( "g_neonwave_besttime", btBuf, sizeof(btBuf) );
++			bestTime = atoi( btBuf );
++			if ( bestTime <= 0 || runSec < bestTime ) {
++				trap_Cvar_Set( "g_neonwave_besttime", va("%i", runSec) );
++				G_Printf( "NeonWave: NEW BEST TIME %is\n", runSec );
++			}
++			G_Printf( "NeonWave: victory time %is (best %is)\n", runSec,
++				( bestTime > 0 && runSec >= bestTime ) ? bestTime : runSec );
++			NW_GrantUpgradePoints();
++			NeonWave_DropReward( nw_wave );
++			NW_GameOver( NW_EV_VICTORY, "All waves cleared" );
++			return;
++		}
++		NW_EnterBreak();
++		return;
++	}
++
++	if ( bots > 0 && nw_wave >= NW_BOSS_WAVE ) {
++		// v0.11 boss special mechanics
++		static int lastMini;
++		NW_BossMechanicsFrame( &lastMini, bots );
++		if ( level.time > lastRefresh ) {
++			lastRefresh = level.time + 250;
++			NW_SyncUpgrades();
++			NW_SendStatus( NW_EV_RUNNING );
++		}
++	}
++}
++
++#endif // NEONARENA_MOD
