@@ -28,7 +28,9 @@ jobs:
         # patched tree per release tag instead.
 
       - name: Build mod
-        run: make -C oa-gamecode
+        run: |
+          cp Makefile.local oa-gamecode/
+          make -C oa-gamecode
 
       - name: Verify artifacts
         run: |
