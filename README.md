@@ -95,31 +95,25 @@ cd ..
 (Hinweis: `engine-quake3e-oa.patch` ist kein Mod-Patch — er wird nur beim
 Quake3e-Engine-Build angewendet, siehe Workflow `engine-quake3e.yml`.)
 
-### Patch-Serie
+### Gamecode-Submodule (seit v0.13)
 
-| Patch | Inhalt |
-|---|---|
-| `010-gamename.patch` | gamename → „NeonArena-0.1" (`#ifdef NEONARENA_MOD`) |
-| `020-cyan-railtrail.patch` | Railtrail fix Cyan statt Spielerfarbe |
-| `030-lcc-gnu89.patch` | lcc-Tools mit `-std=gnu89` (GCC ≥ 14: `constexpr`-Clash) |
-| `040-neonwave-gametype.patch` | GT_NEONWAVE (Gametype 14) + CS_NEONWAVE |
-| `050-neonwave-hooks.patch` | Wellen-Hooks (g_main.c/g_local.h/g_cmds.c) + Makefile |
-| `060-neonwave-makefile.patch` | g_neonwave.o in beiden Objekt-Listen |
-| `070-neonwave-bot-aggro.patch` | Bots jagen nur Menschen (kein Bot-vs-Bot) |
-| `090-neonwave-rewards-skill.patch` | Reward-Drop-Deklaration |
-| `100-neonwave-best-cvar.patch` | Highscore-Cvar `g_neonwave_best` |
-| `110-neonwave-hud-best-sound.patch` | HUD (WAVE/BEST/CLEARED) + Jingles |
-| `120-neonwave-weapon-lock-spawn.patch` | Spawn nur Rail+LG+Gauntlet |
-| `130-neonwave-weapon-pickup-filter.patch` | Fremde Waffen-Pickups blockiert |
-| `140-170-*.patch` | Boss-Drones (Flag, Struct, Health, Glow, Warmup) |
-| `180-neonwave-v05-boss-upgrades.patch` | v0.5: Boss-Railgun, HUD-Bossbar, Upgrade-System |
-| `190-neon-look-fx.patch` | Look v2: Drohnen-Glow, Rail/LG-Lights, Neon-HUD |
-| `200-neon-wave-feel.patch` | Echte Wellen-Pause, F1/F2/F3-Upgrades, Game-Over, One-Life |
-| `220-neonwave-upgrade-hud.patch` | Upgrade-HUD: Punkte + Level live via PERS_CAPTURES |
-| `230-neon-fx-package.patch` | Rail-Impact-Burst, LG-Sparks, Muzzle-Flare, Boss-Vignette |
-| `240-replay-combo-stats.patch` | Wellen-Modifier, Combo-Streaks, Run-Stats + End-Screen |
+Der Mod-Gamecode lebt im eigenen Repo **bumblei3/oa-gamecode** und ist als
+Git-Submodule unter `oa-gamecode/` eingebunden. Der Submodule-Commit PINNT
+die exakte Gamecode-Version — kein Patch-Drift mehr.
 
-`patches/g_neonwave.c` (Wellen-Logik) wird zusätzlich nach `code/game/` kopiert.
+```sh
+git clone --recurse-submodules https://github.com/bumblei3/neon-arena.git
+cd neon-arena && ./build-mod.sh   # baut + installiert nach ~/.openarena/neonarena
+```
+
+Gamecode-Änderungen werden **im Submodule** committed und gepusht
+(`cd oa-gamecode && git push`), danach der neue Stand im Parent-Repo
+festgehalten (`git add oa-gamecode && git commit`).
+
+Historie: Bis v0.12 wurde der Gamecode per Patch-Serie auf den
+OpenArena-Upstream angewandt. Diese Serie (inkorrekter Hunk-Zähler,
+kumulativer 280er-Patch) ist seit dem Submodule-Ansatz obsolet und liegt
+archiviert im Branch `archive/patches`.
 
 ### v0.5-Highlights
 

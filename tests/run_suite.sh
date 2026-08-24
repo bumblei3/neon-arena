@@ -172,6 +172,15 @@ assert_12() {
   report $ok "newrecord-flag"
 }
 
+# TEST 13: mega combo reward — best streak 8+ drops Quad Damage at wave clear
+assert_13() {
+  local ok=0
+  check "$1" "fake combo 8 registered";  [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "MEGA COMBO 8";            [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "item_quad" ;              [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "mega-combo-reward"
+}
+
 TEST_NUM=""
 
 # wrappers that bundle cvar sets per test
@@ -218,12 +227,14 @@ t12() {
     +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20
 }
 
+t13() { run_test 13 "mega-combo-reward" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1; }
+
 [ -d "$HOME_DIR/vm" ] || { echo "mod not installed: $HOME_DIR/vm missing (run build-mod.sh first)"; exit 2; }
 
 case "$MODE" in
-  quick)  t1; t3; t4; t10 ;;
+  quick)  t1; t3; t4; t7; t8; t10; t12; t13 ;;
   single) t"$SELECTED" ;;
-  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12; do "t$n"; done ;;
+  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13; do "t$n"; done ;;
 esac
 
 echo

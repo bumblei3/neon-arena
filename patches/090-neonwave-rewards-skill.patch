@@ -1,7 +1,0 @@
-diff --git a/code/game/g_local.h b/code/game/g_local.h
---- a/code/game/g_local.h
-+++ b/code/game/g_local.h
-@@ -886,4 +886,5 @@
- void NeonWave_Frame( void );
-+void NeonWave_DropReward( int clearedWave );
- void CheckTeamVote( int team );
