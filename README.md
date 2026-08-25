@@ -212,6 +212,16 @@ archiviert im Branch `archive/patches`.
   für GT_NEONWAVE, entkoppelter failrun-Hook, Mini-Drone-Cap angehoben,
   Cvar-Reset deckt `q3config_server.cfg` ab.
 
+### v0.14-Highlights (Daily Challenge)
+
+- **DAILY CHALLENGE:** `g_neonwave_daily 1` aktiviert den Tagesmodus — ein
+  FNV-1a-Hash über das Datum (YYYY-MM-DD) leitet Boss-Rotation und
+  Modifier-Reihenfolge ab. Gleicher Tag = gleiche Herausforderung für alle.
+  Eigener Records-File (`neonwave_daily_records.dat`), normale Bestwerte
+  bleiben unberührt. Test-Hook `g_neonwave_dailyseed N` erzwingt einen Seed
+  (Suite-Test 15 verifiziert die Determinismus).
+- Ohne `g_neonwave_daily` ändert sich nichts — Standardverhalten unverändert.
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod gegen aktuellen
