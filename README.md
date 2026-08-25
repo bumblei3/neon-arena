@@ -222,6 +222,14 @@ archiviert im Branch `archive/patches`.
   (Suite-Test 15 verifiziert die Determinismus).
 - Ohne `g_neonwave_daily` ändert sich nichts — Standardverhalten unverändert.
 
+### v0.15-Highlights (WARDEN)
+
+- **WARDEN (Boss #5):** teleportiert periodisch IN die Spielerzone
+  (offensiver Gegenentwurf zum SNIPER-Dash) und hat danach eine kurze
+  Armor-Phase (3 s). 5× HP (hc 500). Rotiert ab der 5. Boss-Welle in den
+  Zyklus; Test-Hooks `g_neonwave_bosstype 5` und `g_neonwave_wardenforce 1`
+  (erzwingt den Strike deterministisch, Suite-Test 16).
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod gegen aktuellen

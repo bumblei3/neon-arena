@@ -209,8 +209,8 @@ t15() {
       +map oa_shine > "$logdir/$run.log" 2>&1 || true
     grep -qE "DAILY CHALLENGE seed 12345" "$logdir/$run.log" || ok=1
   done
-  b1=$(grep -oE "boss spawned: [A-Z C]+" "$logdir/a.log" | head -1)
-  b2=$(grep -oE "boss spawned: [A-Z C]+" "$logdir/b.log" | head -1)
+  b1=$(grep -oE "boss spawned: [A-Z ]+" "$logdir/a.log" | head -1)
+  b2=$(grep -oE "boss spawned: [A-Z ]+" "$logdir/b.log" | head -1)
   [ -n "$b1" ] && [ "$b1" = "$b2" ] || { ok=1; echo "boss mismatch: '$b1' vs '$b2'"; }
   timeout 30 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
     +set fs_game neonarena +set g_gametype 14 \
@@ -220,6 +220,17 @@ t15() {
   grep -qE "DAILY CHALLENGE seed 999" "$logdir/c.log" || ok=1
   report $ok "daily-challenge-determinism"
 }
+
+# TEST 16: WARDEN boss — forced via bosstype 5, 5x HP (hc\500),
+# strike+armor mechanics via wardenforce hook
+assert_16() {
+  local ok=0
+  check "$1" "boss spawned: WARDEN (hc 500)";          [ $LAST_RESULT -eq 0 ] || ok=1
+  count_min "$1" "WARDEN strikes the player zone" 1;   [ $? -eq 0 ] || ok=1
+  count_min "$1" "WARDEN raises armor" 1;              [ $? -eq 0 ] || ok=1
+  report $ok "boss-warden"
+}
+t16() { run_test 16 "boss-warden" 40 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1; }
 
 TEST_NUM=""
 
@@ -275,7 +286,7 @@ t14() { run_test 14 "boss-glass-cannon" 40 +set g_neonwave_autostart 1 +set g_ne
 case "$MODE" in
   quick)  t1; t3; t4; t7; t8; t10; t12; t13 ;;
   single) t"$SELECTED" ;;
-  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15; do "t$n"; done ;;
+  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16; do "t$n"; done ;;
 esac
 
 echo
