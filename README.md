@@ -64,8 +64,7 @@ Die klassische OpenArena-Engine bleibt ausdrücklich voll unterstützt. Quake3e 
    - **CI-Artifact** aus dem Release oder dem neusten `main`-Lauf (Artifact `neonarena-engine`, `dist/neonarena-engine-linux64.tar.gz`), entpackt nach `~/quake3e-engine/`.
    - **Selbst bauen:** `git clone --depth 1 https://github.com/ec-/quake3e && cd quake3e && make ARCH=x86_64` – das Binary landet in `build/release-linux-x86_64/`.
 2. OpenArena-Basisdateien bereitstellen:
-   - `baseoa/*.pk3` aus der OpenArena-Installation nach `~/quake3e-engine/baseq3/` kopieren.
-   - Der beim Engine-Build angewendete Kompatibilitäts-Patch `patches/engine-quake3e-oa.patch` entfernt die Q3-CDROM-Checksummenprüfung, damit Quake3e OA-Content akzeptiert.
+   - `baseoa/*.pk3` aus der OpenArena-Installation nach `~/quake3e-engine/baseq3/` kopieren **oder** das Engine-Patch verwenden: `patches/engine-quake3e-oa.patch` setzt das hardcoded `BASEGAME` von `"baseq3"` auf `"baseoa"` (im CI-Build automatisch angewendet), damit Quake3e OA-Content direkt aus `baseoa/` lädt.
 3. NeonArena-Mod installiert (siehe Build-Abschnitt): die PK3(s) liegen in `~/.openarena/neonarena/`.
 
 ### Start mit Bloom

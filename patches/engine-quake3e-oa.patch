@@ -1,0 +1,11 @@
+--- a/code/qcommon/q_shared.h
++++ b/code/qcommon/q_shared.h
+@@ -36,7 +36,7 @@
+ 
+ //#define DEFAULT_GAME			"edawn"
+ 
+-#define BASEGAME				"baseq3"
++#define BASEGAME				"baseoa"
+ #define BASEDEMO				"demoq3"
+ #define BASETA					"missionpack"
+ #define STEAMPATH_NAME			"Quake 3 Arena"
