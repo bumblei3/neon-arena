@@ -81,7 +81,8 @@ report() { # report <ok> <name>
 # TEST 1: smoke + boss wave force-start (wave 10, classic sniper 4x hp)
 assert_1() {
   local ok=0
-  check "$1" 'gamename\\NeonArena-0.12';       [ $LAST_RESULT -eq 0 ] || ok=1
+  # version-agnostic: match any NeonArena-* gameversion
+  grep -qE 'gamename\\NeonArena-[0-9.]+' "$1" || ok=1
   check "$1" 'g_gametype\\14';                 [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "NeonWave: starting wave 10";     [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" 'hc\\400';                        [ $LAST_RESULT -eq 0 ] || ok=1

@@ -74,7 +74,12 @@ jobs:
           (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg)
           chmod +x tests/run_suite.sh
           ./tests/run_suite.sh | tee /tmp/suite-output.txt
-          exit "${PIPESTATUS[0]}"
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "suite_exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          # timeout detection: if timeout killed the runner (exit 124), mark it
+          if [ "$EXIT_CODE" -eq 124 ]; then
+            echo "::warning::Test suite timed out"
+          fi
 
       - name: Suite summary
         if: always()
@@ -85,9 +90,14 @@ jobs:
               echo '```'
               cat /tmp/suite-output.txt
               echo '```'
+              echo ""
+              echo "**Exit code:** \`${{ steps.suite.outputs.suite_exit_code }}\`"
             } >> "$GITHUB_STEP_SUMMARY"
-            # fail the job if the suite failed
-            grep -q "0 failed" /tmp/suite-output.txt || exit 1
+          fi
+          # fail the job if the suite failed (including timeouts)
+          if [ "${{ steps.suite.outputs.suite_exit_code }}" != "0" ] && [ "${{ steps.suite.outputs.suite_exit_code }}" != "" ]; then
+            echo "suite_exit_code=${{ steps.suite.outputs.suite_exit_code }}" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
           fi
 
       - name: Upload test logs (always)

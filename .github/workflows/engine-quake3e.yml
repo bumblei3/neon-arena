@@ -39,7 +39,11 @@ jobs:
           OUT=/tmp/quake3e/build/release-linux-x86_64
           cp "$OUT/quake3e.x64" dist/neonarena-engine/
           cp "$OUT/quake3e_opengl_x86_64.so" dist/neonarena-engine/
-          cp "$OUT/quake3e_vulkan_x86_64.so" dist/neonarena-engine/ || echo "vulkan renderer not built - shipping OpenGL only"
+          if [ -f "$OUT/quake3e_vulkan_x86_64.so" ]; then
+            cp "$OUT/quake3e_vulkan_x86_64.so" dist/neonarena-engine/
+          else
+            echo "vulkan renderer not built - shipping OpenGL only"
+          fi
           # OpenArena base content must be supplied by the player (see README)
           tar -czf dist/neonarena-engine-linux64.tar.gz -C dist neonarena-engine
           ls -la dist/neonarena-engine-linux64.tar.gz

@@ -344,55 +344,213 @@ lightningExplosion
 // ---------------------------------------------------------------------------
 viewBloodBlend
 {
-	sort nearest
-	{
-		map gfx/damage/blood_screen.tga
-		blendFunc GL_SRC_ALPHA GL_ONE
-		rgbGen identityLighting
-		alphaGen vertex
-	}
+    sort nearest
+    {
+        map gfx/damage/blood_screen.tga
+        blendFunc GL_SRC_ALPHA GL_ONE
+        rgbGen identityLighting
+        alphaGen vertex
+    }
 }
 
 bloodMark
 {
-	nopicmip
-	polygonOffset
-	{
-		clampmap gfx/damage/blood_stain.tga
-		blendFunc GL_ONE GL_ONE
-		rgbGen identityLighting
-		alphaGen vertex
-	}
+    nopicmip
+    polygonOffset
+    {
+        clampmap gfx/damage/blood_stain.tga
+        blendFunc GL_ONE GL_ONE
+        rgbGen identityLighting
+        alphaGen vertex
+    }
 }
 
 bloodTrail
 {
-	nopicmip
-	entityMergable
-	{
-		clampmap gfx/damage/blood_spurt.tga
-		blendFunc GL_ONE GL_ONE
-		rgbGen vertex
-		alphaGen vertex
-	}
+    nopicmip
+    entityMergable
+    {
+        clampmap gfx/damage/blood_spurt.tga
+        blendFunc GL_ONE GL_ONE
+        rgbGen vertex
+        alphaGen vertex
+    }
 }
 
 bloodExplosion
 {
-	{
-		clampmap textures/neonarena/flare.tga
-		blendfunc add
-		rgbGen const ( 0.3 1.0 1.0 )
-		tcMod rotate 77
-		tcMod stretch sin 0 2 0 0.4
-	}
-	{
-		clampmap textures/neonarena/spark.tga
-		blendfunc add
-		rgbGen const ( 0.8 0.4 1.0 )
-		tcMod rotate -43
-		tcMod stretch sin 0 1.7 0 0.4
-	}
+    {
+        clampmap textures/neonarena/flare.tga
+        blendfunc add
+        rgbGen const ( 0.3 1.0 1.0 )
+        tcMod rotate 77
+        tcMod stretch sin 0 2 0 0.4
+    }
+    {
+        clampmap textures/neonarena/spark.tga
+        blendfunc add
+        rgbGen const ( 0.8 0.4 1.0 )
+        tcMod rotate -43
+        tcMod stretch sin 0 1.7 0 0.4
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Impact + burst FX (neue additive Schichten für Rail/LG/Explosionen)
+// ---------------------------------------------------------------------------
+railImpactGlow
+{
+    sort nearest
+    cull disable
+    {
+        clampmap textures/neonarena/railcore.tga
+        blendfunc add
+        rgbGen const ( 0.5 1.0 1.0 )
+        tcMod rotate 33
+        tcMod stretch sin 0 3 0 0.5
+    }
+    {
+        map textures/neonarena/flare.tga
+        blendfunc add
+        rgbGen const ( 0.15 0.6 0.75 )
+        tcMod scale 0.4 0.4
+        tcMod scroll -0.4 0
+    }
+    {
+        map textures/neonarena/spark.tga
+        blendfunc add
+        rgbGen const ( 1.0 0.95 0.4 )
+        tcMod rotate -90
+        tcMod scale 0.3 0.3
+    }
+}
+
+lgSparkBurst
+{
+    sort nearest
+    cull disable
+    {
+        clampmap textures/neonarena/spark.tga
+        blendfunc add
+        rgbGen vertex
+        tcMod rotate 210
+        tcMod scale 0.5 0.5
+    }
+    {
+        map textures/neonarena/flare.tga
+        blendfunc add
+        rgbGen const ( 0.35 1.0 1.0 )
+        tcMod rotate 0
+        tcMod scale 0.6 0.6
+        tcMod scroll -0.2 0
+    }
+    {
+        clampmap textures/neonarena/railcore.tga
+        blendfunc add
+        rgbGen const ( 0.2 0.7 0.9 )
+        tcMod rotate -50
+        tcMod scale 0.25 0.25
+    }
+}
+
+energyBurstRing
+{
+    sort nearest
+    cull disable
+    {
+        map textures/neonarena/railcore.tga
+        blendfunc add
+        rgbGen const ( 0.7 1.0 1.0 )
+        tcMod rotate 120
+        tcMod scale 0.8 0.8
+        tcMod stretch sin 0 1.5 0 0.5
+    }
+    {
+        map textures/neonarena/spark.tga
+        blendfunc add
+        rgbGen const ( 1.0 0.9 0.45 )
+        tcMod rotate -30
+        tcMod scale 0.3 0.3
+    }
+    {
+        clampmap textures/neonarena/flare.tga
+        blendfunc add
+        rgbGen const ( 0.1 0.5 0.6 )
+        tcMod scale 0.25 0.25
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Boss pulse frames (ergänzt bossShell/Boss-Shell-Rhythmen)
+// ---------------------------------------------------------------------------
+neonarena/bossShellPulse
+{
+    deformVertexes wave 70 sin 1.7 0 0 0
+    deformVertexes wave 50 sin 3.4 0 0 0
+    {
+        map textures/neonarena/grid.tga
+        blendfunc add
+        rgbGen const ( 1.75 0.22 1.75 )
+        tcGen environment
+        tcMod scroll 0.22 0.10
+        tcMod scale 2 2
+    }
+    {
+        map textures/neonarena/spark.tga
+        blendfunc add
+        rgbGen const ( 1.0 0.4 0.9 )
+        tcMod rotate -70
+        tcMod scale 0.4 0.4
+        tcMod scroll 0.05 0.05
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Modifier screen-edge glow (additive Schicht für Wave-Übergang/Mod-Tint)
+// ---------------------------------------------------------------------------
+neonarena/modifierEdgeGlow
+{
+    sort nearest
+    cull disable
+    {
+        map gfx/2d/neon_vignette.tga
+        blendfunc add
+        rgbGen const ( 0.1 0.6 0.8 )
+        tcMod scale 2 2
+        tcMod scroll 0.02 0
+    }
+    {
+        map gfx/2d/neon_vignette.tga
+        blendfunc add
+        rgbGen const ( 0.4 0.2 0.0 )
+        tcMod scale 1.5 1.5
+        tcMod scroll -0.02 0
+        alphaGen vertex
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Combo chest pulse (goldener Vollton-Block für hohe Combo-Anzeige)
+// ---------------------------------------------------------------------------
+gfx/2d/comboChestPulse
+{
+    nopicmip
+    nomipmaps
+    {
+        map gfx/2d/neon_bar.tga
+        blendfunc add
+        rgbGen const ( 0.95 0.85 0.18 )
+        tcMod scale 1.2 1
+        tcMod scroll 0.03 0
+    }
+    {
+        map gfx/2d/neon_vignette.tga
+        blendfunc add
+        rgbGen const ( 0.8 0.7 0.1 )
+        tcMod scale 0.4 0.4
+        tcMod scroll 0.02 0
+        alphaGen vertex
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -400,14 +558,14 @@ bloodExplosion
 // ---------------------------------------------------------------------------
 neonarena/droneShell
 {
-	deformVertexes wave 100 sin 1.8 0 0 0
-	{
-		map textures/neonarena/grid.tga
-		blendfunc add
-		rgbGen const ( 0.35 1.60 1.90 )
-		tcGen environment
-		tcMod scroll 0.15 0.08
-	}
+    deformVertexes wave 100 sin 1.8 0 0 0
+    {
+        map textures/neonarena/grid.tga
+        blendfunc add
+        rgbGen const ( 0.30 1.40 1.65 )
+        tcGen environment
+        tcMod scroll 0.15 0.08
+    }
 }
 
 neonarena/bossShell

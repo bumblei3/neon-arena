@@ -52,27 +52,73 @@ OpenArena 0.8.8 (oder kompatibel) muss installiert sein.
 
 Nach dem ersten Start einmal `vid_restart` in der Konsole (`~`), damit `r_mapoverbrightbits 1` die Map dunkler zieht und Neon besser knallt. Zurück zur hellen Map: `seta r_mapoverbrightbits 2` + `vid_restart`.
 
-## Optional: Quake3e-Engine (Bloom + Vulkan)
+## Grafik-Engine – Quake3e mit Vulkan und Bloom
 
-NeonArena läuft auch auf [Quake3e](https://github.com/ec-/quake3e) — einer modernen
-Q3-Engine mit OpenGL2- und Vulkan-Renderer inkl. **Bloom**. Damit glühen alle
-Neon-Elemente (Rails, Drohnen-Shells, HUD) richtig.
+NeonArena profitiert stark von einer modernen Renderer-Pipeline: das gesamte Neon-Feeling (Additive-Elemente, cyan/magenta Glow, HUD-Vignette) kommt in voller Wirkung zum Tragen, wenn **Bloom** aktiv ist. Der empfohlene Weg dafür ist die [Quake3e](https://github.com/ec-/quake3e)-Engine – einer modernen Q3-Engine mit OpenGL2- und Vulkan-Renderer inkl. Bloom-Unterstützung.
 
-1. Engine-Binary aus dem CI-Artifact `neonarena-engine`
-   (oder selbst bauen: `git clone https://github.com/ec-/quake3e && make`)
-   nach `~/quake3e-engine/` legen.
-2. Die **OpenArena-Basisdateien** (`baseoa/*.pk3`) nach `~/quake3e-engine/baseq3/`
-   kopieren — der Engine-Patch `patches/engine-quake3e-oa.patch` überspringt die
-   Q3-CDROM-Checksummenprüfung, damit OA-Content akzeptiert wird.
-3. Starten:
-   ```sh
-   ~/quake3e-engine/quake3e.x64 +set cl_renderer vulkan +set r_bloom 1 \
-     +set fs_basepath ~/quake3e-engine +set fs_homepath ~/.openarena \
-     +set fs_game neonarena +g_gametype 14 +map oa_shine
-   ```
-   (`cl_renderer opengl` statt `vulkan` für den GL2-Renderer mit Bloom.)
+Die klassische OpenArena-Engine bleibt ausdrücklich voll unterstützt. Quake3e ist die grafisch stärkste Variante, kein Ersatz für den Normal-Pfad.
 
-Der klassische OpenArena-Client bleibt voll unterstützt — Quake3e ist rein optional.
+### Installation
+
+1. Engine-Binary besorgen:
+   - **CI-Artifact** aus dem Release oder dem neusten `main`-Lauf (Artifact `neonarena-engine`, `dist/neonarena-engine-linux64.tar.gz`), entpackt nach `~/quake3e-engine/`.
+   - **Selbst bauen:** `git clone --depth 1 https://github.com/ec-/quake3e && cd quake3e && make ARCH=x86_64` – das Binary landet in `build/release-linux-x86_64/`.
+2. OpenArena-Basisdateien bereitstellen:
+   - `baseoa/*.pk3` aus der OpenArena-Installation nach `~/quake3e-engine/baseq3/` kopieren.
+   - Der beim Engine-Build angewendete Kompatibilitäts-Patch `patches/engine-quake3e-oa.patch` entfernt die Q3-CDROM-Checksummenprüfung, damit Quake3e OA-Content akzeptiert.
+3. NeonArena-Mod installiert (siehe Build-Abschnitt): die PK3(s) liegen in `~/.openarena/neonarena/`.
+
+### Start mit Bloom
+
+```sh
+~/quake3e-engine/quake3e.x64 \
+  +set cl_renderer vulkan \
+  +set r_bloom 1 \
+  +set fs_basepath ~/quake3e-engine \
+  +set fs_homepath ~/.openarena \
+  +set fs_game neonarena \
+  +g_gametype 14 \
+  +map oa_shine
+```
+
+- `cl_renderer vulkan` → Vulkan-Renderer (modernster Pfad).
+- `cl_renderer opengl` → OpenGL2-Renderer, ebenfalls mit Bloom.
+- `r_bloom 1` aktiviert Bloom. Ohne Bloom ist der Effekt deutlich blasser – Neon glüht nur mit Bloom richtig.
+
+### Bloom-Kalibrierung (optional)
+
+Quake3e bietet zusätzliche Bloom-Cvars, die eingeschossen werden können, wenn Neon zu stark / zu schwach überblitzt:
+
+- `r_bloom` – Bloom an/aus (1/0).
+- Je nach Quake3e-Version zusätzlich `r_bloomIntensity`, `r_bloomResolution`, `r_bloomQuality` – in der Konsole mit `seta r_bloom*` ersichtlich.
+
+Empfehlung: erst mit `r_bloom 1` spielen, dann nur nachregulieren, wenn konkrete Elemente (z. B. Rail-Impact, Vignette, HUD) über- oder unterbelichtet wirken.
+
+### Kompatibilitäts-Checkliste (Look-Pack + Bloom)
+
+Bloom ist für NeonArena besonders sensitiv, weil das Look-Pack auf additive, leuchtende Elemente setzt. Beim Wechsel auf Quake3e + Bloom sollte visuell geprüft werden:
+
+- **Skybox / Umgebungslicht:** `anoice1`-Skybox dunkel-genug, Neon-Punkte schlagen korrekt an.
+- **Boden-Grid (`grid.tga` additive Schicht):** leuchtet, ohne ins Histo zu überlaufen.
+- **Railgun / Lightning Gun:** `railCore`, `lightningBoltNew` etc. bleiben additiv und gut sichtbar.
+- **Drohnen-Shell + Boss-Shell:** `neonarena/droneShell`, `neonarena/bossShell` (und optional `bossShellPulse`) lesen sich mit Bloom nicht „matschig".
+- **HUD:** `neon_vignette`, `neon_bar`, `crosshaira`, Combo/Feedback-Overlays im cgame bleiben lesbar und wirken nicht durch Bloom verwaschen.
+- **Energy-Blood / Impact-Puffs:** additive Spurt/Glow-Elemente wirken explosionsartig, nicht verbrannt.
+
+Falls ein Element unter Bloom schlecht wirkt, liegt die Ursache meist in einem der Look-Pack-Blocks (z. B. zu starker additive `rgbGen const`, Kombination mit bereits hellem Basis-Textur) – das lässt sich in `assets/scripts/neon-look.shader` nachjustieren (Blend-Modus, Konstanten, `tcMod`-Skaling).
+
+### CI: Engine-Build
+
+`.github/workflows/engine-quake3e.yml` baut bei jedem Push auf `main` (und optional manuell) die Quake3e-Engine mit dem OpenArena-Kompatibilitäts-Patch und veröffentlicht das Binary als Artifact `neonarena-engine`. Der Pfad wird automatisch mitgepflegt, sobald der Upstream-Quake3e-Build kompatibel bleibt.
+
+Der Patch `patches/engine-quake3e-oa.patch` ist **kein Mod-Patch** – er wird nur beim Engine-Build angewendet (nicht beim Mod-Bau `build-mod.sh`).
+
+### FAQ
+
+- **Ich habe nur OpenArena-0.8.8, kein Quake3e?** Dann läuft NeonArena normal auf der OpenArena-Engine – der Mod ist voll funktionstüchtig, nur ohne Bloom.
+- **Bloom bringt nichts bei meinem OpenGL-Renderer?** Quake3e mit `cl_renderer opengl` liefert ebenfalls Bloom (OpenGL2). Der Vulkan-Pfad ist der mit Abstand stärkste, aber OpenGL2+Bloom ist besser als kein Bloom.
+- **Kann ich Bloom nur für NeonArena aktivieren?** `r_bloom` ist eine Cvar der Quake3e-Engine, nicht des Mods. Sie gilt global pro Lauf.
+- **Mod- und Engine-Updates gleichzeitig?** Mod-Updates (PK3, QVMs) kommen aus dem normalen Mod-Build. Engine-Updates kommen aus dem `engine-quake3e`-CI-Pfad oder eigenem Quake3e-Build. Beide Pfade sind unabhängig.
 
 ## Bauen (Entwickler)
 
