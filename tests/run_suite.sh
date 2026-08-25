@@ -71,6 +71,20 @@ count_min() { # count_min <log> <pattern> <min>
   local n=$(grep -c "$2" "$1"); [ "$n" -ge "$3" ]
 }
 
+assert_no_pattern() { # assert_no_pattern <log> <pattern> — fails if found
+  if grep -qE "$2" "$1"; then
+    echo "unexpected pattern '$2' in $1" >&2
+    return 1
+  fi
+}
+
+no_fatal_warnings() { # no_fatal_warnings <log> — generic hygiene check
+  local ok=0
+  assert_no_pattern "$1" "WARNING cannot write" || ok=1
+  assert_no_pattern "$1" "G_ParseSpawnVars.*ERROR|ERROR.*G_ParseSpawnVars" || ok=1
+  return $ok
+}
+
 report() { # report <ok> <name>
   if [ "$1" -eq 0 ]; then echo "PASS"; PASS=$((PASS+1));
   else echo "FAIL (log: $LOGDIR/test${TEST_NUM}.log)"; FAIL=$((FAIL+1)); FAILED_NAMES="$FAILED_NAMES $2"; fi
@@ -96,6 +110,7 @@ assert_2() {
   check "$1" "NEW BEST wave 20";            [ $LAST_RESULT -eq 0 ] || ok=1
   count_min "$1" "upgrade point granted" 19; [ $? -eq 0 ] || ok=1
   grep -qE "starting wave [5-9] .*\[(GLASS DRONES|SWARM|LOW GRAVITY|DOUBLE POINTS)\]" "$1" || ok=1
+  no_fatal_warnings "$1" || ok=1
   report $ok "full-run-victory"
 }
 # TEST 3: forced LOW GRAVITY modifier + gravity restore on wave clear
@@ -122,6 +137,7 @@ assert_6() {
   check "$1" "starting wave 25";    [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "All waves cleared";   [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "BEST TIME";           [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
   report $ok "endless-timeattack"
 }
 # TEST 7: record persistence across two server runs
@@ -168,8 +184,9 @@ assert_11() {
 # TEST 12: new-record flag + save on record run
 assert_12() {
   local ok=0
-  check "$1" "NEW RECORD WAVE\|NEW RECORD TIME"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NEW RECORD WAVE\\|NEW RECORD TIME"; [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "RECORDS SAVED";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
   report $ok "newrecord-flag"
 }
 
