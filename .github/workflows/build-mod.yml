@@ -73,7 +73,16 @@ jobs:
           cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
           (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg)
           chmod +x tests/run_suite.sh
-          ./tests/run_suite.sh | tee /tmp/suite-output.txt
+          # quick suite on plain pushes (~6 min); full suite on tags and
+          # manual dispatch (release gate)
+          if [ "${{ github.ref_type }}" = "tag" ] || [ "${{ github.event_name }}" != "push" ]; then
+            SUITE_ARGS=""
+            echo "suite mode: FULL" >> "$GITHUB_STEP_SUMMARY"
+          else
+            SUITE_ARGS="--quick"
+            echo "suite mode: QUICK (full suite runs on tag/dispatch)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          ./tests/run_suite.sh $SUITE_ARGS | tee /tmp/suite-output.txt
           EXIT_CODE=${PIPESTATUS[0]}
           echo "suite_exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
           # timeout detection: if timeout killed the runner (exit 124), mark it

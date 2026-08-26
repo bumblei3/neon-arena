@@ -275,6 +275,33 @@ t17() {
 
 t16() { run_test 16 "boss-warden" 40 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1; }
 
+# TEST 18: dynamic difficulty — forced tier scales the boss hc multiplier
+# HARD (+15%) => classic sniper 400 -> 460; RELAX (-40%... -2*15) => 280
+assert_18() {
+  local ok=0
+  check "$1" "dynamic difficulty forced -> HARD";   [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "boss spawned: SNIPER (hc 460)";       [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "dynamic-difficulty-hard"
+}
+assert_18b() {
+  local ok=0
+  check "$1" "dynamic difficulty forced -> RELAX";  [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "boss spawned: SNIPER (hc 280)";       [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "dynamic-difficulty-relax"
+}
+t18() {
+  run_test 18 "dynamic-difficulty-hard" 40 +set g_neonwave_autostart 1 +set g_neonwave_diffforce 1 +set g_neonwave_startwave 10
+  # second server start for the RELAX tier
+  TEST_NUM=18b
+  printf '%s' "TEST 18b: dynamic-difficulty-relax ... "
+  local logdir="$LOGDIR/test18"; mkdir -p "$logdir"
+  $RUNNER timeout 40 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
+    +set fs_game neonarena +set g_gametype 14 +set g_neonwave_autostart 1 \
+    +set g_neonwave_diffforce -2 +set g_neonwave_startwave 10 \
+    +map oa_shine > "$logdir/b.log" 2>&1 || true
+  assert_18b "$logdir/b.log"
+}
+
 TEST_NUM=""
 
 # wrappers that bundle cvar sets per test
@@ -329,7 +356,7 @@ t14() { run_test 14 "boss-glass-cannon" 40 +set g_neonwave_autostart 1 +set g_ne
 case "$MODE" in
   quick)  t1; t3; t4; t7; t8; t10; t12; t13 ;;
   single) t"$SELECTED" ;;
-  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17; do "t$n"; done ;;
+  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18; do "t$n"; done ;;
 esac
 
 echo
