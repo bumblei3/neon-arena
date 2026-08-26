@@ -109,13 +109,33 @@ assert_1() {
 # and assert structured fields (CS_WAVE>=20, CS_EVENT in {1,3},
 # CS_BEST>=20, CS_PTS>=19, CS_BOSSHP>0, CS_RUNSEC>0 when CS_EVENT=3).
 assert_2() {
-  local ok=0
-  check "$1" "NeonWave: starting wave 20"; [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$1" "All waves cleared";           [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$1" "NEW BEST wave 20";            [ $LAST_RESULT -eq 0 ] || ok=1
-  count_min "$1" "upgrade point granted" 19; [ $? -eq 0 ] || ok=1
-  grep -qE "starting wave [5-9] .*\\[(GLASS DRONES|SWARM|LOW GRAVITY|DOUBLE POINTS)\\]" "$1" || ok=1
-  no_fatal_warnings "$1" || ok=1
+  local ok=0 logfile="$1"
+  # --- legacy marker assertions ---
+  check "$logfile" "NeonWave: starting wave 20";     [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "All waves cleared";               [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "NEW BEST wave 20";                [ $LAST_RESULT -eq 0 ] || ok=1
+  count_min "$logfile" "upgrade point granted" 19;   [ $? -eq 0 ] || ok=1
+  grep -qE "starting wave [5-9] .*\\[(GLASS DRONES|SWARM|LOW GRAVITY|DOUBLE POINTS)\\]" "$logfile" || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  # --- parser-based payload assertions ---
+  # Source the parser if available in the test dir
+  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
+    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
+    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
+      parse_cs_neonwave "$logfile" || {
+        :  # payload not found -- keep legacy result
+      }
+      # Assert parsed fields only if present
+      [ -n "${CS_WAVE:-}" ] && [ "${CS_WAVE:-0}" -ge 20 ] 2>/dev/null || ok=1
+      [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
+      [ -n "${CS_BEST:-}" ] && [ "${CS_BEST:-0}" -ge 20 ] 2>/dev/null || ok=1
+      [ -n "${CS_PTS:-}" ] && [ "${CS_PTS:-0}" -ge 19 ] 2>/dev/null || ok=1
+      [ -n "${CS_BOSSHP:-}" ] && [ "${CS_BOSSHP:-0}" -gt 0 ] 2>/dev/null || ok=1
+      if [ "${CS_EVENT:-0}" -eq 3 ] 2>/dev/null; then
+        [ -n "${CS_RUNSEC:-}" ] && [ "${CS_RUNSEC:-0}" -gt 0 ] 2>/dev/null || ok=1
+      fi
+    fi
+  fi
   report $ok "full-run-victory"
 }
 # TEST 3: forced LOW GRAVITY modifier + gravity restore on wave clear
