@@ -105,13 +105,16 @@ assert_1() {
   report $ok "smoke+boss"
 }
 # TEST 2: full run -> victory at wave 20 + economy + modifiers
+# Parser-aware: after legacy marker checks, also parse CS_NEONWAVE payload
+# and assert structured fields (CS_WAVE>=20, CS_EVENT in {1,3},
+# CS_BEST>=20, CS_PTS>=19, CS_BOSSHP>0, CS_RUNSEC>0 when CS_EVENT=3).
 assert_2() {
   local ok=0
   check "$1" "NeonWave: starting wave 20"; [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "All waves cleared";           [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "NEW BEST wave 20";            [ $LAST_RESULT -eq 0 ] || ok=1
   count_min "$1" "upgrade point granted" 19; [ $? -eq 0 ] || ok=1
-  grep -qE "starting wave [5-9] .*\[(GLASS DRONES|SWARM|LOW GRAVITY|DOUBLE POINTS)\]" "$1" || ok=1
+  grep -qE "starting wave [5-9] .*\\[(GLASS DRONES|SWARM|LOW GRAVITY|DOUBLE POINTS)\\]" "$1" || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "full-run-victory"
 }
