@@ -82,6 +82,8 @@ no_fatal_warnings() { # no_fatal_warnings <log> — generic hygiene check
   local ok=0
   assert_no_pattern "$1" "WARNING cannot write" || ok=1
   assert_no_pattern "$1" "G_ParseSpawnVars.*ERROR|ERROR.*G_ParseSpawnVars" || ok=1
+  # victory-path hygiene: run must not have failed unexpectedly
+  assert_no_pattern "$1" "NeonWave over.*(FAILED)" || ok=1
   return $ok
 }
 
@@ -218,8 +220,10 @@ t15() {
   printf '%s' "TEST 15: daily-challenge-determinism ... "
   local ok=0 b1 b2 b3 logdir="$LOGDIR/test15"
   mkdir -p "$logdir"
+  # NOTE: must use $RUNNER + "${OA_EXTRA[@]}" like run_test() — a bare
+  # ioq3ded invocation dies instantly (no basepath) => empty logs.
   for run in a b; do
-    timeout 30 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
+    $RUNNER timeout 30 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
       +set fs_game neonarena +set g_gametype 14 \
       +set g_neonwave_autostart 1 +set g_neonwave_daily 1 \
       +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 \
@@ -229,7 +233,7 @@ t15() {
   b1=$(grep -oE "boss spawned: [A-Z ]+" "$logdir/a.log" | head -1)
   b2=$(grep -oE "boss spawned: [A-Z ]+" "$logdir/b.log" | head -1)
   [ -n "$b1" ] && [ "$b1" = "$b2" ] || { ok=1; echo "boss mismatch: '$b1' vs '$b2'"; }
-  timeout 30 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
+  $RUNNER timeout 30 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
     +set fs_game neonarena +set g_gametype 14 \
     +set g_neonwave_autostart 1 +set g_neonwave_daily 1 \
     +set g_neonwave_dailyseed 999 +set g_neonwave_startwave 10 \
@@ -247,6 +251,28 @@ assert_16() {
   count_min "$1" "WARDEN raises armor" 1;              [ $? -eq 0 ] || ok=1
   report $ok "boss-warden"
 }
+t17() {
+  TEST_NUM=17
+  printf '%s' "TEST 17: daily-record-persistence ... "
+  local logdir="$LOGDIR/test17"; mkdir -p "$logdir"
+  rm -f "$HOME_DIR/neonwave_daily_records.dat"
+  local ok=0
+  # run 1: daily failrun => daily record saved
+  $RUNNER timeout 40 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
+    +set fs_game neonarena +set g_gametype 14 \
+    +set g_neonwave_autostart 1 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 \
+    +set g_neonwave_failrun 1 +map oa_shine > "$logdir/a.log" 2>&1 || true
+  grep -q "DAILY RECORDS SAVED" "$logdir/a.log" || { ok=1; echo "no daily save"; }
+  [ -f "$HOME_DIR/neonwave_daily_records.dat" ] || { ok=1; echo "daily records file missing"; }
+  # run 2: reload same day => records loaded with wave>=1
+  $RUNNER timeout 30 "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" +set sv_maxclients 24 \
+    +set fs_game neonarena +set g_gametype 14 \
+    +set g_neonwave_autostart 1 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 \
+    +map oa_shine > "$logdir/b.log" 2>&1 || true
+  grep -qE "DAILY records loaded wave=[1-9]" "$logdir/b.log" || { ok=1; echo "no daily load"; }
+  report $ok "daily-record-persistence"
+}
+
 t16() { run_test 16 "boss-warden" 40 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1; }
 
 TEST_NUM=""
@@ -303,7 +329,7 @@ t14() { run_test 14 "boss-glass-cannon" 40 +set g_neonwave_autostart 1 +set g_ne
 case "$MODE" in
   quick)  t1; t3; t4; t7; t8; t10; t12; t13 ;;
   single) t"$SELECTED" ;;
-  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16; do "t$n"; done ;;
+  all)    for n in 1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17; do "t$n"; done ;;
 esac
 
 echo

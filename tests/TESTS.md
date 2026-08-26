@@ -32,6 +32,12 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 14 | boss-glass-cannon | autostart, startwave 10, bosstype 4 | `boss spawned: GLASS CANNON (hc 200)`, `hc\\200` | kein anderer Boss-Type |
 | 15 | daily-challenge-determinism | daily 1, dailyseed 12345/999, startwave 10 | je 2× `DAILY CHALLENGE seed N`, identischer Boss-Spawn bei gleichem Seed, anderer bei 999 | Boss-Mismatch zwischen Läufen |
 | 16 | boss-warden | autostart, startwave 10, bosstype 5, wardenforce 1 | `boss spawned: WARDEN (hc 500)`, ≥1 `WARDEN strikes the player zone`, ≥1 `WARDEN raises armor` | kein anderer Boss-Type |
+| 17 | daily-record-persistence | daily 1, dailyseed 12345, failrun (Run A), dann Run B ohne failrun | `DAILY RECORDS SAVED`, Datei `neonwave_daily_records.dat`, danach `DAILY records loaded wave=[1-9]` | keine Save-/Ladefehler |
+
+Hinweis zu Test 15: die Server-Aufrufe in `t15()` müssen `$RUNNER` +
+`${OA_EXTRA[@]}` wie `run_test()` verwenden — ein nackter ioq3ded-Aufruf
+stirbt instant (kein basepath) → leere Logs → "boss mismatch: '' vs ''"
+(CI-Fail 2026-08-25/26).
 
 ## Ergänzung: Konfigurations-Pattern für Configstring-CsPayload
 
