@@ -140,9 +140,19 @@ assert_2() {
 }
 # TEST 3: forced LOW GRAVITY modifier + gravity restore on wave clear
 assert_3() {
-  local ok=0
-  check "$1" "starting wave 6.*\[LOW GRAVITY\]"; [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$1" "gravity restored to 800";          [ $LAST_RESULT -eq 0 ] || ok=1
+  local ok=0 logfile="$1"
+  check "$logfile" "starting wave 6.*\[LOW GRAVITY\]"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "gravity restored to 800";            [ $LAST_RESULT -eq 0 ] || ok=1
+  # payload: confirm modifier = NW_MOD_LOWGRAV (3), event in {1,3}
+  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
+    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
+    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
+      parse_cs_neonwave "$logfile" || { :; }
+      [ -n "${CS_WAVE:-}" ] && [ "${CS_WAVE:-0}" -ge 6 ] 2>/dev/null || ok=1
+      [ -n "${CS_MOD:-}" ] && [ "${CS_MOD:-0}" -eq 3 ] 2>/dev/null || ok=1
+      [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
+    fi
+  fi
   report $ok "modifier-lowgrav"
 }
 # TEST 4: failed run path + run stats
@@ -154,7 +164,18 @@ assert_4() {
 }
 # TEST 5: TANK boss 6x health
 assert_5() {
-  check "$1" 'hc\\600'; report $? "boss-tank-hp"
+  local ok=0 logfile="$1"
+  check "$logfile" 'hc\\600'; report $? "boss-tank-hp"
+  # payload: confirm bossMax=600, modifier not NONE, event in {1,3}
+  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
+    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
+    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
+      parse_cs_neonwave "$logfile" || { :; }
+      [ -n "${CS_BOSSMX:-}" ] && [ "${CS_BOSSMX:-0}" -eq 600 ] 2>/dev/null || ok=1
+      [ -n "${CS_MOD:-}" ] && [ "${CS_MOD:-0}" -ne 0 ] 2>/dev/null || ok=1
+      [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
+    fi
+  fi
 }
 # TEST 6: endless mode past wave 20 + best time
 assert_6() {
@@ -180,30 +201,68 @@ assert_8() {
 }
 # TEST 9: swarm mother mini-drones + rage mechanics
 assert_9() {
-  local ok=0
-  count_min "$1" "swarm mother spawns mini-drone" 1 || ok=1
+  local ok=0 logfile="$1"
+  count_min "$logfile" "swarm mother spawns mini-drone" 1 || ok=1
+  # payload: confirm swarm boss (mod != NONE, bossHp>0), kill count plausible
+  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
+    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
+    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
+      parse_cs_neonwave "$logfile" || { :; }
+      [ -n "${CS_MOD:-}" ] && [ "${CS_MOD:-0}" -ne 0 ] 2>/dev/null || ok=1
+      [ -n "${CS_BOSSHP:-}" ] && [ "${CS_BOSSHP:-0}" -gt 0 ] 2>/dev/null || ok=1
+      [ -n "${CS_KILLS:-}" ] && [ "${CS_KILLS:-0}" -ge 0 ] 2>/dev/null || ok=1
+    fi
+  fi
   report $ok "swarm-minidrones"
 }
 # TEST 9b: forced rage — ENRAGED log + RAGE-tagged spawns
 assert_9b() {
-  local ok=0
-  check "$1" "SWARM MOTHER ENRAGED";                    [ $LAST_RESULT -eq 0 ] || ok=1
-  count_min "$1" "mini-drone (RAGE)" 1;                 [ $? -eq 0 ] || ok=1
+  local ok=0 logfile="$1"
+  check "$logfile" "SWARM MOTHER ENRAGED";               [ $LAST_RESULT -eq 0 ] || ok=1
+  count_min "$logfile" "mini-drone (RAGE)" 1;            [ $? -eq 0 ] || ok=1
+  # payload: bossHp should be >0 and run time >0 if logged mid-rage
+  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
+    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
+    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
+      parse_cs_neonwave "$logfile" || { :; }
+      [ -n "${CS_BOSSHP:-}" ] && [ "${CS_BOSSHP:-0}" -gt 0 ] 2>/dev/null || ok=1
+    fi
+  fi
   report $ok "swarm-rage"
 }
 # TEST 10: TANK shield cycle — raise AND drop must both occur
 assert_10() {
-  local ok=0
-  count_min "$1" "TANK raises SHIELD" 1   || ok=1
-  count_min "$1" "TANK shield drops" 1    || ok=1
+  local ok=0 logfile="$1"
+  count_min "$logfile" "TANK raises SHIELD" 1   || ok=1
+  count_min "$logfile" "TANK shield drops" 1    || ok=1
+  # payload: confirm tank boss (bossMax=600), alive, event in {1,3}
+  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
+    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
+    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
+      parse_cs_neonwave "$logfile" || { :; }
+      [ -n "${CS_BOSSMX:-}" ] && [ "${CS_BOSSMX:-0}" -eq 600 ] 2>/dev/null || ok=1
+      [ -n "${CS_BOSSHP:-}" ] && [ "${CS_BOSSHP:-0}" -gt 0 ] 2>/dev/null || ok=1
+      [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
+    fi
+  fi
   report $ok "tank-shield-cycle"
 }
 # TEST 11: SNIPER dash — forced low hp via g_neonwave_dashforce
 assert_11() {
-  local ok=0
-  check "$1" "starting wave 10.*BOSS"; [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$1" 'hc\\400';                [ $LAST_RESULT -eq 0 ] || ok=1
-  count_min "$1" "SNIPER dashes to new position" 1; [ $? -eq 0 ] || ok=1
+  local ok=0 logfile="$1"
+  check "$logfile" "starting wave 10.*BOSS"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" 'hc\\400';               [ $LAST_RESULT -eq 0 ] || ok=1
+  count_min "$logfile" "SNIPER dashes to new position" 1; [ $? -eq 0 ] || ok=1
+  # payload: confirm sniper boss, hp=400 (bossMax), modifier NONE, event in {1,3}
+  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
+    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
+    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
+      parse_cs_neonwave "$logfile" || { :; }
+      [ -n "${CS_BOSSHP:-}" ] && [ "${CS_BOSSHP:-0}" -eq 400 ] 2>/dev/null || ok=1
+      [ -n "${CS_MOD:-}" ] && [ "${CS_MOD:-0}" -eq 0 ] 2>/dev/null || ok=1
+      [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
+    fi
+  fi
   report $ok "sniper-dash"
 }
 # TEST 12: new-record flag + save on record run

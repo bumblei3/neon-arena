@@ -78,3 +78,16 @@ parse_cs_neonwave() {
   CS_LIVECOMBO=${arr[11]}
   return 0
 }
+
+# map numeric modifier to name for test assertions
+modifier_name() {
+  local m="${1:-0}"
+  case "$m" in
+    0) echo "NONE" ;;
+    1) echo "GLASS DRONES" ;;
+    2) echo "SWARM" ;;
+    3) echo "LOW GRAVITY" ;;
+    4) echo "DOUBLE POINTS" ;;
+    *) echo "UNKNOWN" ;;
+  esac
+}
