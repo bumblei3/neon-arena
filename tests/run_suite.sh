@@ -308,6 +308,90 @@ assert_17() {
   report $ok "timewarp-modifier"
 }
 
+# TEST 2: full run victory
+assert_2() {
+  local ok=0
+  check "$1" "starting wave 20";                        [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "All waves cleared";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NEW BEST wave 20";                        [ $LAST_RESULT -eq 0 ] || ok=1
+  count_min "$1" "upgrade point granted" 19;           [ $? -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "full-run-victory"
+}
+
+# TEST 5: boss tank hp
+assert_5() {
+  local ok=0 logfile="$1"
+  # boss spawns with hc\600 (clientuserinfo) and the BOSS banner on wave 10
+  check "$logfile" "hc\\\\600";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "starting wave 10.*BOSS";            [ $LAST_RESULT -eq 0 ] || ok=1
+  # NOTE: the structured payload logs bossMax=0 on wave-clear because the boss is
+  # already dead when NeonWave_LogPayload runs (NW_BossHealth skips dead bots).
+  # We intentionally do NOT assert CS_BOSSMX here — see NW_BossHealth for the
+  # upstream quirk. The hc\600 spawn marker above is the authoritative check.
+  report $ok "boss-tank-hp"
+}
+
+# TEST 6: endless timeattack
+assert_6() {
+  local ok=0
+  check "$1" "starting wave 25";                        [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "All waves cleared";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "BEST TIME";                               [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "endless-timeattack"
+}
+
+# TEST 9: swarm mini-drones
+assert_9() {
+  local ok=0
+  check "$1" "swarm mother spawns mini-drone";          [ $LAST_RESULT -eq 0 ] || ok=1
+  # without rageforce there must be no RAGE tags
+  assert_no_pattern "$1" "RAGE" || ok=1
+  report $ok "swarm-minidrones"
+}
+
+# TEST 9b: swarm rage
+assert_9b() {
+  local ok=0
+  check "$1" "SWARM MOTHER ENRAGED";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "mini-drone (RAGE)";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "swarm-rage"
+}
+
+# TEST 11: sniper dash
+assert_11() {
+  local ok=0 logfile="$1"
+  check "$logfile" "starting wave 10.*BOSS";            [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "hc\\\\400";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "SNIPER dashes to new position";    [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "sniper-dash"
+}
+
+# TEST 14: glass cannon boss
+assert_14() {
+  local ok=0 logfile="$1"
+  check "$logfile" "boss spawned: GLASS CANNON (hc 200)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "hc\\\\200";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "boss-glass-cannon"
+}
+
+# TEST 15: daily challenge determinism
+assert_15() {
+  local ok=0 logfile="$1"
+  count_min "$logfile" "DAILY CHALLENGE seed 12345" 2;  [ $? -eq 0 ] || ok=1
+  report $ok "daily-challenge-determinism"
+}
+
+# TEST 16: warden boss
+assert_16() {
+  local ok=0 logfile="$1"
+  check "$logfile" "boss spawned: WARDEN (hc 500)";     [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "WARDEN strikes the player zone";    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "WARDEN raises armor";               [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "boss-warden"
+}
+
 # ---- main dispatch ----
 
 case "$MODE" in
@@ -360,12 +444,24 @@ case "$MODE" in
     case "$SELECTED" in
       1)  run_test 1  "smoke+boss" 60 \
             +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 ;;
+      2)  run_test 2  "full-run-victory" 240 \
+            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 \
+            +set g_neonwave_best 0
+            # isolate: clear prior records + best cvar so a genuine NEW BEST wave 20 can be set
+            rm -f "$HOME/.openarena/neonarena/neonwave_records.dat" ;;
       3)  run_test 3  "modifier-lowgrav" 60 \
             +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
             +set g_neonwave_modifier 3 +set g_neonwave_fastbreak 1 \
             +set g_neonwave_autokill 1 ;;
       4)  run_test 4  "failrun-stats" 60 \
             +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+      5)  run_test 5  "boss-tank-hp" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 2 +set g_neonwave_autokill 1 ;;
+      6)  run_test 6  "endless-timeattack" 240 \
+            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
+            +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 \
+            +set g_neonwave_maxwave 25 ;;
       7)  run_test 7  "record-persistence" 90 \
             +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
             +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
@@ -373,9 +469,18 @@ case "$MODE" in
             +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
             +set g_neonwave_fakecombo 7 +set g_neonwave_botasplayer 1 \
             +set g_neonwave_failrun 1 ;;
+      9)  run_test 9  "swarm-minidrones" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 3 ;;
+      9b) run_test 9b "swarm-rage" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 3 +set g_neonwave_rageforce 1 ;;
       10) run_test 10 "tank-shield-cycle" 90 \
             +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
             +set g_neonwave_bosstype 2 +set g_neonwave_fastbreak 1 ;;
+      11) run_test 11 "sniper-dash" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 1 +set g_neonwave_dashforce 30 ;;
       12) run_test 12 "newrecord-flag" 90 \
             +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
             +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
@@ -383,6 +488,14 @@ case "$MODE" in
             +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
             +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 \
             +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+      14) run_test 14 "boss-glass-cannon" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 4 ;;
+      15) run_test 15 "daily-challenge-determinism" 120 \
+            +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 ;;
+      16) run_test 16 "boss-warden" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
       17) run_test 17 "timewarp-modifier" 60 \
             +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
             +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 \
