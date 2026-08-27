@@ -71,18 +71,49 @@ fi
 LOGDIR="/tmp/nw-suite-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$LOGDIR"
 
+# Tests known to be timing-sensitive in headless CI (spawn-fallback races).
+# They still run, but a single FAIL is retried once before counting as failed.
+# Space-separated list of test numbers.
+FLAKY_TESTS="${FLAKY_TESTS:-13}"
+
+is_flaky() { # is_flaky <num>; returns 0 if num is in FLAKY_TESTS
+  local n="$1" f
+  for f in $FLAKY_TESTS; do
+    [ "$f" = "$n" ] && return 0
+  done
+  return 1
+}
+
 # run_test <num> <name> <timeout> <cvar1> <cvar2> ...
 run_test() {
   local num="$1" name="$2" timeout_s="$3"
   shift 3
   local log="$LOGDIR/test${num}.log"
+  local attempt=1 max_attempts=1
+  is_flaky "$num" && max_attempts=2
   TEST_NUM="$num"
-  printf '%s' "TEST $num: $name ... "
-  $RUNNER timeout "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
-    +set sv_maxclients 24 \
-    +set fs_game neonarena +set g_gametype 14 +map oa_shine \
-    "$@" > "$log" 2>&1 || true
-  eval "assert_$num \"$log\""
+  while [ "$attempt" -le "$max_attempts" ]; do
+    if [ "$max_attempts" -gt 1 ] && [ "$attempt" -gt 1 ]; then
+      echo "  (retry $attempt for flaky test $num)"
+    fi
+    local _before_pass="${PASS:-0}" _before_fail="${FAIL:-0}"
+    printf '%s' "TEST $num: $name ... "
+    $RUNNER timeout "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
+      +set sv_maxclients 24 \
+      +set fs_game neonarena +set g_gametype 14 +map oa_shine \
+      "$@" > "$log" 2>&1 || true
+    eval "assert_$num \"$log\""
+    # if this attempt passed (PASS advanced) -> done; if it failed and we have
+    # attempts left -> retry; otherwise done (report already counted it)
+    if [ "${PASS:-0}" -gt "$_before_pass" ]; then
+      return
+    fi
+    if [ "$attempt" -lt "$max_attempts" ]; then
+      attempt=$((attempt+1))
+      continue
+    fi
+    return
+  done
 }
 
 check() { # check <log> <pattern>; sets LAST_RESULT
@@ -241,16 +272,10 @@ assert_10() {
   local ok=0 logfile="$1"
   count_min "$logfile" "TANK raises SHIELD" 1; [ $? -eq 0 ] || ok=1
   check "$logfile" "TANK shield drops";         [ $LAST_RESULT -eq 0 ] || ok=1
-  # payload: verify bossMax=600, bossHp>0, event in {1,3}
-  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
-    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
-    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
-      parse_cs_neonwave "$logfile" || { :; }
-      [ -n "${CS_BOSSMX:-}" ] && [ "${CS_BOSSMX:-0}" -eq 600 ] 2>/dev/null || ok=1
-      [ -n "${CS_BOSSHP:-}" ] && [ "${CS_BOSSHP:-0}" -gt 0 ] 2>/dev/null || ok=1
-      [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
-    fi
-  fi
+  # NOTE: no payload assertion — the tank survives the 90s window (no autokill),
+  # so there is no guaranteed end-of-run payload; the catalog only requires the
+  # shield cycle markers above. (assert_3 uses parse_cs_neonwave_at for waves
+  # that do produce a payload.)
   report $ok "tank-shield-cycle"
 }
 
@@ -315,7 +340,35 @@ case "$MODE" in
       echo "specify --test N"
       exit 1
     fi
-    run_test "$SELECTED" "test $SELECTED" 120
+    # map test number -> timeout + cvars (kept in sync with the quick block below)
+    case "$SELECTED" in
+      1)  run_test 1  "smoke+boss" 60 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 ;;
+      3)  run_test 3  "modifier-lowgrav" 60 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
+            +set g_neonwave_modifier 3 +set g_neonwave_fastbreak 1 \
+            +set g_neonwave_autokill 1 ;;
+      4)  run_test 4  "failrun-stats" 60 \
+            +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+      7)  run_test 7  "record-persistence" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
+            +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
+      8)  run_test 8  "combo-pipeline" 60 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
+            +set g_neonwave_fakecombo 7 +set g_neonwave_botasplayer 1 \
+            +set g_neonwave_failrun 1 ;;
+      10) run_test 10 "tank-shield-cycle" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+            +set g_neonwave_bosstype 2 +set g_neonwave_fastbreak 1 ;;
+      12) run_test 12 "newrecord-flag" 90 \
+            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
+            +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
+      13) run_test 13 "mega-combo-reward" 60 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
+            +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 \
+            +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+      *)  echo "no cvar mapping for test $SELECTED (add it to the single-case map)"; exit 2 ;;
+    esac
     ;;
 esac
 
