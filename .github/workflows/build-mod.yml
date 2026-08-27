@@ -71,7 +71,7 @@ jobs:
           # QVMs must be inside a pk3: sv_pure rejects loose homepath VMs and
           # the client would fall back to vanilla stubs in baseoa (crash source)
           cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
-          (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts autoexec.cfg)
+          (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts textures gfx env sound autoexec.cfg neon-look.cfg)
           chmod +x tests/run_suite.sh
           # quick suite on plain pushes (~6 min); full suite on tags and
           # manual dispatch (release gate)
@@ -128,11 +128,13 @@ jobs:
           if [ -d "oa-gamecode/build/release-linux-x86_64/neonarena" ]; then
             cp oa-gamecode/build/release-linux-x86_64/neonarena/*.so dist/neonarena/ 2>/dev/null || true
           fi
-          cd assets && mkdir -p ../dist/neonarena-zip-tmp && zip -rq ../dist/neonarena-zip-tmp/neon-look.pk3 scripts autoexec.cfg 2>/dev/null || (
-            mkdir -p ../dist/pk3src && cp -r scripts autoexec.cfg ../dist/pk3src/
+          cd assets && mkdir -p ../dist/neonarena-zip-tmp && zip -rq ../dist/neonarena-zip-tmp/neon-look.pk3 scripts textures gfx env sound autoexec.cfg neon-look.cfg 2>/dev/null || (
+            mkdir -p ../dist/pk3src && cp -r scripts textures gfx env sound autoexec.cfg neon-look.cfg ../dist/pk3src/
           )
           # pack look files into the same tree
           cd .. && cp -r assets/scripts dist/neonarena/ && cp assets/autoexec.cfg dist/neonarena/
+          # ship the look pack (incl. sound) as a nested pk3 inside the release artifact
+          cp dist/neonarena-zip-tmp/neon-look.pk3 dist/neonarena/neon-look.pk3
           cd dist && zip -rq neonarena.pk3 neonarena && cd ..
           # standalone QVM pk3 for players who just drop a pk3 into ~/.openarena/neonarena/
           (cd oa-gamecode/build/release-linux-x86_64/neonarena && \
