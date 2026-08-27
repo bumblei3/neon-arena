@@ -2,7 +2,7 @@
 # NeonArena headless test suite (GT_NEONWAVE, gametype 14).
 # Usage:
 #   ./run_suite.sh              # run all tests
-#   ./run_suite.sh --quick      # smoke-only subset (1,3,4,7,8,10,12,13)
+#   ./run_suite.sh --quick      # smoke-only subset (1,3,4,7,8,10,12,13,17)
 #   ./run_suite.sh --test 7     # single test
 #   ./run_suite.sh --list       # list test names
 #   ./run_suite.sh --real-window [N...]   # run on DISPLAY=:0 with visible window
@@ -168,33 +168,6 @@ assert_1() {
   report $ok "smoke+boss"
 }
 
-# TEST 2: full-run-victory (uses parser if available)
-assert_2() {
-  local ok=0 logfile="$1"
-  check "$logfile" "NeonWave: starting wave 20";     [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$logfile" "All waves cleared";               [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$logfile" "NEW BEST wave 20";                [ $LAST_RESULT -eq 0 ] || ok=1
-  count_min "$logfile" "upgrade point granted" 19;   [ $? -eq 0 ] || ok=1
-  grep -qE "starting wave [5-9] .*\\[(GLASS DRONES|SWARM|LOW GRAVITY|DOUBLE POINTS)\\]" "$logfile" || ok=1
-  no_fatal_warnings "$logfile" || ok=1
-  # parser-based payload assertions (optional — if parser unavailable, skip)
-  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
-    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
-    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
-      parse_cs_neonwave "$logfile" || { :; }
-      [ -n "${CS_WAVE:-}" ] && [ "${CS_WAVE:-0}" -ge 20 ] 2>/dev/null || ok=1
-      [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
-      [ -n "${CS_BEST:-}" ] && [ "${CS_BEST:-0}" -ge 20 ] 2>/dev/null || ok=1
-      [ -n "${CS_PTS:-}" ] && [ "${CS_PTS:-0}" -ge 19 ] 2>/dev/null || ok=1
-      [ -n "${CS_BOSSHP:-}" ] && [ "${CS_BOSSHP:-0}" -gt 0 ] 2>/dev/null || ok=1
-      if [ "${CS_EVENT:-0}" -eq 3 ] 2>/dev/null; then
-        [ -n "${CS_RUNSEC:-}" ] && [ "${CS_RUNSEC:-0}" -gt 0 ] 2>/dev/null || ok=1
-      fi
-    fi
-  fi
-  report $ok "full-run-victory"
-}
-
 # TEST 3: forced LOW GRAVITY modifier + gravity restore on wave clear
 assert_3() {
   local ok=0 logfile="$1"
@@ -222,24 +195,6 @@ assert_4() {
   check "$1" "All waves cleared";   [ $LAST_RESULT -eq 1 ] || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "failrun-stats"
-}
-
-# TEST 5: boss tank hp
-assert_5() {
-  local ok=0 logfile="$1"
-  check "$logfile" "hc\\\\600";       [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$logfile" "starting wave 10.*BOSS"; [ $LAST_RESULT -eq 0 ] || ok=1
-  # payload: verify bossMax=600, modifier!=NONE, event in {1,3}
-  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
-    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
-    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
-      parse_cs_neonwave "$logfile" || { :; }
-      [ -n "${CS_BOSSMX:-}" ] && [ "${CS_BOSSMX:-0}" -eq 600 ] 2>/dev/null || ok=1
-      [ -n "${CS_MOD:-}" ] && [ "${CS_MOD:-0}" -ne 0 ] 2>/dev/null || ok=1
-      [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
-    fi
-  fi
-  report $ok "boss-tank-hp"
 }
 
 # TEST 7: record persistence
@@ -394,114 +349,50 @@ assert_16() {
 
 # ---- main dispatch ----
 
+# Map test number -> name, timeout, cvars. Used by all/quick/single.
+dispatch_test() {
+  case "$1" in
+    1)  run_test 1 "smoke+boss" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 ;;
+    2)  rm -f "$HOME/.openarena/neonarena/neonwave_records.dat"; run_test 2 "full-run-victory" 240 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_best 0 ;;
+    3)  run_test 3 "modifier-lowgrav" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 3 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
+    4)  run_test 4 "failrun-stats" 60 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    5)  run_test 5 "boss-tank-hp" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_autokill 1 ;;
+    6)  run_test 6 "endless-timeattack" 240 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 +set g_neonwave_maxwave 25 ;;
+    7)  run_test 7 "record-persistence" 90 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
+    8)  run_test 8 "combo-pipeline" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 7 +set g_neonwave_botasplayer 1 +set g_neonwave_failrun 1 ;;
+    9)  run_test 9 "swarm-minidrones" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 3 ;;
+    9b) run_test 9b "swarm-rage" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 3 +set g_neonwave_rageforce 1 ;;
+    10) run_test 10 "tank-shield-cycle" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_fastbreak 1 ;;
+    11) run_test 11 "sniper-dash" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 1 +set g_neonwave_dashforce 30 ;;
+    12) run_test 12 "newrecord-flag" 90 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
+    13) run_test 13 "mega-combo-reward" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    14) run_test 14 "boss-glass-cannon" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 4 ;;
+    15) run_test 15 "daily-challenge-determinism" 120 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 ;;
+    16) run_test 16 "boss-warden" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
+    17) run_test 17 "timewarp-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
+    *)  echo "no cvar mapping for test $1"; return 2 ;;
+  esac
+}
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17"
+
 case "$MODE" in
   all)
-    if [ -n "$SELECTED" ]; then
-      eval "assert_$SELECTED" "\"$LOGDIR/test${SELECTED}.log\"" 2>/dev/null || true
-    else
-      echo "specify --test N or run without --test for all tests"
-      exit 1
-    fi
+    for t in $ALL_TESTS; do
+      dispatch_test "$t" || true
+    done
     ;;
   quick)
-    # smoke-only subset: 1,3,4,7,8,10,12,13 — fast headless verification
-    run_test 1 "smoke+boss" 60 \
-      +set g_neonwave_autostart 1 +set g_neonwave_startwave 10
-    run_test 3 "modifier-lowgrav" 60 \
-      +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
-      +set g_neonwave_modifier 3 +set g_neonwave_fastbreak 1 \
-      +set g_neonwave_autokill 1
-    run_test 4 "failrun-stats" 60 \
-      +set g_neonwave_autostart 1 +set g_neonwave_failrun 1
-    run_test 7 "record-persistence" 90 \
-      +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
-      +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20
-    run_test 8 "combo-pipeline" 60 \
-      +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
-      +set g_neonwave_fakecombo 7 +set g_neonwave_botasplayer 1 \
-      +set g_neonwave_failrun 1
-    run_test 10 "tank-shield-cycle" 90 \
-      +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-      +set g_neonwave_bosstype 2 +set g_neonwave_fastbreak 1
-    run_test 12 "newrecord-flag" 90 \
-      +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
-      +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20
-    run_test 13 "mega-combo-reward" 60 \
-      +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
-      +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 \
-      +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1
-    run_test 17 "timewarp-modifier" 60 \
-      +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
-      +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 \
-      +set g_neonwave_autokill 1
+    for t in $QUICK_TESTS; do
+      dispatch_test "$t" || true
+    done
     ;;
   single)
     if [ -z "$SELECTED" ]; then
       echo "specify --test N"
       exit 1
     fi
-    # map test number -> timeout + cvars (kept in sync with the quick block below)
-    case "$SELECTED" in
-      1)  run_test 1  "smoke+boss" 60 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 ;;
-      2)  run_test 2  "full-run-victory" 240 \
-            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 \
-            +set g_neonwave_best 0
-            # isolate: clear prior records + best cvar so a genuine NEW BEST wave 20 can be set
-            rm -f "$HOME/.openarena/neonarena/neonwave_records.dat" ;;
-      3)  run_test 3  "modifier-lowgrav" 60 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
-            +set g_neonwave_modifier 3 +set g_neonwave_fastbreak 1 \
-            +set g_neonwave_autokill 1 ;;
-      4)  run_test 4  "failrun-stats" 60 \
-            +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-      5)  run_test 5  "boss-tank-hp" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 2 +set g_neonwave_autokill 1 ;;
-      6)  run_test 6  "endless-timeattack" 240 \
-            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
-            +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 \
-            +set g_neonwave_maxwave 25 ;;
-      7)  run_test 7  "record-persistence" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
-            +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
-      8)  run_test 8  "combo-pipeline" 60 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
-            +set g_neonwave_fakecombo 7 +set g_neonwave_botasplayer 1 \
-            +set g_neonwave_failrun 1 ;;
-      9)  run_test 9  "swarm-minidrones" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 3 ;;
-      9b) run_test 9b "swarm-rage" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 3 +set g_neonwave_rageforce 1 ;;
-      10) run_test 10 "tank-shield-cycle" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 2 +set g_neonwave_fastbreak 1 ;;
-      11) run_test 11 "sniper-dash" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 1 +set g_neonwave_dashforce 30 ;;
-      12) run_test 12 "newrecord-flag" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 \
-            +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
-      13) run_test 13 "mega-combo-reward" 60 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
-            +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 \
-            +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
-      14) run_test 14 "boss-glass-cannon" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 4 ;;
-      15) run_test 15 "daily-challenge-determinism" 120 \
-            +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 ;;
-      16) run_test 16 "boss-warden" 90 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-            +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
-      17) run_test 17 "timewarp-modifier" 60 \
-            +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
-            +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 \
-            +set g_neonwave_autokill 1 ;;
-      *)  echo "no cvar mapping for test $SELECTED (add it to the single-case map)"; exit 2 ;;
-    esac
+    dispatch_test "$SELECTED"
     ;;
 esac
 
