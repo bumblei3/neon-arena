@@ -101,6 +101,7 @@ modifier_name() {
     2) echo "SWARM" ;;
     3) echo "LOW GRAVITY" ;;
     4) echo "DOUBLE POINTS" ;;
+    5) echo "TIME WARP" ;;
     *) echo "UNKNOWN" ;;
   esac
 }

@@ -296,6 +296,18 @@ assert_13() {
   report $ok "mega-combo-reward"
 }
 
+# TEST 17: TIME WARP modifier scales player speed (g_speed) for the wave
+assert_17() {
+  local ok=0 logfile="$1"
+  # modifier name must appear on the wave banner
+  check "$logfile" "starting wave 6.*\[TIME WARP\]"; [ $LAST_RESULT -eq 0 ] || ok=1
+  # engine logs the cvar change when NeonWave sets g_speed
+  check "$logfile" "g_speed changed to 520";       [ $LAST_RESULT -eq 0 ] || ok=1
+  # and it must be restored to default on the following non-warp wave
+  check "$logfile" "g_speed changed to 320";       [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "timewarp-modifier"
+}
+
 # ---- main dispatch ----
 
 case "$MODE" in
@@ -334,6 +346,10 @@ case "$MODE" in
       +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
       +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 \
       +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1
+    run_test 17 "timewarp-modifier" 60 \
+      +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
+      +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 \
+      +set g_neonwave_autokill 1
     ;;
   single)
     if [ -z "$SELECTED" ]; then
@@ -367,6 +383,10 @@ case "$MODE" in
             +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 \
             +set g_neonwave_fakecombo 8 +set g_neonwave_botasplayer 1 \
             +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+      17) run_test 17 "timewarp-modifier" 60 \
+            +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 \
+            +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 \
+            +set g_neonwave_autokill 1 ;;
       *)  echo "no cvar mapping for test $SELECTED (add it to the single-case map)"; exit 2 ;;
     esac
     ;;
