@@ -169,12 +169,13 @@ assert_3() {
   local ok=0 logfile="$1"
   check "$logfile" "starting wave 6.*\\[LOW GRAVITY\\]"; [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "gravity restored to 800";            [ $LAST_RESULT -eq 0 ] || ok=1
-  # payload: confirm modifier = NW_MOD_LOWGRAV (3), event in {1,3}
+  # payload: confirm modifier = NW_MOD_LOWGRAV (3), event in {1,3} for WAVE 6
+  # (use _at so we read the forced-wave payload, not the last wave's boss payload)
   if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
     . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
-    if declare -f parse_cs_neonwave >/dev/null 2>&1; then
-      parse_cs_neonwave "$logfile" || { :; }
-      [ -n "${CS_WAVE:-}" ] && [ "${CS_WAVE:-0}" -ge 6 ] 2>/dev/null || ok=1
+    if declare -f parse_cs_neonwave_at >/dev/null 2>&1; then
+      parse_cs_neonwave_at "$logfile" 6 || { :; }
+      [ -n "${CS_WAVE:-}" ] && [ "${CS_WAVE:-0}" -eq 6 ] 2>/dev/null || ok=1
       [ -n "${CS_MOD:-}" ] && [ "${CS_MOD:-0}" -eq 3 ] 2>/dev/null || ok=1
       [ -n "${CS_EVENT:-}" ] && { [ "${CS_EVENT:-0}" -eq 1 ] || [ "${CS_EVENT:-0}" -eq 3 ]; } || ok=1
     fi
