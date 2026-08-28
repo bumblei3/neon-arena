@@ -298,6 +298,17 @@ assert_19() {
   report $ok "achievements-json"
 }
 
+# TEST 20: hardcore mode (g_neonwave_hardcore 1 -> HARDCORE banner + tougher boss)
+assert_20() {
+  local ok=0
+  check "$1" "HARDCORE mode enabled";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "HARDCORE";                             [ $LAST_RESULT -eq 0 ] || ok=1
+  # TANK boss base hc 600 -> hardcore x1.5 = 900
+  check "$1" "boss spawned: TANK (hc 900)";          [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "hardcore-mode"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -406,11 +417,12 @@ dispatch_test() {
     16) run_test 16 "boss-warden" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
     18) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 18 "runstats-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
     19) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 19 "achievements-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_failrun 1 ;;
-    20)  echo "no cvar mapping for test $1"; return 2 ;;
+    20) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 20 "hardcore-mode" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_hardcore 1 ;;
+    21)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20"
 
 case "$MODE" in
   all)

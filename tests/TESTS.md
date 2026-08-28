@@ -35,6 +35,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 17 | daily-record-persistence | daily 1, dailyseed 12345, failrun (Run A), dann Run B ohne failrun | `DAILY RECORDS SAVED`, Datei `neonwave_daily_records.dat`, danach `DAILY records loaded wave=[1-9]` | keine Save-/Ladefehler |
 | 18 | runstats-json | autostart, startwave 10, failrun | `RUN STATS JSON written`, Datei `neonwave_runstats.json` existiert + valides JSON (version=1, result in VICTORY/FAILED, modifierNames=list, achievements=list) | keine Write-Warnung |
 | 19 | achievements-json | autostart, startwave 15, failrun | `RUN STATS JSON written`, Log-Marker `ACHIEVEMENT SURVIVOR` (wave≥15) | keine doppelten Marker-Issues |
+| 20 | hardcore-mode | autostart, startwave 10, bosstype 2, hardcore 1 | `HARDCORE mode enabled`, `HARDCORE` banner, `boss spawned: TANK (hc 900)` (600×1.5) | keine Write-/Fatal-Warnung |
 
 Hinweis zu Test 15: die Server-Aufrufe in `t15()` müssen `$RUNNER` +
 `${OA_EXTRA[@]}` wie `run_test()` verwenden — ein nackter ioq3ded-Aufruf
