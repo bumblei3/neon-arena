@@ -37,6 +37,41 @@ REQUIRED_KEYS = (
     "timeSec", "difficulty", "modifiersSeen", "modifierNames",
 )
 
+# Must stay in sync with NW_ACH_* order in g_neonwave.c.
+ACHIEVEMENT_NAMES = (
+    "FIRST VICTORY",  # cleared wave 20
+    "SURVIVOR",       # reached wave 15
+    "SHARPSHOOTER",   # best combo >= 8
+    "STREAKER",       # best combo >= 5
+    "FLAWLESS",       # victory with 0 deaths
+)
+# qboolean is an int (4 bytes, little-endian) in this codebase; the mod writes
+# N qbooleans as a raw struct, so we read N 4-byte ints.
+ACH_FILE = "neonwave_achievements.dat"
+
+
+def read_achievements(src):
+    """Return list of unlocked achievement display names from the dat file.
+
+    The mod persists lifetime unlock state in neonwave_achievements.dat as a
+    raw array of NW_ACH_COUNT qbooleans (each 4 bytes, little-endian)."""
+    path = os.path.join(os.path.dirname(os.path.abspath(src)), ACH_FILE)
+    unlocked = []
+    if not os.path.exists(path):
+        return unlocked
+    try:
+        with open(path, "rb") as fh:
+            data = fh.read()
+    except OSError:
+        return unlocked
+    n = len(ACHIEVEMENT_NAMES)
+    if len(data) < n * 4:
+        return unlocked
+    for i in range(n):
+        val = int.from_bytes(data[i * 4:i * 4 + 4], "little")
+        if val != 0:
+            unlocked.append(ACHIEVEMENT_NAMES[i])
+    return unlocked
 
 def load_current(src):
     if not os.path.exists(src):
@@ -110,7 +145,7 @@ def best_of(runs, key, predicate=lambda r: True):
     return max(vals) if vals else 0
 
 
-def print_report(runs, current):
+def print_report(runs, current, src):
     if not runs:
         print("No runs recorded yet. Play a NeonArena run, then re-run this tool.")
         return
@@ -150,6 +185,16 @@ def print_report(runs, current):
         print("Modifiers seen:")
         for m, n in sorted(freq.items(), key=lambda kv: -kv[1]):
             print("  %-16s %d" % (m, n))
+
+    # lifetime achievements (persistent dat file from the mod)
+    unlocked = read_achievements(src)
+    total_ach = len(ACHIEVEMENT_NAMES)
+    print("-" * 40)
+    print("Achievements: %d/%d unlocked" % (len(unlocked), total_ach))
+    if unlocked:
+        for name in ACHIEVEMENT_NAMES:
+            mark = "x" if name in unlocked else " "
+            print("  [%s] %s" % (mark, name))
 
     if current:
         print("-" * 40)
@@ -192,7 +237,7 @@ def main():
                      best_of(history, "bestCombo")))
         return 0
 
-    print_report(history, current)
+    print_report(history, current, args.src)
     return 0
 
 
