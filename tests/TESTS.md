@@ -37,6 +37,8 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 19 | achievements-json | autostart, startwave 15, failrun | `RUN STATS JSON written`, Log-Marker `ACHIEVEMENT SURVIVOR` (wave≥15) | keine doppelten Marker-Issues |
 | 20 | hardcore-mode | autostart, startwave 10, bosstype 2, hardcore 1 | `HARDCORE mode enabled`, `HARDCORE` banner, `boss spawned: TANK (hc 900)` (600×1.5) | keine Write-/Fatal-Warnung |
 | 21 | vampire-lifesteal | autostart, startwave 6, modifier 6 (VAMPIRE), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*\[VAMPIRE\]`, ≥1 `VAMPIRE lifesteal`, payload mod=6 | keine Fatal-Warnung |
+| 22 | frenzy-quadfactor | autostart, startwave 6, modifier 7 (FRENZY), autokill 1, fastbreak 1 | `starting wave 6.*\[FRENZY\]`, ≥1 `FRENZY quadfactor set to 4` | keine Fatal-Warnung |
+| 23 | overshield-armor | autostart, startwave 6, modifier 8 (OVERSHIELD), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*\[OVERSHIELD\]`, ≥1 `OVERSHIELD +50 armor granted` | keine Fatal-Warnung |
 
 Hinweis zu Test 15: die Server-Aufrufe in `t15()` müssen `$RUNNER` +
 `${OA_EXTRA[@]}` wie `run_test()` verwenden — ein nackter ioq3ded-Aufruf

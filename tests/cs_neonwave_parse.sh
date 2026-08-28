@@ -103,6 +103,8 @@ modifier_name() {
     4) echo "DOUBLE POINTS" ;;
     5) echo "TIME WARP" ;;
     6) echo "VAMPIRE" ;;
+    7) echo "FRENZY" ;;
+    8) echo "OVERSHIELD" ;;
     *) echo "UNKNOWN" ;;
   esac
 }
