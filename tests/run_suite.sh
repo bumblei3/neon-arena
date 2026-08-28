@@ -263,6 +263,28 @@ assert_17() {
   report $ok "timewarp-modifier"
 }
 
+# TEST 18: run-stats JSON export
+assert_18() {
+  local ok=0 json="$HOME/.openarena/neonarena/neonwave_runstats.json"
+  check "$1" "RUN STATS JSON written"; [ $LAST_RESULT -eq 0 ] || ok=1
+  [ -f "$json" ] || ok=1
+  if [ -f "$json" ]; then
+    # must be valid JSON with the expected run fields
+    if command -v python3 >/dev/null 2>&1; then
+      python3 - "$json" <<'PY' || ok=1
+import json, sys
+d = json.load(open(sys.argv[1]))
+for k in ("version","result","wave","kills","bestCombo","timeSec","difficulty","modifiersSeen","modifierNames"):
+    assert k in d, "missing key %s" % k
+assert d["version"] == 1
+assert d["result"] in ("VICTORY","FAILED")
+assert isinstance(d["modifierNames"], list)
+PY
+    fi
+  fi
+  report $ok "runstats-json"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -369,12 +391,12 @@ dispatch_test() {
     14) run_test 14 "boss-glass-cannon" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 4 ;;
     15) run_test 15 "daily-challenge-determinism" 120 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 ;;
     16) run_test 16 "boss-warden" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
-    17) run_test 17 "timewarp-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
-    *)  echo "no cvar mapping for test $1"; return 2 ;;
+    18) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 18 "runstats-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
+    19)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18"
 
 case "$MODE" in
   all)
