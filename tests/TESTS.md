@@ -33,7 +33,8 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 15 | daily-challenge-determinism | daily 1, dailyseed 12345/999, startwave 10 | je 2× `DAILY CHALLENGE seed N`, identischer Boss-Spawn bei gleichem Seed, anderer bei 999 | Boss-Mismatch zwischen Läufen |
 | 16 | boss-warden | autostart, startwave 10, bosstype 5, wardenforce 1 | `boss spawned: WARDEN (hc 500)`, ≥1 `WARDEN strikes the player zone`, ≥1 `WARDEN raises armor` | kein anderer Boss-Type |
 | 17 | daily-record-persistence | daily 1, dailyseed 12345, failrun (Run A), dann Run B ohne failrun | `DAILY RECORDS SAVED`, Datei `neonwave_daily_records.dat`, danach `DAILY records loaded wave=[1-9]` | keine Save-/Ladefehler |
-| 18 | runstats-json | autostart, startwave 10, failrun | `RUN STATS JSON written`, Datei `neonwave_runstats.json` existiert + valides JSON (version=1, result in VICTORY/FAILED, modifierNames=list) | keine Write-Warnung |
+| 18 | runstats-json | autostart, startwave 10, failrun | `RUN STATS JSON written`, Datei `neonwave_runstats.json` existiert + valides JSON (version=1, result in VICTORY/FAILED, modifierNames=list, achievements=list) | keine Write-Warnung |
+| 19 | achievements-json | autostart, startwave 15, failrun | `RUN STATS JSON written`, Log-Marker `ACHIEVEMENT SURVIVOR` (wave≥15) | keine doppelten Marker-Issues |
 
 Hinweis zu Test 15: die Server-Aufrufe in `t15()` müssen `$RUNNER` +
 `${OA_EXTRA[@]}` wie `run_test()` verwenden — ein nackter ioq3ded-Aufruf

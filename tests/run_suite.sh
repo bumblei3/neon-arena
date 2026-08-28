@@ -274,15 +274,28 @@ assert_18() {
       python3 - "$json" <<'PY' || ok=1
 import json, sys
 d = json.load(open(sys.argv[1]))
-for k in ("version","result","wave","kills","bestCombo","timeSec","difficulty","modifiersSeen","modifierNames"):
+for k in ("version","result","wave","kills","bestCombo","timeSec","difficulty","modifiersSeen","modifierNames","achievements"):
     assert k in d, "missing key %s" % k
 assert d["version"] == 1
 assert d["result"] in ("VICTORY","FAILED")
 assert isinstance(d["modifierNames"], list)
+assert isinstance(d["achievements"], list)
 PY
     fi
   fi
   report $ok "runstats-json"
+}
+
+# TEST 19: achievements in run-stats (log markers, deterministic)
+# The run-stats json can be overwritten by the dedi server's map-restart loop,
+# so achievements are asserted via the "ACHIEVEMENT <NAME>" log markers that
+# NW_CheckAchievements prints for every unlocked badge this run.
+# startwave 15 + failrun must produce SURVIVOR (reached wave >= 15).
+assert_19() {
+  local ok=0
+  check "$1" "RUN STATS JSON written"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "ACHIEVEMENT SURVIVOR"; [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "achievements-json"
 }
 
 # TEST 2: full run victory
@@ -392,11 +405,12 @@ dispatch_test() {
     15) run_test 15 "daily-challenge-determinism" 120 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 ;;
     16) run_test 16 "boss-warden" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
     18) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 18 "runstats-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
-    19)  echo "no cvar mapping for test $1"; return 2 ;;
+    19) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 19 "achievements-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_failrun 1 ;;
+    20)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19"
 
 case "$MODE" in
   all)
