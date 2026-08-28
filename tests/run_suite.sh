@@ -309,6 +309,26 @@ assert_20() {
   report $ok "hardcore-mode"
 }
 
+# TEST 21: VAMPIRE modifier heals the player on each drone kill (lifesteal)
+assert_21() {
+  local ok=0 logfile="$1"
+  # modifier name must appear on the wave banner
+  check "$logfile" "starting wave 6.*\\[VAMPIRE\\]"; [ $LAST_RESULT -eq 0 ] || ok=1
+  # lifesteal must fire at least once during the auto-killed wave
+  count_min "$logfile" "VAMPIRE lifesteal" 1;          [ $? -eq 0 ] || ok=1
+  # payload: confirm modifier = NW_MOD_VAMPIRE (6) on wave 6
+  if [ -f "$TESTDIR/cs_neonwave_parse.sh" ]; then
+    . "$TESTDIR/cs_neonwave_parse.sh" 2>/dev/null || true
+    if declare -f parse_cs_neonwave_at >/dev/null 2>&1; then
+      parse_cs_neonwave_at "$logfile" 6 || { :; }
+      [ -n "${CS_WAVE:-}" ] && [ "${CS_WAVE:-0}" -eq 6 ] 2>/dev/null || ok=1
+      [ -n "${CS_MOD:-}" ] && [ "${CS_MOD:-0}" -eq 6 ] 2>/dev/null || ok=1
+    fi
+  fi
+  no_fatal_warnings "$1" || ok=1
+  report $ok "vampire-lifesteal"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -415,14 +435,16 @@ dispatch_test() {
     14) run_test 14 "boss-glass-cannon" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 4 ;;
     15) run_test 15 "daily-challenge-determinism" 120 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 ;;
     16) run_test 16 "boss-warden" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
+    17) run_test 17 "timewarp-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
+    21) run_test 21 "vampire-lifesteal" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 6 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     18) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 18 "runstats-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
     19) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 19 "achievements-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_failrun 1 ;;
     20) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 20 "hardcore-mode" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_hardcore 1 ;;
     21)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21"
 
 case "$MODE" in
   all)

@@ -102,6 +102,7 @@ modifier_name() {
     3) echo "LOW GRAVITY" ;;
     4) echo "DOUBLE POINTS" ;;
     5) echo "TIME WARP" ;;
+    6) echo "VAMPIRE" ;;
     *) echo "UNKNOWN" ;;
   esac
 }
