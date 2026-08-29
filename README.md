@@ -9,7 +9,7 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 ## Features (Mod `neonarena`, Gametype 14 „Neon Wave Survival")
 
 - **Wave-Survival:** Bis zu 20 Wellen; Welle N spawnt N+1 Bots. Ein Leben —
-  tot ist tot. 8 s Pause zwischen Wellen.
+  tot ist tot. 12 s Pause zwischen Wellen.
 - **Waffen-Identität:** Spawn mit Railgun + Lightning Gun + Gauntlet. Andere
   Waffen-Pickups werden ignoriert – Rail/LG-Pickups dienen als Ammo-Nachschub.
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
@@ -38,7 +38,7 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - `g_neonwave_autostart 1` — Wellen starten ohne menschlichen Spieler
 - `g_neonwave_startwave N` — erzwingt Start bei Welle N (fire-once)
 - `g_neonwave_autokill 1` — tötet alle Drones jeden Frame (Auto-Durchlauf)
-- `g_neonwave_fastbreak 1` — 500 ms statt 8 s Wellenpause
+- `g_neonwave_fastbreak 1` — 500 ms statt 12 s Wellenpause
 
 Der CI-Workflow spielt damit eine komplette 20-Wellen-Partie headless durch
 und prüft Victory, Highscore und Upgrade-Punkte-Ökonomie.
@@ -261,6 +261,12 @@ archiviert im Branch `archive/patches`.
 - PIERCE/CHAIN stackbar bis 2, Rest 1 Charge. 1 Punkt = 1 Karte.
 - Test-Hooks: `g_neonwave_perkforce 123` (PIERCE/CHAIN/DASH), `g_neonwave_autopick 1`.
 - Legacy `upgrade hp|dmg|speed` bleibt in der Konsole.
+
+### v0.29-Highlights (Shop)
+
+- Wellenpause **12 s**. Drei Perk-Karten mit Name, Effektzeile und F-Taste.
+- Countdown **NEXT WAVE IN N**, gewählte Karte flasht + Combo-Sound.
+- `g_neonwave_fastbreak 1` bleibt 500 ms (CI).
 
 ## CI
 
