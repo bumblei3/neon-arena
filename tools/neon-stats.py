@@ -44,6 +44,9 @@ ACHIEVEMENT_NAMES = (
     "SHARPSHOOTER",   # best combo >= 8
     "STREAKER",       # best combo >= 5
     "FLAWLESS",       # victory with 0 deaths
+    "COMBOMASTER",    # best combo >= 12
+    "SPEEDRUNNER",    # victory under 300s
+    "HARDCORE",       # victory in hardcore mode
 )
 # qboolean is an int (4 bytes, little-endian) in this codebase; the mod writes
 # N qbooleans as a raw struct, so we read N 4-byte ints.
@@ -65,9 +68,8 @@ def read_achievements(src):
     except OSError:
         return unlocked
     n = len(ACHIEVEMENT_NAMES)
-    if len(data) < n * 4:
-        return unlocked
-    for i in range(n):
+    slots = min(n, len(data) // 4)
+    for i in range(slots):
         val = int.from_bytes(data[i * 4:i * 4 + 4], "little")
         if val != 0:
             unlocked.append(ACHIEVEMENT_NAMES[i])

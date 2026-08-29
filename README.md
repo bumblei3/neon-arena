@@ -3,7 +3,8 @@
 **Wave-Survival-Shooter auf OpenArena-Basis** – Railgun & Lightning Gun gegen
 steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 
-> Spielen: `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
+> Spielen: `scripts/start-quake3e.sh` · Daily: `scripts/start-quake3e.sh --daily`  
+> oder: `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
 
 ## Features (Mod `neonarena`, Gametype 14 „Neon Wave Survival")
 
@@ -230,15 +231,31 @@ archiviert im Branch `archive/patches`.
   Zyklus; Test-Hooks `g_neonwave_bosstype 5` und `g_neonwave_wardenforce 1`
   (erzwingt den Strike deterministisch, Suite-Test 16).
 
+### v0.16–v0.26 (kurz)
+
+- **Dynamic Difficulty** (v0.16), **TIME WARP** (v0.19), Run-Stats JSON +
+  `tools/neon-stats.py` (v0.21), persistente Achievements (v0.22),
+  Background-Synth (v0.23), **Hardcore** (v0.24), **VAMPIRE** (v0.25),
+  **FRENZY** + **OVERSHIELD** (v0.26).
+
+### v0.27-Highlights (Reveal)
+
+- **Voller Modifier-Pool:** Rotation über alle 8 (nicht nur die ersten 5).
+  Modifier laufen von Welle 5 bis max−1, **auch auf Boss-Wellen**. Daily
+  verschiebt den Start (`offset % 8`).
+- **Boss-Zyklus 5:** Ab Welle 10 ein Schritt pro Welle —
+  SNIPER → TANK → SWARM MOTHER → GLASS CANNON → WARDEN. Daily `% 5`.
+- **HUD:** eigene Kantenfarben für TIME WARP / VAMPIRE / FRENZY / OVERSHIELD;
+  Boss-Healthbar zeigt den **Namen**.
+- **Achievements:** COMBOMASTER (Combo ≥ 12), SPEEDRUNNER (Victory ≤ 300 s),
+  HARDCORE (Victory im Hardcore). Suite-Tests 24–26.
+- **Start:** `scripts/start-quake3e.sh --daily` und `--hardcore`.
+
 ## CI
 
-`.github/workflows/build-mod.yml` baut bei jedem Push den Mod gegen aktuellen
-Upstream-Gamecode und führt drei Headless-Tests aus:
-
-1. **Smoke:** Mod lädt mit Gametype 14 (`NeonArena-0.1`, `g_gametype\14`).
-2. **Boss-Wave:** Force-Start Welle 10 → Boss-Spawn mit 4× HP verifiziert.
-3. **Full Run:** Kompletter 20-Wellen-Durchlauf (autokill+fastbreak) →
-   Victory, Highscore `NEW BEST wave 20`, ≥19 Upgrade-Punkte vergeben.
+`.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodule)
+und führt `tests/run_suite.sh` aus: Quick-Subset auf `main`-Pushes, volle Suite
+(Tests 1–26 inkl. 9b) auf Tags und manuellem Dispatch.
 
 Zusätzlich baut `.github/workflows/engine-quake3e.yml` die Quake3e-Engine
 (OpenGL2+Vulkan, Bloom) als optionales Binary-Artifact.

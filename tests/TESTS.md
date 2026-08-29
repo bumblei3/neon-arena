@@ -39,6 +39,11 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 21 | vampire-lifesteal | autostart, startwave 6, modifier 6 (VAMPIRE), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*\[VAMPIRE\]`, ≥1 `VAMPIRE lifesteal`, payload mod=6 | keine Fatal-Warnung |
 | 22 | frenzy-quadfactor | autostart, startwave 6, modifier 7 (FRENZY), autokill 1, fastbreak 1 | `starting wave 6.*\[FRENZY\]`, ≥1 `FRENZY quadfactor set to 4` | keine Fatal-Warnung |
 | 23 | overshield-armor | autostart, startwave 6, modifier 8 (OVERSHIELD), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*\[OVERSHIELD\]`, ≥1 `OVERSHIELD +50 armor granted` | keine Fatal-Warnung |
+| 24 | speedrunner-ach | autostart, autokill, fastbreak, startwave 20 | `All waves cleared`, `ACHIEVEMENT SPEEDRUNNER` | keine Fatal-Warnung |
+| 25 | hardcore-ach | autostart, autokill, fastbreak, startwave 20, hardcore 1 | `HARDCORE mode enabled`, `All waves cleared`, `ACHIEVEMENT HARDCORE` | keine Fatal-Warnung |
+| 26 | combomaster-ach | autostart, startwave 2, fakecombo 12, botasplayer 1, failrun | `fake combo 12 registered`, `ACHIEVEMENT COMBOMASTER` | keine Fatal-Warnung |
+
+Test 2 (full-run) prüft zusätzlich v0.27-Reveal: `[VAMPIRE]` auf Welle 10, `[FRENZY]` auf 11, `[OVERSHIELD]` auf 12, plus `GLASS CANNON` und `WARDEN` im Boss-Zyklus.
 
 Hinweis zu Test 15: die Server-Aufrufe in `t15()` müssen `$RUNNER` +
 `${OA_EXTRA[@]}` wie `run_test()` verwenden — ein nackter ioq3ded-Aufruf
@@ -49,7 +54,7 @@ stirbt instant (kein basepath) → leere Logs → "boss mismatch: '' vs ''"
 
 Der Configstring `CS_NEONWAVE` hat folgendes Format:
 
-    <wave> <event> <bossHp> <bossMax> <breakMs> <pts> <best> <mod> <kills> <bestCombo> <runSec> <liveCombo>
+    <wave> <event> <bossHp> <bossMax> <breakMs> <pts> <best> <mod> <kills> <bestCombo> <runSec> <liveCombo> [<bossType>]
 
 Wir können Tests aufbauen, die die Payload parsen statt nur Einzel-Greps.
 

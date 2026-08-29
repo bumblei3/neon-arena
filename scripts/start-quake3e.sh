@@ -11,11 +11,21 @@ GAME_TYPE="${GAME_TYPE:-14}"
 MAP="${MAP:-oa_shine}"
 RENDERER="${RENDERER:-vulkan}"
 BLOOM="${BLOOM:-1}"
+DAILY=0
+HARDCORE=0
 EXTRA_CVARS=()
 
 usage() {
   cat <<EOF
 Start NeonArena mit Quake3e (Vulkan) + Bloom.
+
+Usage:
+  $0 [--daily] [--hardcore] [+set cvar value ...]
+
+Optionen:
+  --daily         Daily Challenge (g_neonwave_daily 1)
+  --hardcore      Hardcore-Lauf (g_neonwave_hardcore 1)
+  --help          diese Hilfe
 
 Umgebungsvariablen (optional):
   QUAKE3E_DIR     Engine-Verzeichnis     (Default: $HOME/quake3e-engine)
@@ -28,25 +38,40 @@ Umgebungsvariablen (optional):
   BLOOM           r_bloom               (Default: 1)
 
 Extra Cvars als Argumente übergeben, z.B.:
-  $0 +set r_bloomIntensity 0.8 +set r_mapoverbrightbits 1
+  $0 --daily +set r_bloomIntensity 0.8
 EOF
   exit 0
 }
 
-# tiny arg parser: stop at first non-+set / non-option
 while [ $# -gt 0 ]; do
   case "$1" in
     --help|-h) usage ;;
-    +set|-set) shift 2; EXTRA_CVARS+=("$1" "$2"); continue ;;
+    --daily) DAILY=1; shift ;;
+    --hardcore) HARDCORE=1; shift ;;
+    +set|-set)
+      if [ $# -lt 3 ]; then
+        echo "usage: +set <cvar> <value>" >&2
+        exit 2
+      fi
+      EXTRA_CVARS+=("+set" "$2" "$3")
+      shift 3
+      ;;
     *) break ;;
   esac
-  shift
 done
 
 if [ ! -x "$ENGINE_BIN" ]; then
   echo "Engine-Binary nicht gefunden: $ENGINE_BIN" >&2
   echo "Setze QUAKE3E_DIR oder erstelle ~/quake3e-engine/ mit quake3e.x64." >&2
   exit 2
+fi
+
+MODE_CVARS=()
+if [ "$DAILY" -eq 1 ]; then
+  MODE_CVARS+=(+set g_neonwave_daily 1)
+fi
+if [ "$HARDCORE" -eq 1 ]; then
+  MODE_CVARS+=(+set g_neonwave_hardcore 1)
 fi
 
 exec "$ENGINE_BIN" \
@@ -56,5 +81,6 @@ exec "$ENGINE_BIN" \
   +set fs_homepath "$HOME_PATH" \
   +set fs_game "$GAME" \
   +set g_gametype "$GAME_TYPE" \
-  +set map "$MAP" \
-  "${EXTRA_CVARS[@]}"
+  "${MODE_CVARS[@]}" \
+  "${EXTRA_CVARS[@]}" \
+  +map "$MAP"

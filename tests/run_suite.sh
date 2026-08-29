@@ -2,7 +2,7 @@
 # NeonArena headless test suite (GT_NEONWAVE, gametype 14).
 # Usage:
 #   ./run_suite.sh              # run all tests
-#   ./run_suite.sh --quick      # smoke-only subset (1,3,4,7,8,10,12,13,17)
+#   ./run_suite.sh --quick      # smoke-only subset (see QUICK_TESTS)
 #   ./run_suite.sh --test 7     # single test
 #   ./run_suite.sh --list       # list test names
 #   ./run_suite.sh --real-window [N...]   # run on DISPLAY=:0 with visible window
@@ -347,6 +347,33 @@ assert_23() {
   report $ok "overshield-armor"
 }
 
+# TEST 24: SPEEDRUNNER achievement (victory in <= 300s)
+assert_24() {
+  local ok=0
+  check "$1" "All waves cleared";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "ACHIEVEMENT SPEEDRUNNER";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "speedrunner-ach"
+}
+
+# TEST 25: HARDCORE achievement (victory with g_neonwave_hardcore 1)
+assert_25() {
+  local ok=0
+  check "$1" "HARDCORE mode enabled";                   [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "All waves cleared";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "ACHIEVEMENT HARDCORE";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "hardcore-ach"
+}
+
+# TEST 26: COMBOMASTER achievement (best combo >= 12)
+assert_26() {
+  local ok=0
+  check "$1" "fake combo 12 registered";                [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "ACHIEVEMENT COMBOMASTER";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  report $ok "combomaster-ach"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -354,6 +381,12 @@ assert_2() {
   check "$1" "All waves cleared";                       [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "NEW BEST wave 20";                        [ $LAST_RESULT -eq 0 ] || ok=1
   count_min "$1" "upgrade point granted" 19;           [ $? -eq 0 ] || ok=1
+  # v0.27 reveal: full pool + all five bosses appear in a classic 20-wave run
+  check "$1" "starting wave 10.*\\[VAMPIRE\\]";         [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "starting wave 11.*\\[FRENZY\\]";          [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "starting wave 12.*\\[OVERSHIELD\\]";      [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "boss spawned: GLASS CANNON";              [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "boss spawned: WARDEN";                    [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "full-run-victory"
 }
@@ -454,17 +487,20 @@ dispatch_test() {
     15) run_test 15 "daily-challenge-determinism" 120 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 ;;
     16) run_test 16 "boss-warden" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
     17) run_test 17 "timewarp-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
-    21) run_test 21 "vampire-lifesteal" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 6 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
-    22) run_test 22 "frenzy-quadfactor" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 7 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
-    23) run_test 23 "overshield-armor" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 8 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     18) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 18 "runstats-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
     19) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 19 "achievements-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_failrun 1 ;;
     20) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 20 "hardcore-mode" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_hardcore 1 ;;
-    21)  echo "no cvar mapping for test $1"; return 2 ;;
+    21) run_test 21 "vampire-lifesteal" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 6 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    22) run_test 22 "frenzy-quadfactor" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 7 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    23) run_test 23 "overshield-armor" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 8 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    24) run_test 24 "speedrunner-ach" 120 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
+    25) run_test 25 "hardcore-ach" 180 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 +set g_neonwave_hardcore 1 ;;
+    26) run_test 26 "combomaster-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 12 +set g_neonwave_botasplayer 1 +set g_neonwave_failrun 1 ;;
+    *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26"
 
 case "$MODE" in
   all)
