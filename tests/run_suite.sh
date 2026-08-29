@@ -374,6 +374,33 @@ assert_26() {
   report $ok "combomaster-ach"
 }
 
+# TEST 27: perk cards are offered at wave-clear
+assert_27() {
+  local ok=0
+  check "$1" "PERK OFFER F1=";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "perk-offer"
+}
+
+# TEST 28: forced offer + autopick takes PIERCE
+assert_28() {
+  local ok=0
+  check "$1" "PERK OFFER F1=PIERCE";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "PERK TAKEN PIERCE";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "perk-pierce-pick"
+}
+
+# TEST 29: SKIP perk blanks the next wave's modifier
+assert_29() {
+  local ok=0
+  check "$1" "PERK TAKEN SKIP";                         [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "SKIP modifier";                           [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "starting wave 6 (";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "perk-skip-mod"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -496,11 +523,14 @@ dispatch_test() {
     24) run_test 24 "speedrunner-ach" 120 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 ;;
     25) run_test 25 "hardcore-ach" 180 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 +set g_neonwave_hardcore 1 ;;
     26) run_test 26 "combomaster-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 12 +set g_neonwave_botasplayer 1 +set g_neonwave_failrun 1 ;;
+    27) run_test 27 "perk-offer" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    28) run_test 28 "perk-pierce-pick" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_perkforce 123 +set g_neonwave_autopick 1 ;;
+    29) run_test 29 "perk-skip-mod" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_perkforce 612 +set g_neonwave_autopick 1 ;;
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28"
 
 case "$MODE" in
   all)

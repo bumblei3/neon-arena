@@ -251,11 +251,22 @@ archiviert im Branch `archive/patches`.
   HARDCORE (Victory im Hardcore). Suite-Tests 24–26.
 - **Start:** `scripts/start-quake3e.sh --daily` und `--hardcore`.
 
+### v0.28-Highlights (Builds)
+
+- **Perk-Karten in der Wellenpause:** F1/F2/F3 wählen eine von 3 Angeboten
+  statt immer HP/DMG/SPD. Pool: **PIERCE** (Rail durch mehr Drones),
+  **CHAIN** (LG springt), **DASH** (1.5 s Speed nach Wellenstart),
+  **OVERCHARGE** (nächste Welle härter, weniger HP), **SECOND WIND**
+  (ein Tod abfangen), **SKIP** (nächste Welle ohne Modifier).
+- PIERCE/CHAIN stackbar bis 2, Rest 1 Charge. 1 Punkt = 1 Karte.
+- Test-Hooks: `g_neonwave_perkforce 123` (PIERCE/CHAIN/DASH), `g_neonwave_autopick 1`.
+- Legacy `upgrade hp|dmg|speed` bleibt in der Konsole.
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodule)
 und führt `tests/run_suite.sh` aus: Quick-Subset auf `main`-Pushes, volle Suite
-(Tests 1–26 inkl. 9b) auf Tags und manuellem Dispatch.
+(Tests 1–29 inkl. 9b) auf Tags und manuellem Dispatch.
 
 Zusätzlich baut `.github/workflows/engine-quake3e.yml` die Quake3e-Engine
 (OpenGL2+Vulkan, Bloom) als optionales Binary-Artifact.

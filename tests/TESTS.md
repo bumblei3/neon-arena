@@ -42,6 +42,9 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 24 | speedrunner-ach | autostart, autokill, fastbreak, startwave 20 | `All waves cleared`, `ACHIEVEMENT SPEEDRUNNER` | keine Fatal-Warnung |
 | 25 | hardcore-ach | autostart, autokill, fastbreak, startwave 20, hardcore 1 | `HARDCORE mode enabled`, `All waves cleared`, `ACHIEVEMENT HARDCORE` | keine Fatal-Warnung |
 | 26 | combomaster-ach | autostart, startwave 2, fakecombo 12, botasplayer 1, failrun | `fake combo 12 registered`, `ACHIEVEMENT COMBOMASTER` | keine Fatal-Warnung |
+| 27 | perk-offer | autostart, startwave 5, autokill, fastbreak | `PERK OFFER F1=` | keine Fatal-Warnung |
+| 28 | perk-pierce-pick | startwave 5, perkforce 123, autopick 1 | `PERK OFFER F1=PIERCE`, `PERK TAKEN PIERCE` | keine Fatal-Warnung |
+| 29 | perk-skip-mod | startwave 5, perkforce 612, autopick 1 | `PERK TAKEN SKIP`, `SKIP modifier`, `starting wave 6 (` | keine Fatal-Warnung |
 
 Test 2 (full-run) prüft zusätzlich v0.27-Reveal: `[VAMPIRE]` auf Welle 10, `[FRENZY]` auf 11, `[OVERSHIELD]` auf 12, plus `GLASS CANNON` und `WARDEN` im Boss-Zyklus.
 
