@@ -268,6 +268,13 @@ archiviert im Branch `archive/patches`.
 - Countdown **NEXT WAVE IN N**, gewählte Karte flasht + Combo-Sound.
 - `g_neonwave_fastbreak 1` bleibt 500 ms (CI).
 
+### v0.30-Highlights (Combat Juice)
+
+- **CHAIN:** sichtbarer LG-Bolt zum Jump-Ziel (`EV_LIGHTNINGBOLT`).
+- **PIERCE:** zweiter Rail-Trail + kurzer Cyan-Flash bei Multi-Hit (≥2).
+- **DASH:** Cyan-Kanten + FOV-Kick für 1.5 s nach Wellenstart.
+- **OVERCHARGE / SECOND WIND:** magenta- bzw. goldener Screen-Flash.
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodule)
