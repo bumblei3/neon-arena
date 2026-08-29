@@ -9,6 +9,7 @@ HOME_PATH="${FS_HOMEPATH:-$HOME/.openarena}"
 GAME="${FS_GAME:-neonarena}"
 GAME_TYPE="${GAME_TYPE:-14}"
 MAP="${MAP:-oa_shine}"
+MAP_FORCED=0
 RENDERER="${RENDERER:-vulkan}"
 BLOOM="${BLOOM:-1}"
 DAILY=0
@@ -23,8 +24,9 @@ Usage:
   $0 [--daily] [--hardcore] [+set cvar value ...]
 
 Optionen:
-  --daily         Daily Challenge (g_neonwave_daily 1)
+  --daily         Daily Challenge (g_neonwave_daily 1); wählt die Tages-Map
   --hardcore      Hardcore-Lauf (g_neonwave_hardcore 1)
+  --map NAME      Map (Default: oa_shine; mit --daily überschreibt die Tages-Map)
   --help          diese Hilfe
 
 Umgebungsvariablen (optional):
@@ -48,6 +50,15 @@ while [ $# -gt 0 ]; do
     --help|-h) usage ;;
     --daily) DAILY=1; shift ;;
     --hardcore) HARDCORE=1; shift ;;
+    --map)
+      if [ $# -lt 2 ]; then
+        echo "usage: --map <name>" >&2
+        exit 2
+      fi
+      MAP="$2"
+      MAP_FORCED=1
+      shift 2
+      ;;
     +set|-set)
       if [ $# -lt 3 ]; then
         echo "usage: +set <cvar> <value>" >&2
@@ -66,9 +77,29 @@ if [ ! -x "$ENGINE_BIN" ]; then
   exit 2
 fi
 
+daily_map_today() {
+  # FNV-1a over YYYY-MM-DD, then (hash/40)%3 — must match g_neonwave.c
+  python3 - <<'PY'
+from datetime import date
+h = 2166136261
+for c in date.today().strftime("%Y-%m-%d").encode("ascii"):
+    h ^= c
+    h = (h * 16777619) & 0xffffffff
+forced = h & 0x7fffffff
+idx = (forced // 40) % 3
+print(("oa_shine", "oa_minia", "oa_rpg3dm2")[idx])
+PY
+}
+
 MODE_CVARS=()
 if [ "$DAILY" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_daily 1)
+  if [ "$MAP_FORCED" -eq 0 ]; then
+    if MAP_TODAY=$(daily_map_today 2>/dev/null) && [ -n "$MAP_TODAY" ]; then
+      MAP="$MAP_TODAY"
+      echo "Daily map: $MAP"
+    fi
+  fi
 fi
 if [ "$HARDCORE" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_hardcore 1)

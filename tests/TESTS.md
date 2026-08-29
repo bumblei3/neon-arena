@@ -30,7 +30,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 12 | newrecord-flag | autostart, autokill, fastbreak, startwave 20 | `NEW RECORD WAVE\|NEW RECORD TIME`, `RECORDS SAVED` | keine alten Bestwerte unterdrücken |
 | 13 | mega-combo-reward | autostart, startwave 2, fakecombo 8, botasplayer 1, autokill, fastbreak | `fake combo 8 registered`, `MEGA COMBO 8`, `item_quad` | kein Quad bei kleinerem Combo |
 | 14 | boss-glass-cannon | autostart, startwave 10, bosstype 4 | `boss spawned: GLASS CANNON (hc 200)`, `hc\\200` | kein anderer Boss-Type |
-| 15 | daily-challenge-determinism | daily 1, dailyseed 12345/999, startwave 10 | je 2× `DAILY CHALLENGE seed N`, identischer Boss-Spawn bei gleichem Seed, anderer bei 999 | Boss-Mismatch zwischen Läufen |
+| 15 | daily-challenge-determinism | daily 1, dailyseed 12345/999, startwave 10 | je 2× `DAILY CHALLENGE seed N`, `DAILY MAP oa_rpg3dm2` (seed 12345 → Index 2) | Boss-Mismatch zwischen Läufen |
 | 16 | boss-warden | autostart, startwave 10, bosstype 5, wardenforce 1 | `boss spawned: WARDEN (hc 500)`, ≥1 `WARDEN strikes the player zone`, ≥1 `WARDEN raises armor` | kein anderer Boss-Type |
 | 17 | daily-record-persistence | daily 1, dailyseed 12345, failrun (Run A), dann Run B ohne failrun | `DAILY RECORDS SAVED`, Datei `neonwave_daily_records.dat`, danach `DAILY records loaded wave=[1-9]` | keine Save-/Ladefehler |
 | 18 | runstats-json | autostart, startwave 10, failrun | `RUN STATS JSON written`, Datei `neonwave_runstats.json` existiert + valides JSON (version=1, result in VICTORY/FAILED, modifierNames=list, achievements=list) | keine Write-Warnung |

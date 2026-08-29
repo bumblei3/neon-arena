@@ -275,6 +275,13 @@ archiviert im Branch `archive/patches`.
 - **DASH:** Cyan-Kanten + FOV-Kick für 1.5 s nach Wellenstart.
 - **OVERCHARGE / SECOND WIND:** magenta- bzw. goldener Screen-Flash.
 
+### v0.31-Highlights (Arenas)
+
+- Neon-Grid + dunkle Sky auf **`oa_minia`** und **`oa_rpg3dm2`** (neben `oa_shine`).
+- **Daily** wählt die Map per Datum-Hash: `oa_shine` / `oa_minia` / `oa_rpg3dm2`.
+  HUD zeigt `MAP <name>`. Start: `scripts/start-quake3e.sh --daily`
+  (oder `--map oa_minia` zum Erzwingen). Standard-Run bleibt `oa_shine`.
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodule)

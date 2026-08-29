@@ -640,3 +640,266 @@ textures/neonarena/glow_cyan
 		tcMod turb 0 0.15 0 0.3
 	}
 }
+
+// ---------------------------------------------------------------------------
+// oa_minia + oa_rpg3dm2: dark sky + neon grid on the main floors
+// ---------------------------------------------------------------------------
+textures/skies/moonsky
+{
+	surfaceparm noimpact
+	surfaceparm nolightmap
+	surfaceparm sky
+	q3map_globaltexture
+	skyParms full 800 -
+	{
+		map textures/neonarena/night.jpg
+		tcMod scale 3 2
+		tcMod scroll 0.004 0.008
+		rgbGen identity
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.06 0.22 0.26 )
+		tcMod scale 6 6
+		tcMod scroll 0.01 0
+	}
+}
+
+textures/skies/nitesky
+{
+	surfaceparm noimpact
+	surfaceparm nolightmap
+	surfaceparm sky
+	q3map_globaltexture
+	skyParms full 1280 -
+	{
+		map textures/neonarena/night.jpg
+		tcMod scale 3 2
+		tcMod scroll 0.004 0.008
+		rgbGen identity
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.06 0.22 0.26 )
+		tcMod scale 6 6
+		tcMod scroll 0.01 0
+	}
+}
+
+textures/base_floor/clang_floor
+{
+	{
+		map textures/base_floor/clang_floor.jpg
+		rgbGen const ( 0.50 0.58 0.66 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/clang_floor2
+{
+	{
+		map textures/base_floor/clang_floor2.jpg
+		rgbGen const ( 0.50 0.58 0.66 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.36 0.40 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/clang_floor3b
+{
+	{
+		map textures/base_floor/clang_floor3b.jpg
+		rgbGen const ( 0.50 0.58 0.66 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.36 0.40 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/clang_floor512
+{
+	{
+		map textures/base_floor/clang_floor512.jpg
+		rgbGen const ( 0.50 0.58 0.66 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/clangdark
+{
+	{
+		map textures/base_floor/clangdark.jpg
+		rgbGen const ( 0.48 0.55 0.64 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.11 0.40 0.44 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/concrete
+{
+	{
+		map textures/base_floor/concrete.jpg
+		rgbGen const ( 0.50 0.56 0.64 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.09 0.34 0.38 )
+		tcMod scale 3 3
+	}
+}
+
+textures/base_floor/diamond2
+{
+	{
+		map textures/base_floor/diamond2.jpg
+		rgbGen const ( 0.50 0.58 0.66 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/diamond2c
+{
+	{
+		map textures/base_floor/diamond2c.jpg
+		rgbGen const ( 0.50 0.58 0.66 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.36 0.40 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/tilefloor7
+{
+	{
+		map textures/base_floor/tilefloor7.jpg
+		rgbGen const ( 0.52 0.58 0.66 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.09 0.34 0.38 )
+		tcMod scale 3 3
+	}
+}
+
+textures/base_floor/metalbridge04d
+{
+	{
+		map textures/base_floor/metalbridge04d.jpg
+		rgbGen const ( 0.48 0.55 0.64 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.11 0.40 0.44 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/metfloor1
+{
+	{
+		map textures/base_floor/metfloor1.jpg
+		rgbGen const ( 0.48 0.55 0.64 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_wall/metalfloor_wall_11
+{
+	{
+		map textures/base_wall/metalfloor_wall_11.jpg
+		rgbGen const ( 0.50 0.56 0.64 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.08 0.32 0.36 )
+		tcMod scale 2 2
+	}
+}
