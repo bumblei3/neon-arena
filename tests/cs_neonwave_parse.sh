@@ -105,6 +105,9 @@ modifier_name() {
     6) echo "VAMPIRE" ;;
     7) echo "FRENZY" ;;
     8) echo "OVERSHIELD" ;;
+    9) echo "MIRROR" ;;
+    10) echo "REGEN" ;;
+    11) echo "SURGE" ;;
     *) echo "UNKNOWN" ;;
   esac
 }

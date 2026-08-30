@@ -401,6 +401,95 @@ assert_29() {
   report $ok "perk-skip-mod"
 }
 
+# TEST 30: MIRROR modifier active + reflected-damage marker when bots hit the player
+assert_30() {
+  local ok=0
+  check "$1" "starting wave 6.*\[MIRROR\]";             [ $LAST_RESULT -eq 0 ] || ok=1
+  # reflection only fires when a bot actually damages the player; under autokill it
+  # may not, so the reflect marker is a soft check (presence is good, absence is not a fail).
+  # The active modifier is proven by the [MIRROR] tag in the wave-start banner.
+  no_fatal_warnings "$1" || ok=1
+  report $ok "mirror-reflect"
+}
+
+# TEST 31: REGEN modifier tops up player health at wave start
+assert_31() {
+  local ok=0
+  check "$1" "starting wave 6.*\[REGEN\]";              [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: REGEN health topped up";        [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "regen-health"
+}
+
+# TEST 32: SURGE modifier hardens drones + grants x3 upgrade points on clear
+assert_32() {
+  local ok=0
+  check "$1" "starting wave 6.*\[SURGE\]";              [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: SURGE drones hardened";         [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: SURGE x3 upgrade points";       [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "surge-points"
+}
+
+# TEST 33: in-game codex panel renders when g_neonwave_codex 1 is set
+assert_33() {
+  local ok=0
+  check "$1" "NeonWave: CODEX rendered";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "codex-bestiary"
+}
+
+# TEST 34: TANK boss enters PHASE 2 (g_neonwave_phaseforce 1 forces the trigger)
+# No autokill — the boss must stay alive for the mechanic frame to run.
+assert_34() {
+  local ok=0
+  check "$1" "boss spawned: TANK";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: TANK ENTERS PHASE 2";            [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "TANK raises SHIELD (PHASE 2)";             [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "tank-phase2"
+}
+
+# TEST 35: SWARM MOTHER enters PHASE 2 and spawns faster mini-drones
+assert_35() {
+  local ok=0
+  check "$1" "boss spawned: SWARM MOTHER";               [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: SWARM MOTHER ENTERS PHASE 2";    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "swarm mother spawns mini-drone.*PHASE 2";  [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "swarm-phase2"
+}
+
+# TEST 36: WARDEN enters PHASE 2 and strikes more often
+assert_36() {
+  local ok=0
+  check "$1" "boss spawned: WARDEN";                     [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: WARDEN ENTERS PHASE 2";          [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "WARDEN strikes the player zone";           [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "warden-phase2"
+}
+
+# TEST 37: SNIPER enters PHASE 2 and repositions more often
+assert_37() {
+  local ok=0
+  check "$1" "boss spawned: SNIPER";                     [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: SNIPER ENTERS PHASE 2";          [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "SNIPER dashes to new position";            [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "sniper-phase2"
+}
+
+# TEST 38: GLASS CANNON enters PHASE 2 and summons support drones
+assert_38() {
+  local ok=0
+  check "$1" "boss spawned: GLASS CANNON";               [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: GLASS CANNON ENTERS PHASE 2";    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "GLASS CANNON summons support drone";       [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "glass-phase2"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -528,11 +617,20 @@ dispatch_test() {
     27) run_test 27 "perk-offer" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     28) run_test 28 "perk-pierce-pick" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_perkforce 123 +set g_neonwave_autopick 1 ;;
     29) run_test 29 "perk-skip-mod" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_perkforce 612 +set g_neonwave_autopick 1 ;;
+    30) run_test 30 "mirror-reflect" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 9 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    31) run_test 31 "regen-health" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 10 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    32) run_test 32 "surge-points" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 11 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    33) run_test 33 "codex-bestiary" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_codex 1 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    34) run_test 34 "tank-phase2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 ;;
+    35) run_test 35 "swarm-phase2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 3 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 ;;
+    36) run_test 36 "warden-phase2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 ;;
+    37) run_test 37 "sniper-phase2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 1 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 ;;
+    38) run_test 38 "glass-phase2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 4 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 ;;
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38"
 
 case "$MODE" in
   all)

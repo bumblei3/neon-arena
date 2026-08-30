@@ -45,6 +45,30 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 27 | perk-offer | autostart, startwave 5, autokill, fastbreak | `PERK OFFER F1=` | keine Fatal-Warnung |
 | 28 | perk-pierce-pick | startwave 5, perkforce 123, autopick 1 | `PERK OFFER F1=PIERCE`, `PERK TAKEN PIERCE` | keine Fatal-Warnung |
 | 29 | perk-skip-mod | startwave 5, perkforce 612, autopick 1 | `PERK TAKEN SKIP`, `SKIP modifier`, `starting wave 6 (` | keine Fatal-Warnung |
+| 30 | mirror-reflect | startwave 6, modifier 9 (MIRROR), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*[MIRROR]`, `g_neonwave_modifier_active.*9` | keine Fatal-Warnung |
+| 31 | regen-health | startwave 6, modifier 10 (REGEN), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*[REGEN]`, `NeonWave: REGEN health topped up` | keine Fatal-Warnung |
+| 32 | surge-points | startwave 6, modifier 11 (SURGE), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*[SURGE]`, `NeonWave: SURGE drones hardened`, `NeonWave: SURGE x3 upgrade points` | keine Fatal-Warnung |
+| 33 | codex-bestiary | startwave 6, codex 1 | `g_neonwave_codex_rendered.*1` | keine Fatal-Warnung |
+| 34 | tank-phase2 | startwave 10, bosstype 2 (TANK), phaseforce 1 | `boss spawned: TANK`, `NeonWave: TANK ENTERS PHASE 2`, `TANK raises SHIELD (PHASE 2)` | keine Fatal-Warnung |
+| 35 | swarm-phase2 | startwave 10, bosstype 3 (SWARM MOTHER), phaseforce 1 | `boss spawned: SWARM MOTHER`, `NeonWave: SWARM MOTHER ENTERS PHASE 2`, `swarm mother spawns mini-drone.*PHASE 2` | keine Fatal-Warnung |
+| 36 | warden-phase2 | startwave 10, bosstype 5 (WARDEN), phaseforce 1 | `boss spawned: WARDEN`, `NeonWave: WARDEN ENTERS PHASE 2`, `WARDEN strikes the player zone` | keine Fatal-Warnung |
+| 37 | sniper-phase2 | startwave 10, bosstype 1 (SNIPER), phaseforce 1 | `boss spawned: SNIPER`, `NeonWave: SNIPER ENTERS PHASE 2`, `SNIPER dashes to new position` | keine Fatal-Warnung |
+| 38 | glass-phase2 | startwave 10, bosstype 4 (GLASS CANNON), phaseforce 1 | `boss spawned: GLASS CANNON`, `NeonWave: GLASS CANNON ENTERS PHASE 2`, `GLASS CANNON summons support drone` | keine Fatal-Warnung |
+
+## Ergänzung: v0.33 Boss-Phasenwechsel (PHASE 2)
+Jeder Boss wechselt bei ≤50% HP in Phase 2 (sichtbarer Marker `NeonWave: <NAME> ENTERS PHASE 2`)
+und eskaliert: TANK kürzere/öftere Shield-Cycles, SWARM schnellere Mini-Drone-Spawns,
+WARDEN kürzere Strike-Intervalle, SNIPER öftere Reposition, GLASS CANNON ruft Support-Drones.
+Test-Hook `g_neonwave_phaseforce 1` erzwingt den Trigger deterministisch für CI (Tests 34–38).
+`nw_bossPhase` (1→2) wird in `NeonWave_Reset` zurückgesetzt.
+
+## Ergänzung: v0.32 Deck-Expansion + Codex (MIRROR/REGEN/SURGE)
+Modifier-Pool wuchs von 8 auf 11. Rotation in `NW_PickModifier` ist `(num-5+nw_dailyOffset) % 11`
+(daily verschiebt den Startindex). MIRROR reflektiert 1/3 des Bot→Human-Schadens zurück
+(gehookt in `G_Damage`, g_combat.c, liest `g_neonwave_modifier_active`). REGEN füllt HP bei
+Wave-Start auf, SURGE härtet Drones (+1 skill) und vergibt x3 Upgrade-Points bei Wave-Clear.
+Codex/Bestiary (`CG_DrawNeonCodex` in cg_draw.c): listet alle 11 Modifier + 5 Bosse + 6 Perks
+mit Effekt, getriggert per `g_neonwave_codex 1` (später im Wave-Break auto-einblenden).
 
 Test 2 (full-run) prüft zusätzlich v0.27-Reveal: `[VAMPIRE]` auf Welle 10, `[FRENZY]` auf 11, `[OVERSHIELD]` auf 12, plus `GLASS CANNON` und `WARDEN` im Boss-Zyklus.
 
