@@ -511,6 +511,25 @@ assert_40() {
   report $ok "overcharge-rank"
 }
 
+# TEST 41: SYNERGY pairing (LOWGRAV + DOUBLEPTS = "AERIAL ASSAULT")
+# Forced via g_neonwave_modifier (3) + g_neonwave_modifier2 (4).
+assert_41() {
+  local ok=0
+  check "$1" "NeonWave: SYNERGY AERIAL ASSAULT";           [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "starting wave 6.*+\[DOUBLE POINTS\]";        [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "synergy-pair"
+}
+
+# TEST 42: ANTI-SYNERGY pairing (OVERSHIELD + VAMPIRE = "SHIELD BLEED")
+# Forced via g_neonwave_modifier (8) + g_neonwave_modifier2 (6).
+assert_42() {
+  local ok=0
+  check "$1" "NeonWave: ANTI-SYNERGY SHIELD BLEED";       [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "anti-synergy-pair"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -649,11 +668,13 @@ dispatch_test() {
     38) run_test 38 "glass-phase2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 4 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 ;;
     39) run_test 39 "pierce-rank" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_perkr 1 +set g_neonwave_fastbreak 1 ;;
     40) run_test 40 "overcharge-rank" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_perkr 4 +set g_neonwave_fastbreak 1 ;;
+    41) run_test 41 "synergy-pair" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 3 +set g_neonwave_modifier2 4 +set g_neonwave_fastbreak 1 ;;
+    42) run_test 42 "anti-synergy-pair" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 8 +set g_neonwave_modifier2 6 +set g_neonwave_fastbreak 1 ;;
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42"
 
 case "$MODE" in
   all)
