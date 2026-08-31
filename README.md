@@ -85,6 +85,24 @@ Die klassische OpenArena-Engine bleibt ausdrücklich voll unterstützt. Quake3e 
 - `cl_renderer opengl` → OpenGL2-Renderer, ebenfalls mit Bloom.
 - `r_bloom 1` aktiviert Bloom. Ohne Bloom ist der Effekt deutlich blasser – Neon glüht nur mit Bloom richtig.
 
+### Wayland (native, kein X11-Layer)
+
+Auf GNOME/Wayland läuft Quake3e sauberer über SDL2s native Wayland-Backend statt dem
+Xwayland-Compat-Layer (vermeidet Flicker/Resolution-Fallback nach Standby). Das
+`scripts/start-quake3e.sh` erzwingt es per `--wayland` (oder `NW_WAYLAND=1`):
+
+```sh
+scripts/start-quake3e.sh --wayland --daily
+# bzw. direkt:
+SDL_VIDEODRIVER=wayland ~/quake3e-engine/quake3e.x64 +set cl_renderer vulkan +set r_bloom 1 \
+  +set fs_basepath ~/quake3e-engine +set fs_homepath ~/.openarena +set fs_game neonarena \
+  +g_gametype 14 +map oa_shine
+```
+
+Voraussetzung: die Engine wurde mit SDL2+Wayland-Unterstützung gebaut (CI-Engine-Artifact
+enthält `libwayland-dev`, also Wayland-tauglich). Falls Wayland nicht startet, fällt SDL2
+automatisch auf X11 zurück.
+
 ### Bloom-Kalibrierung (optional)
 
 Quake3e bietet zusätzliche Bloom-Cvars, die eingeschossen werden können, wenn Neon zu stark / zu schwach überblitzt:
@@ -284,13 +302,25 @@ archiviert im Branch `archive/patches`.
 
 ## CI
 
-`.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodule)
+`.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodul)
 und führt `tests/run_suite.sh` aus: Quick-Subset auf `main`-Pushes, volle Suite
-(Tests 1–29 inkl. 9b) auf Tags und manuellem Dispatch.
+(Tests 1–43 inkl. 9b) auf Tags und manuellem Dispatch.
 
 Zusätzlich baut `.github/workflows/engine-quake3e.yml` die Quake3e-Engine
 (OpenGL2+Vulkan, Bloom) als optionales Binary-Artifact.
 Tag-Pushes erzeugen Releases.
+
+## Dokumentation
+
+Zusätzliche technische Dokumentation und Testdetails liegen im Verzeichnis [`references/`](references/):
+
+- `references/test-harness.md` — Test-Harness-Details, Payload-Parsing, Flaky-Tests
+- `references/build-test-release.md` — Build, Install, Dist, Release-Gate
+- `references/parallel-suite.md` — Parallelisierung (`--parallel N`)
+- `references/runstats-json.md` — Run-Statistiken JSON-Schema und Tooling
+- `references/background-music.md` — Sound-Assets und lokale Synthese
+
+Die Test-Katalogtabelle (alle 43 Tests inkl. 9b) befindet sich in `tests/TESTS.md`.
 
 ## SDL2-Prototyp (`main.cpp`)
 

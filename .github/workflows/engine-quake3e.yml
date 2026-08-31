@@ -1,27 +1,55 @@
 name: engine-quake3e
 
+# Builds the Quake3e engine (OpenGL2 + Vulkan, Bloom) for Linux, Windows and macOS
+# as optional binary artifacts. The OpenArena compatibility patch (BASEGAME=baseoa)
+# is applied so Quake3e loads OA content directly. BaseOA pk3s are supplied by the
+# player (see README) — only the engine binaries are shipped here.
+
 on:
   push:
     branches: [main]
-    paths:
-      - 'patches/engine-quake3e-oa.patch'
-      - '.github/workflows/engine-quake3e.yml'
   workflow_dispatch:
 
 jobs:
   build-engine:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: windows
+          - os: macos-latest
+            platform: macos
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install build dependencies
+      - name: Install build dependencies (Linux)
+        if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libsdl2-dev zip unzip libcurl4-openssl-dev libvulkan-dev glslang-tools
+          sudo apt-get install -y build-essential libsdl2-dev libwayland-dev zip unzip libcurl4-openssl-dev libvulkan-dev glslang-tools
 
-      # Quake3e: modern Q3 engine with OpenGL2 + Vulkan renderers (bloom support)
+      - name: Install build dependencies (Windows, MinGW)
+        if: matrix.platform == 'windows'
+        run: |
+          choco install -y mingw --version=13.2.0
+          # SDL2 dev libs for MinGW (headers + import lib + runtime dll)
+          curl -sSL -o sdl2-mingw.tar.gz https://github.com/libsdl-org/SDL/releases/download/release-2.30.5/SDL2-devel-2.30.5-mingw.tar.gz
+          tar -xzf sdl2-mingw.tar.gz
+          echo "SDL2_DIR=$PWD/SDL2-2.30.5" >> $GITHUB_ENV
+
+      - name: Install build dependencies (macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          brew install sdl2 vulkan-headers molten-vk
+          # universal binaries: build for both arches
+          echo "ARCH=universal" >> $GITHUB_ENV
+
       - name: Clone Quake3e
         run: git clone --depth 1 https://github.com/ec-/quake3e.git /tmp/quake3e
 
@@ -30,32 +58,92 @@ jobs:
           cd /tmp/quake3e
           patch -p1 < "$GITHUB_WORKSPACE/patches/engine-quake3e-oa.patch"
 
-      - name: Build engine
+      - name: Build engine (Linux)
+        if: matrix.platform == 'linux'
         run: make -C /tmp/quake3e ARCH=x86_64 -j4
 
-      - name: Package engine binaries
+      - name: Build engine (Windows, MinGW)
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          cd /tmp/quake3e
+          # Quake3e cross-builds for Windows via its mingw32 platform target.
+          # Point it at the MinGW toolchain + bundled SDL2 dev libs.
+          export PATH="/c/ProgramData/chocolatey/lib/mingw/bin:$PATH"
+          export MINGW_PREFIX="x86_64-w64-mingw32"
+          export SDL2DIR="$SDL2_DIR"
+          make ARCH=x86_64 PLATFORM=mingw32 \
+            CC=x86_64-w64-mingw32-gcc \
+            RCMDUMP= \
+            -j4
+
+      - name: Build engine (macOS, universal)
+        if: matrix.platform == 'macos'
+        run: make -C /tmp/quake3e ARCH=universal -j4
+
+      - name: Package engine (Linux)
+        if: matrix.platform == 'linux'
         run: |
           mkdir -p dist/neonarena-engine/baseq3
           OUT=/tmp/quake3e/build/release-linux-x86_64
           cp "$OUT/quake3e.x64" dist/neonarena-engine/
-          cp "$OUT/quake3e_opengl_x86_64.so" dist/neonarena-engine/
+          cp "$OUT/quake3e_opengl_x86_64.so" dist/neonarena-engine/ 2>/dev/null || true
           if [ -f "$OUT/quake3e_vulkan_x86_64.so" ]; then
             cp "$OUT/quake3e_vulkan_x86_64.so" dist/neonarena-engine/
           else
             echo "vulkan renderer not built - shipping OpenGL only"
           fi
-          # OpenArena base content must be supplied by the player (see README)
           tar -czf dist/neonarena-engine-linux64.tar.gz -C dist neonarena-engine
           ls -la dist/neonarena-engine-linux64.tar.gz
+
+      - name: Package engine (Windows)
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          mkdir -p dist/neonarena-engine/baseq3
+          OUT=/tmp/quake3e/build/release-mingw32-x86_64
+          cp "$OUT/quake3e.exe" dist/neonarena-engine/
+          cp "$OUT/quake3e_opengl_x86_64.dll" dist/neonarena-engine/ 2>/dev/null || true
+          if [ -f "$OUT/quake3e_vulkan_x86_64.dll" ]; then
+            cp "$OUT/quake3e_vulkan_x86_64.dll" dist/neonarena-engine/
+          else
+            echo "vulkan renderer not built - shipping OpenGL only"
+          fi
+          # bundle SDL2 runtime so the exe starts without system SDL
+          cp "$SDL2_DIR/lib/SDL2.dll" dist/neonarena-engine/ 2>/dev/null || echo "SDL2.dll not found in SDL2DIR/lib"
+          cd dist && zip -r neonarena-engine-win64.zip neonarena-engine
+          ls -la dist/neonarena-engine-win64.zip
+
+      - name: Package engine (macOS, universal)
+        if: matrix.platform == 'macos'
+        run: |
+          mkdir -p dist/neonarena-engine/baseq3
+          OUT=/tmp/quake3e/build/release-darwin-universal
+          if [ ! -d "$OUT" ]; then OUT=/tmp/quake3e/build/release-darwin-x86_64; fi
+          cp "$OUT/quake3e.x64" dist/neonarena-engine/
+          cp "$OUT/quake3e_opengl_x86_64.dylib" dist/neonarena-engine/ 2>/dev/null || true
+          if [ -f "$OUT/quake3e_vulkan_x86_64.dylib" ]; then
+            cp "$OUT/quake3e_vulkan_x86_64.dylib" dist/neonarena-engine/
+          else
+            echo "vulkan renderer not built - shipping OpenGL only"
+          fi
+          tar -czf dist/neonarena-engine-macos-universal.tar.gz -C dist neonarena-engine
+          ls -la dist/neonarena-engine-macos-universal.tar.gz
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: neonarena-engine
-          path: dist/neonarena-engine-linux64.tar.gz
+          name: neonarena-engine-${{ matrix.platform }}
+          path: |
+            dist/neonarena-engine-linux64.tar.gz
+            dist/neonarena-engine-win64.zip
+            dist/neonarena-engine-macos-universal.tar.gz
 
       - name: Release engine (tags only)
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/neonarena-engine-linux64.tar.gz
+          files: |
+            dist/neonarena-engine-linux64.tar.gz
+            dist/neonarena-engine-win64.zip
+            dist/neonarena-engine-macos-universal.tar.gz

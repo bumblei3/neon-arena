@@ -431,6 +431,15 @@ assert_32() {
   report $ok "surge-points"
 }
 
+# TEST 43: MIRROR in the SECOND modifier slot (v0.35) still reflects — proves the
+# g_neonwave_modifier_active bitmask reaches g_combat.c even when MIRROR is not in slot 1.
+assert_43() {
+  local ok=0
+  check "$1" "NeonWave: MIRROR active (mask .*, slot2=1)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "mirror-slot2"
+}
+
 # TEST 33: in-game codex panel renders when g_neonwave_codex 1 is set
 assert_33() {
   local ok=0
@@ -670,11 +679,12 @@ dispatch_test() {
     40) run_test 40 "overcharge-rank" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_perkr 4 +set g_neonwave_fastbreak 1 ;;
     41) run_test 41 "synergy-pair" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 3 +set g_neonwave_modifier2 4 +set g_neonwave_fastbreak 1 ;;
     42) run_test 42 "anti-synergy-pair" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 8 +set g_neonwave_modifier2 6 +set g_neonwave_fastbreak 1 ;;
+    43) run_test 43 "mirror-slot2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier2 9 +set g_neonwave_fastbreak 1 ;;
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
 
 case "$MODE" in
   all)

@@ -32,7 +32,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 14 | boss-glass-cannon | autostart, startwave 10, bosstype 4 | `boss spawned: GLASS CANNON (hc 200)`, `hc\\200` | kein anderer Boss-Type |
 | 15 | daily-challenge-determinism | daily 1, dailyseed 12345/999, startwave 10 | je 2× `DAILY CHALLENGE seed N`, `DAILY MAP oa_rpg3dm2` (seed 12345 → Index 2) | Boss-Mismatch zwischen Läufen |
 | 16 | boss-warden | autostart, startwave 10, bosstype 5, wardenforce 1 | `boss spawned: WARDEN (hc 500)`, ≥1 `WARDEN strikes the player zone`, ≥1 `WARDEN raises armor` | kein anderer Boss-Type |
-| 17 | daily-record-persistence | daily 1, dailyseed 12345, failrun (Run A), dann Run B ohne failrun | `DAILY RECORDS SAVED`, Datei `neonwave_daily_records.dat`, danach `DAILY records loaded wave=[1-9]` | keine Save-/Ladefehler |
+| 17 | timewarp-modifier | autostart, startwave 6, modifier 5 (TIME WARP), fastbreak, autokill | `starting wave 6.*\[TIME WARP\]`, payload mod=5 | keine Fatal-Warnung |
 | 18 | runstats-json | autostart, startwave 10, failrun | `RUN STATS JSON written`, Datei `neonwave_runstats.json` existiert + valides JSON (version=1, result in VICTORY/FAILED, modifierNames=list, achievements=list) | keine Write-Warnung |
 | 19 | achievements-json | autostart, startwave 15, failrun | `RUN STATS JSON written`, Log-Marker `ACHIEVEMENT SURVIVOR` (wave≥15) | keine doppelten Marker-Issues |
 | 20 | hardcore-mode | autostart, startwave 10, bosstype 2, hardcore 1 | `HARDCORE mode enabled`, `HARDCORE` banner, `boss spawned: TANK (hc 900)` (600×1.5) | keine Write-/Fatal-Warnung |
@@ -54,8 +54,21 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 36 | warden-phase2 | startwave 10, bosstype 5 (WARDEN), phaseforce 1 | `boss spawned: WARDEN`, `NeonWave: WARDEN ENTERS PHASE 2`, `WARDEN strikes the player zone` | keine Fatal-Warnung |
 | 37 | sniper-phase2 | startwave 10, bosstype 1 (SNIPER), phaseforce 1 | `boss spawned: SNIPER`, `NeonWave: SNIPER ENTERS PHASE 2`, `SNIPER dashes to new position` | keine Fatal-Warnung |
 | 38 | glass-phase2 | startwave 10, bosstype 4 (GLASS CANNON), phaseforce 1 | `boss spawned: GLASS CANNON`, `NeonWave: GLASS CANNON ENTERS PHASE 2`, `GLASS CANNON summons support drone` | keine Fatal-Warnung |
+| 39 | pierce-rank | autostart, startwave 6, perkr 1, fastbreak 1 | `PERK RANK PIERCE rank 1`, `PERK EFFECT PIERCE` (bzw. korrekter Marker für Rank-1-Pierce) | keine Fatal-Warnung |
+| 40 | overcharge-rank | autostart, startwave 6, perkr 4, fastbreak 1 | `PERK RANK OVERCHARGE rank 2`, `PERK EFFECT OVERCHARGE` (bzw. korrekter Marker für Rank-2-Overcharge) | keine Fatal-Warnung |
+| 41 | synergy-pair | autostart, startwave 6, modifier 3 (LOWGRAV), modifier2 4 (DOUBLE POINTS), fastbreak 1 | `starting wave 6.*\[LOW GRAVITY\]`, `starting wave 6.*\[DOUBLE POINTS\]`, Marker für Synergie-Paarung (z.B. `NeonWave: SYNERGY active`) | keine Fatal-Warnung |
+| 42 | anti-synergy-pair | autostart, startwave 6, modifier 8 (OVERSHIELD), modifier2 6 (VAMPIRE), fastbreak 1 | `starting wave 6.*\[OVERSHIELD\]`, `starting wave 6.*\[VAMPIRE\]`, Marker für Anti-Synergie-Paarung (z.B. `NeonWave: ANTI-SYNERGY active`) | keine Fatal-Warnung |
+| 43 | mirror-slot2 | startwave 6, modifier2 9 (MIRROR in Slot 2), fastbreak 1 | `starting wave 6.*\\[MIRROR\\]`, `NeonWave: MIRROR active (mask .*, slot2=1)` | keine Fatal-Warnung |
+
+### Tabelle-Notizen
+
+- **Test 9b** ist kein eigener Boss-Type-Test; er ist die RAGE-Variante von Test 9 (SWARM MOTHER). Der Hook `rageforce 1` erzwingt den Enrage-Zustand des Mutter-Drones. Es wird erwartet, dass der Boss nach dem Trigger `SWARM MOTHER ENRAGED` ausgibt und danach `mini-drone (RAGE)` spawnt. Test 9 (ohne rageforce) als Basis-Kontrolle; 9b zeigt den Enrage-Pfad.
+- **Tests 39 und 40** prüfen jeweils einen bestimmten Perk-Rank (PIERCE = Perk-ID 1, OVERCHARGE = Perk-ID 4). Der Hook `perkr N` setzt am Run-Start den Rank des angegebenen Perks. Die korrekten Marker hängen von der Implementierung in `g_neonwave.c` ab; der Test verlangt mindestens eine Bestätigung, dass der Rank gesetzt wurde (z.B. `PERK RANK PIERCE rank 1`).
+- **Tests 41 und 42** prüfen die Synergie-/Anti-Synergie-Paarungslogik (2. Slot ab Welle 8). Die erwarteten Marker sind Implementierungs-abhängig; das Ziel ist die Existenz eines Paarungs-Markers (Synergie oder Anti-Synergie), nicht eine konkrete Wirkung (Synergien sind aktuell kosmetisch).
+- **Test 43** zeigt den MIRROR-Modifier im 2. Slot (Slot 2). Der Hook `modifier2` setzt einen zweiten Modifier; bei MIRROR in Slot 2 erwartet der Test den Marker `slot2=1` im MIRROR-Status.
 
 ## Ergänzung: v0.33 Boss-Phasenwechsel (PHASE 2)
+
 Jeder Boss wechselt bei ≤50% HP in Phase 2 (sichtbarer Marker `NeonWave: <NAME> ENTERS PHASE 2`)
 und eskaliert: TANK kürzere/öftere Shield-Cycles, SWARM schnellere Mini-Drone-Spawns,
 WARDEN kürzere Strike-Intervalle, SNIPER öftere Reposition, GLASS CANNON ruft Support-Drones.
@@ -63,6 +76,7 @@ Test-Hook `g_neonwave_phaseforce 1` erzwingt den Trigger deterministisch für CI
 `nw_bossPhase` (1→2) wird in `NeonWave_Reset` zurückgesetzt.
 
 ## Ergänzung: v0.32 Deck-Expansion + Codex (MIRROR/REGEN/SURGE)
+
 Modifier-Pool wuchs von 8 auf 11. Rotation in `NW_PickModifier` ist `(num-5+nw_dailyOffset) % 11`
 (daily verschiebt den Startindex). MIRROR reflektiert 1/3 des Bot→Human-Schadens zurück
 (gehookt in `G_Damage`, g_combat.c, liest `g_neonwave_modifier_active`). REGEN füllt HP bei
@@ -98,3 +112,21 @@ Tests, die Victory/Keine-Warnungen erwarten, prüfen zusätzlich:
 Jeder neue Test wird hier eingetragen (Nummer, Name, CVars, Erwünschte Marker,
 Anti-Patterns). Bestehende Tests werden nur geändert, wenn ihre Assertions
 sich diagnostisch ändern.
+
+## Gesamtüberblick
+
+Die Suite umfasst **43 Tests** (1–40 inkl. 9b, 41–43). Der vollständige Katalog
+steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
+`dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
+Dokumentation; jeweils eine Änderung an einem Test erfordert:
+1. Anpassung der Assertions in `run_suite.sh` (oder neue Assert-Funktion).
+2. ggf. Anpassung der `dispatch_test()`-Case (CVars setzen).
+3. ggf. Ergänzung/Eintrag hier in TESTS.md.
+
+## Weiterführende Dokumentation
+
+- `references/test-harness.md` — Test-Harness-Details, Payload-Parsing, Flaky-Tests
+- `references/build-test-release.md` — Build, Install, Dist, Release-Gate
+- `references/parallel-suite.md` — Parallelisierung (`--parallel N`)
+- `references/runstats-json.md` — Run-Statistiken JSON-Schema und Tooling
+- `references/background-music.md` — Sound-Assets und lokale Synthese

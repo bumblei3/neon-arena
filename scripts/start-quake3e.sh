@@ -12,6 +12,9 @@ MAP="${MAP:-oa_shine}"
 MAP_FORCED=0
 RENDERER="${RENDERER:-vulkan}"
 BLOOM="${BLOOM:-1}"
+# Wayland: run SDL2's native Wayland backend instead of the X11 compat layer.
+# Pass --wayland or set NW_WAYLAND=1. Falls back to X11 automatically if unset.
+WAYLAND="${NW_WAYLAND:-0}"
 DAILY=0
 HARDCORE=0
 EXTRA_CVARS=()
@@ -26,6 +29,7 @@ Usage:
 Optionen:
   --daily         Daily Challenge (g_neonwave_daily 1); wählt die Tages-Map
   --hardcore      Hardcore-Lauf (g_neonwave_hardcore 1)
+  --wayland       SDL2 native Wayland backend (kein X11-Compat-Layer)
   --map NAME      Map (Default: oa_shine; mit --daily überschreibt die Tages-Map)
   --help          diese Hilfe
 
@@ -50,6 +54,7 @@ while [ $# -gt 0 ]; do
     --help|-h) usage ;;
     --daily) DAILY=1; shift ;;
     --hardcore) HARDCORE=1; shift ;;
+    --wayland) WAYLAND=1; shift ;;
     --map)
       if [ $# -lt 2 ]; then
         echo "usage: --map <name>" >&2
@@ -75,6 +80,13 @@ if [ ! -x "$ENGINE_BIN" ]; then
   echo "Engine-Binary nicht gefunden: $ENGINE_BIN" >&2
   echo "Setze QUAKE3E_DIR oder erstelle ~/quake3e-engine/ mit quake3e.x64." >&2
   exit 2
+fi
+
+# Native Wayland backend: avoids the X11 compat layer on GNOME/Wayland.
+# SDL2 auto-selects the backend, but forcing it prevents Xwayland fallback flicker.
+if [ "$WAYLAND" -eq 1 ]; then
+  export SDL_VIDEODRIVER=wayland
+  echo "Wayland backend: SDL_VIDEODRIVER=wayland"
 fi
 
 daily_map_today() {
