@@ -59,6 +59,11 @@ jobs:
           [ -n "$V" ] || { echo "GAMEVERSION not found"; exit 1; }
           echo "mod version: NeonArena-$V" >> "$GITHUB_STEP_SUMMARY"
 
+      # ---- Pre-flight: test catalog consistency ----
+      - name: verify_catalog (pre-flight)
+        run: |
+          python3 tests/verify_catalog.py
+
       # ---- Headless test suite ----
       - name: Run headless test suite (tests/run_suite.sh)
         id: suite
