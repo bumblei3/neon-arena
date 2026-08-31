@@ -217,7 +217,7 @@ archiviert im Branch `archive/patches`.
   Tracker) — der ≥5-Bonus greift jetzt zuverlässig auch headless.
 - **Gamecode als Submodule** (`bumblei3/oa-gamecode`): gepinnte Versionen,
   CI baut direkt aus dem getaggten Stand; Patch-Serie archiviert.
-- **Suite 15/15 grün** unter ioq3ded.
+- **Suite 44/44 grün** unter ioq3ded (CI #115, nach CI-Gates verify_catalog + GAMEVERSION-Drift).
 
 ### v0.12-Highlights (Juice)
 
@@ -304,7 +304,7 @@ archiviert im Branch `archive/patches`.
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodul)
 und führt `tests/run_suite.sh` aus: Quick-Subset auf `main`-Pushes, volle Suite
-(Tests 1–43 inkl. 9b) auf Tags und manuellem Dispatch.
+(Tests 1–44 inkl. 9b) auf Tags und manuellem Dispatch.
 
 Zusätzlich baut `.github/workflows/engine-quake3e.yml` die Quake3e-Engine
 (OpenGL2+Vulkan, Bloom) als optionales Binary-Artifact.
@@ -320,7 +320,13 @@ Zusätzliche technische Dokumentation und Testdetails liegen im Verzeichnis [`re
 - `references/runstats-json.md` — Run-Statistiken JSON-Schema und Tooling
 - `references/background-music.md` — Sound-Assets und lokale Synthese
 
-Die Test-Katalogtabelle (alle 43 Tests inkl. 9b) befindet sich in `tests/TESTS.md`.
+Die Test-Katalogtabelle (alle 44 Tests inkl. 9b) befindet sich in `tests/TESTS.md`.
+
+Das Skript `tests/verify_catalog.py` prüft vor jedem Testlauf (lokal und in CI),
+dass jede Nummer aus `ALL_TESTS` und `QUICK_TESTS` eine `dispatch_test()`-Case hat
+und dass `TESTS.md` jeden Eintrag dokumentiert. Es wird in CI als Pre-Flight-Schritt
+vor der Testsuite ausgeführt (siehe `.github/workflows/build-mod.yml`).
+Ein Aufruf `python3 tests/verify_catalog.py` klärt lokal, ob Katalog und Suite im Sync sind.
 
 ## SDL2-Prototyp (`main.cpp`)
 

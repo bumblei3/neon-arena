@@ -40,4 +40,19 @@
   the boss before the cycle → no markers. Runs WITHOUT autokill, relies on the 90s timeout. No
   payload assertion (no clean wave-end payload on timeout-kill).
 - `--test N` (single mode) had an EMPTY cvar map historically → ran with NO cvars, failing every
-  test. The map is now complete (tests 1-17 incl 9b). Keep it in sync when adding tests.
+  test. The map is now complete (tests 1-44 incl 9b). Keep it in sync when adding tests.
+
+## Automatische Katalogprüfung (verify_catalog.py)
+
+Vor jedem Testlauf (lokal und in CI) wird `tests/verify_catalog.py` ausgeführt.
+Das Skript prüft:
+- Jede Nummer aus `ALL_TESTS` und `QUICK_TESTS` in `tests/run_suite.sh` hat eine
+  entsprechende `dispatch_test()`-Case (Hard-Check, exit 1 if missing → FAIL).
+- Jeder `dispatch_test()`-Case ist in `ALL_TESTS` (Warnung bei waisen Cases).
+- Jeder Eintrag aus `ALL_TESTS` ist in `tests/TESTS.md` dokumentiert
+  (INFO default, wird zu FAIL bei `--strict`).
+
+Aufruf lokal: `python3 tests/verify_catalog.py`. Bei Inkonsistenz bricht das Skript
+mit Fehlercode 1 ab und listet die Diskrepanzen auf. In CI läuft es als Pre-Flight-
+Schritt vor der Testsuite (`.github/workflows/build-mod.yml`). Es verhindert, dass
+ein inkonsistenter Katalog die Suite verfälscht (stille Auslassung von Tests).
