@@ -64,6 +64,17 @@ jobs:
         run: |
           python3 tests/verify_catalog.py
 
+      # ---- Version gate: GAMEVERSION must match tag ----
+      - name: Verify GAMEVERSION matches tag (tags only)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          EXPECTED=$(echo "$GITHUB_REF_NAME" | sed 's/^v//')
+          ACTUAL=$(grep -m1 'define[[:space:]]*GAMEVERSION' oa-gamecode/code/game/g_local.h \
+              | sed -n 's/.*"NeonArena-\(.*\)".*/\1/p')
+          echo "expected from tag $GITHUB_REF_NAME: $EXPECTED"
+          echo "actual from g_local.h: $ACTUAL"
+          [ "$EXPECTED" = "$ACTUAL" ] || { echo "::error::GAMEVERSION mismatch: expected $EXPECTED, got $ACTUAL"; exit 1; }
+
       # ---- Headless test suite ----
       - name: Run headless test suite (tests/run_suite.sh)
         id: suite
