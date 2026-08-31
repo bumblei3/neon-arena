@@ -43,7 +43,7 @@ while [ $# -gt 0 ]; do
       ;;
 
     --quick) MODE="quick" ;;
-    --test) MODE="single"; SELECTED="$2"; shift ;;
+    --test) MODE="parallel"; SELECTED="$2"; shift ;;
     --list) MODE="list" ;;
     --real-window)
       REAL=1
@@ -692,7 +692,7 @@ dispatch_test() {
 ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
 QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
 
-case "$MODE" in
+  case "$MODE" in
   all)
     for t in $ALL_TESTS; do
       dispatch_test "$t" || true
@@ -719,9 +719,7 @@ case "$MODE" in
       echo "specify --parallel N --test 'n1 n2 ...'"
       exit 1
     fi
-    nprocs="$1"
-    shift
-    testlist="$*"
+    testlist="$SELECTED"
     slot_pids=""
     for t in $testlist; do
       hp="$HOME/.openarena-nwtest/${t}"
