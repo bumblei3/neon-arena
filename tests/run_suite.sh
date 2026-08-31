@@ -4,6 +4,7 @@
 #   ./run_suite.sh              # run all tests
 #   ./run_suite.sh --quick      # smoke-only subset (see QUICK_TESTS)
 #   ./run_suite.sh --test 7     # single test
+#   ./run_suite.sh --parallel N # run tests in parallel (experimental)
 #   ./run_suite.sh --list       # list test names
 #   ./run_suite.sh --real-window [N...]   # run on DISPLAY=:0 with visible window
 #
@@ -36,6 +37,11 @@ SELECTED=""
 REAL=0
 while [ $# -gt 0 ]; do
   case "$1" in
+    --parallel)
+      PARALLEL_N="$2"
+      shift
+      ;;
+
     --quick) MODE="quick" ;;
     --test) MODE="single"; SELECTED="$2"; shift ;;
     --list) MODE="list" ;;
@@ -704,6 +710,47 @@ case "$MODE" in
     fi
     dispatch_test "$SELECTED"
     ;;
+
+  parallel)
+    # Run selected tests in parallel, each as its own ioq3ded with isolated
+    # fs_homepath + net_port. Used for CI speed experiments only — not wired into
+    # the main suite path yet. Syntax: --parallel N --test 'n1 n2 ...'
+    if [ -z "$SELECTED" ]; then
+      echo "specify --parallel N --test 'n1 n2 ...'"
+      exit 1
+    fi
+    nprocs="$1"
+    shift
+    testlist="$*"
+    slot_pids=""
+    for t in $testlist; do
+      hp="$HOME/.openarena-nwtest/${t}"
+      mkdir -p "$hp"
+      ln -sf "$HOME/.openarena/neonarena" "$hp/neonarena"
+      port=$(( 27970 + ( t % 80 ) ))
+      (
+        log="$hp/test${t}.log"
+        $RUNNER timeout 60 "$OA_BIN" \
+          +set dedicated 1 "${OA_EXTRA[@]}" \
+          +set sv_maxclients 24 \
+          +set fs_game neonarena +set g_gametype 14 +map oa_shine \
+          +set fs_homepath "$hp" \
+          +set net_port "$port" \
+          +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
+          > "$log" 2>&1 || true
+        if grep -q "gamename.*NeonArena" "$log" 2>/dev/null; then
+          echo "TEST $t: PARALLEL-OK PASS"
+        else
+          echo "TEST $t: PARALLEL-OK FAIL (no NeonArena load)"
+        fi
+      ) &
+      slot_pids="$slot_pids $!"
+    done
+    for p in $slot_pids; do
+      wait "$p" || true
+    done
+    ;;
+
 esac
 
 echo
