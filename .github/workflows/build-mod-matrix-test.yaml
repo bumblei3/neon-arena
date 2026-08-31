@@ -63,25 +63,6 @@ jobs:
           (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts textures gfx env sound autoexec.cfg neon-look.cfg)
           chmod +x tests/run_suite.sh
 
-      - name: Create chunk test lists
-        id: chunks
-        run: |
-          QUICK_ALL="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
-          TOTAL=32
-          CHUNKS=4
-          PER=$((TOTAL / CHUNKS))
-          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
-          echo "chunks=$CHUNKS" >> "$GITHUB_OUTPUT"
-          for i in $(seq 0 $((CHUNKS - 1))); do
-            START=$((i * PER + 1))
-            END=$(( (i + 1) * PER ))
-            if [ $i -eq $((CHUNKS - 1)) ]; then
-              END=$TOTAL
-            fi
-            CHUNK_TESTS=$(echo "$QUICK_ALL" | cut -d' ' -f$START-$END)
-            echo "chunk_${i}_tests=$CHUNK_TESTS" >> "$GITHUB_OUTPUT"
-          done
-
   test:
     needs: build
     runs-on: ubuntu-latest
@@ -89,7 +70,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        chunk: [0, 1, 2, 3]
+        include:
+          - chunk_id: 0
+            tests: "1 3 4 7 8"
+          - chunk_id: 1
+            tests: "10 12 13 17 18"
+          - chunk_id: 2
+            tests: "19 20 21 22 23"
+          - chunk_id: 3
+            tests: "26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -138,14 +127,14 @@ jobs:
           (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts textures gfx env sound autoexec.cfg neon-look.cfg)
           chmod +x tests/run_suite.sh
 
-      - name: Run chunk ${{ matrix.chunk }}
+      - name: "Run chunk ${{ matrix.chunk_id }} (tests: ${{ matrix.tests }})"
         run: |
-          xvfb-run ./tests/run_suite.sh --parallel 4 --test '${{ needs.build.outputs.chunk_${{ matrix.chunk }}_tests }}' | tee /tmp/chunk-${{ matrix.chunk }}.log
+          echo "Running chunk ${{ matrix.chunk_id }}: ${{ matrix.tests }}"
+          xvfb-run ./tests/run_suite.sh --parallel 4 --test '${{ matrix.tests }}' | tee /tmp/chunk-${{ matrix.chunk_id }}.log
           EXIT_CODE=${PIPESTATUS[0]}
-          echo "chunk_${{ matrix.chunk }}_exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
           if [ "$EXIT_CODE" -ne 0 ]; then
-            echo "::error::Chunk ${{ matrix.chunk }} failed"
-            cat /tmp/chunk-${{ matrix.chunk }}.log
+            echo "::error::Chunk ${{ matrix.chunk_id }} failed"
+            cat /tmp/chunk-${{ matrix.chunk_id }}.log
             exit $EXIT_CODE
           fi
 
@@ -153,7 +142,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: matrix-test-chunk-${{ matrix.chunk }}
-          path: /tmp/chunk-${{ matrix.chunk }}.log
+          name: matrix-test-chunk-${{ matrix.chunk_id }}
+          path: /tmp/chunk-${{ matrix.chunk_id }}.log
           if-no-files-found: ignore
           retention-days: 7
