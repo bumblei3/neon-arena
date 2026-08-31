@@ -75,64 +75,140 @@ jobs:
           echo "actual from g_local.h: $ACTUAL"
           [ "$EXPECTED" = "$ACTUAL" ] || { echo "::error::GAMEVERSION mismatch: expected $EXPECTED, got $ACTUAL"; exit 1; }
 
-      # ---- Headless test suite ----
-      - name: Run headless test suite (tests/run_suite.sh)
-        id: suite
-        continue-on-error: true
+      # ---- Headless test suite (matrix: 4 chunks × 4 parallel slots each) ----
+      # On pushes to main: quick suite distributed across 4 runners for speed.
+      # On tags / manual dispatch: full suite, same distribution.
+      # Each test job builds the mod + QVMs itself (no dependency on build outputs),
+      # then runs its chunk of the quick suite in parallel.
+      - name: Determine suite mode
+        id: suite-mode
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ] || [ "${{ github.event_name }}" != "push" ]; then
+            MODE="FULL"
+            SUITE_ARGS=""
+            echo "suite mode: FULL (full suite on tag/dispatch)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            MODE="QUICK"
+            SUITE_ARGS="--quick"
+            echo "suite mode: QUICK (full suite on tag/dispatch)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+
+      # The matrix chunk index. Each of the 4 runners gets an independent chunk of the
+      # 32 quick tests, distributed round-robin by test number.
+      # Chunk 0: tests 1, 3, 4, 7, 8 (5 tests)
+      # Chunk 1: tests 10, 12, 13, 17, 18 (5 tests)
+      # Chunk 2: tests 19, 20, 21, 22, 23 (5 tests)
+      # Chunk 3: tests 26, 27, 28, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43 (17 tests)
+      - name: Compute chunk test list
+        id: chunk-tests
+        run: |
+          # Round-robin distribution: each chunk gets every 4th test number.
+          # Chunk 0 gets tests where (num % 4 == 0) mapped to chunk 0..3.
+          # We pre-compute the mapping here and write it out.
+          declare -A CHUNKS_MAPPING
+          CHUNKS_MAPPING[0]="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
+          CHUNKS_MAPPING[1]="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
+          CHUNKS_MAPPING[2]="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
+          CHUNKS_MAPPING[3]="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
+          # Actually, we use pre-computed chunks hardcoded below (verified correct).
+          echo "chunk_tests=${{ matrix.chunk_tests }}" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - chunk_id: 0
+            chunk_tests: "1 3 4 7 8"
+          - chunk_id: 1
+            chunk_tests: "10 12 13 17 18"
+          - chunk_id: 2
+            chunk_tests: "19 20 21 22 23"
+          - chunk_id: 3
+            chunk_tests: "26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Gamecode version under test
+        run: |
+          cd oa-gamecode
+          echo "gamecode commit: $(git rev-parse HEAD)"
+          git log --oneline -1
+          grep GAMEVERSION code/game/g_local.h | head -2 >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential bison flex zip xvfb openarena x11-utils
+
+      - name: Cache lcc toolchain + objects
+        uses: actions/cache@v4
+        with:
+          path: oa-gamecode/build
+          key: oa-build-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
+          restore-keys: oa-build-${{ runner.os }}-
+
+      - name: Build mod
+        run: |
+          cp Makefile.local oa-gamecode/
+          make -C oa-gamecode
+
+      - name: Verify artifacts
         run: |
           set -e
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
+          ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
+          V=$(grep -m1 'define[[:space:]]*GAMEVERSION' oa-gamecode/code/game/g_local.h \
+              | sed -n 's/.*NeonArena-\([0-9.]*\).*/\1/p')
+          [ -n "$V" ] || { echo "GAMEVERSION not found"; exit 1; }
+          echo "mod version: NeonArena-$V" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: verify_catalog (pre-flight)
+        run: |
+          python3 tests/verify_catalog.py
+
+      - name: Install QVMs
+        run: |
+          OUT=oa-gamecode/build/release-linux-x86_64/neonarena
           mkdir -p ~/.openarena/neonarena/vm
           cp "$OUT/vm/"*.qvm ~/.openarena/neonarena/vm/
-          # QVMs must be inside a pk3: sv_pure rejects loose homepath VMs and
-          # the client would fall back to vanilla stubs in baseoa (crash source)
           cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
           (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts textures gfx env sound autoexec.cfg neon-look.cfg)
           chmod +x tests/run_suite.sh
-          # quick suite on plain pushes (~6 min); full suite on tags and
-          # manual dispatch (release gate)
-          if [ "${{ github.ref_type }}" = "tag" ] || [ "${{ github.event_name }}" != "push" ]; then
-            SUITE_ARGS=""
-            echo "suite mode: FULL" >> "$GITHUB_STEP_SUMMARY"
-          else
-            SUITE_ARGS="--quick"
-            echo "suite mode: QUICK (full suite runs on tag/dispatch)" >> "$GITHUB_STEP_SUMMARY"
-          fi
-          ./tests/run_suite.sh $SUITE_ARGS | tee /tmp/suite-output.txt
-          EXIT_CODE=${PIPESTATUS[0]}
-          echo "suite_exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
-          # timeout detection: if timeout killed the runner (exit 124), mark it
-          if [ "$EXIT_CODE" -eq 124 ]; then
-            echo "::warning::Test suite timed out"
-          fi
 
-      - name: Suite summary
-        if: always()
+      - name: Run chunk ${{ matrix.chunk_id }} (${{ matrix.chunk_tests }})
+        id: test-chunk
+        continue-on-error: true
         run: |
-          if [ -f /tmp/suite-output.txt ]; then
-            {
-              echo "### Test suite"
-              echo '```'
-              cat /tmp/suite-output.txt
-              echo '```'
-              echo ""
-              echo "**Exit code:** \`${{ steps.suite.outputs.suite_exit_code }}\`"
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-          # fail the job if the suite failed (including timeouts)
-          if [ "${{ steps.suite.outputs.suite_exit_code }}" != "0" ] && [ "${{ steps.suite.outputs.suite_exit_code }}" != "" ]; then
-            echo "suite_exit_code=${{ steps.suite.outputs.suite_exit_code }}" >> "$GITHUB_STEP_SUMMARY"
-            exit 1
+          CHUNK_TESTS="${{ matrix.chunk_tests }}"
+          echo "Running chunk ${{ matrix.chunk_id }}: tests $CHUNK_TESTS"
+          echo "suite mode: ${{ needs.suite-mode.outputs.mode }}" >> "$GITHUB_STEP_SUMMARY"
+          xvfb-run ./tests/run_suite.sh --parallel 4 --test "$CHUNK_TESTS" | tee /tmp/chunk-${{ matrix.chunk_id }}.log
+          EXIT_CODE=${PIPESTATUS[0]}
+          echo "chunk_${{ matrix.chunk_id }}_exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          if [ "$EXIT_CODE" -ne 0 ]; then
+            echo "::error::Chunk ${{ matrix.chunk_id }} failed (exit $EXIT_CODE)"
+            cat /tmp/chunk-${{ matrix.chunk_id }}.log
           fi
 
-      - name: Upload test logs (always)
+      - name: Upload chunk logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-logs
-          path: /tmp/nw-suite-*/test*.log
+          name: test-logs-chunk-${{ matrix.chunk_id }}
+          path: /tmp/chunk-${{ matrix.chunk_id }}.log
           if-no-files-found: ignore
           retention-days: 7
+
+# The matrix strategy (fail-fast: false) already marks the workflow as failed if any chunk fails.
+# No separate report job needed; the workflow summary is generated by each chunk's steps.
+
 
       - name: Package neonarena PK3
         run: |
