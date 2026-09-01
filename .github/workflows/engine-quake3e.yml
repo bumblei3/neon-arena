@@ -73,9 +73,8 @@ jobs:
 
       - name: Build engine (Windows, MSYS2 MINGW64)
         if: matrix.platform == 'windows'
-        shell: msys2 {0}
+        shell: bash
         run: |
-          export MSYSTEM=MINGW64
           export PATH="/c/msys64/mingw64/bin:$PATH"
           cd "$GITHUB_WORKSPACE/quake3e"
           # Try mingw64 target first, then mingw32 as fallback
@@ -104,18 +103,17 @@ jobs:
 
       - name: Package engine (Windows)
         if: matrix.platform == 'windows'
-        shell: msys2 {0}
+        shell: bash
         run: |
-          export MSYSTEM=MINGW64
           export PATH="/c/msys64/mingw64/bin:$PATH"
           mkdir -p dist/neonarena-engine/baseq3
           # Find the build output directory (quake3e names it release*-x86_64)
-          OUT=$(find /tmp/quake3e/build -type d -name "release*x86_64" | head -1)
+          OUT=$(find "$GITHUB_WORKSPACE/quake3e/build" -type d -name "release*x86_64" | head -1)
           if [ -z "$OUT" ]; then
-            OUT=/tmp/quake3e/build/release-mingw64-x86_64
+            OUT="$GITHUB_WORKSPACE/quake3e/build/release-mingw64-x86_64"
           fi
           echo "OUT=$OUT"
-          ls -la "$OUT" 2>/dev/null || echo "WARNING: OUT dir not found, listing build root:" && ls /tmp/quake3e/build/ 2>/dev/null || true
+          ls -la "$OUT" 2>/dev/null || echo "WARNING: OUT dir not found, listing build root:" && ls "$GITHUB_WORKSPACE/quake3e/build/" 2>/dev/null || true
           cp "$OUT/quake3e.exe" dist/neonarena-engine/
           cp "$OUT/quake3e_opengl_x86_64.dll" dist/neonarena-engine/ 2>/dev/null || true
           if [ -f "$OUT/quake3e_vulkan_x86_64.dll" ]; then
