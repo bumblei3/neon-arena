@@ -57,7 +57,7 @@ jobs:
         if: matrix.platform != 'windows'
         run: git clone --depth 1 https://github.com/ec-/quake3e.git /tmp/quake3e
 
-      - name: Apply OpenArena compatibility patch (skip id-pak checksum check)
+      - name: Apply OpenArena compatibility (skip id-pak checksum check)
         shell: bash
         run: |
           if [ "${{ matrix.platform }}" = "windows" ]; then
@@ -65,17 +65,8 @@ jobs:
           else
             cd /tmp/quake3e
           fi
-          # Replace BASEGAME value
+          # Replace BASEGAME value for OpenArena compatibility
           sed -i 's/^#define BASEGAME.*$/#define BASEGAME\t\t\t"baseoa"/' code/qcommon/q_shared.h
-          # Add GAMEVERSION if not already present
-          if ! grep -q '^#define GAMEVERSION' code/game/g_local.h; then
-            DEFAULT_GAME_LINE=$(grep -n '// #define DEFAULT_GAME' code/game/g_local.h | head -1 | cut -d: -f1)
-            if [ -n "$DEFAULT_GAME_LINE" ]; then
-              sed -i "${DEFAULT_GAME_LINE}a#define GAMEVERSION \"NeonArena-0.37\"" code/game/g_local.h
-            else
-              echo '#define GAMEVERSION "NeonArena-0.37"' >> code/game/g_local.h
-            fi
-          fi
 
       - name: Build engine (Linux)
         if: matrix.platform == 'linux'
@@ -88,7 +79,8 @@ jobs:
           export PATH="/c/msys64/mingw64/bin:$PATH"
           cd "$GITHUB_WORKSPACE/quake3e"
           export LDFLAGS="-Wl,--unresolved-symbols=ignore-in-windows $LDFLAGS"
-          # Skip bundled libcurl.a (incompatible with current toolchain) - will use system libcurl if available
+          export CFLAGS="-DRENDERER_PREFIX=\\\"quake3e\\\" $CFLAGS"
+          # Skip bundled libcurl.a (incompatible with current toolchain)
           rm -f code/libcurl/windows/mingw/lib64/libcurl.a
           # Try mingw64 target first, then mingw32 as fallback
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 \
