@@ -76,12 +76,21 @@ jobs:
         if: matrix.platform == 'windows'
         shell: bash
         run: |
-          export PATH="/c/msys64/mingw64/bin:$PATH"
-          cd "$GITHUB_WORKSPACE/quake3e"
-          # Work around mingw64 stralign.h GCC 15 conflict: override __CRT_INLINE
-          # (which expands to 'static inline' + __gnu_inline__ attribute) to just
-          # 'static', matching stralign.h's forward declarations.
-          export CFLAGS="-D__CRT_INLINE=static -DRENDERER_PREFIX=\\\\\\\"quake3e\\\\\\\" $CFLAGS"
+          # Fix mingw64 headers for GCC 15 (stralign.h, basetsd.h, winnt.h, ++):
+          # replace __CRT_INLINE (static inline + __gnu_inline__) and __inline with plain __inline__
+          # (GCC internal inline keyword, no conflicting attributes), and FORCEINLINE -> static __inline__
+          # Locate mingw64 include dir by searching under the MSYS2 MINGW64 prefix
+          INCDIR=$(find /c/msys64/mingw64 -type f -name stralign.h -path '*/x86_64-w64-mingw32/include/*' 2>/dev/null | head -1 | xargs dirname)
+          if [ -z "$INCDIR" ]; then
+            echo "WARNING: mingw64 stralign.h not found under /c/msys64/mingw64 — header fix skipped"
+          else
+            echo "Mingw64 include dir: $INCDIR"
+            for h in "$INCDIR"/stralign.h "$INCDIR"/basetsd.h "$INCDIR"/winnt.h "$INCDIR"/winbase.h "$INCDIR"/memoryapi.h "$INCDIR"/processthreadsapi.h; do
+              [ -f "$h" ] && sed -i 's/__CRT_INLINE\b\|__inline\b\|__inline ;/__inline__/g; s/FORCEINLINE\b/static __inline__/g' "$h" && echo "Patched $h"
+            done
+          fi
+          # sdl_glimp.c: Sys_SetClipboardBitmap uses Windows clipboard APIs; add #include <windows.h>
+          sed -i '/^void Sys_SetClipboardBitmap(/a #ifdef _WIN32\n#include <windows.h>\n#endif' code/sdl/sdl_glimp.c
           # Build without curl (curl static lib not available in MSYS2)
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0
 
