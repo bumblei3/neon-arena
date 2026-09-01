@@ -78,7 +78,7 @@ jobs:
         run: |
           export PATH="/c/msys64/mingw64/bin:$PATH"
           cd "$GITHUB_WORKSPACE/quake3e"
-          export CFLAGS="-DRENDERER_PREFIX=\\\"quake3e\\\" $CFLAGS"
+          export CFLAGS="-fgnu89-inline -DRENDERER_PREFIX=\\\"quake3e\\\" $CFLAGS"
           # Build without curl (curl static lib not available in MSYS2)
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0
 
