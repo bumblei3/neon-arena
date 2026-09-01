@@ -65,7 +65,17 @@ jobs:
           else
             cd /tmp/quake3e
           fi
-          patch -p1 -i "$GITHUB_WORKSPACE/patches/engine-quake3e-oa.patch"
+          # Replace BASEGAME value
+          sed -i 's/^#define BASEGAME.*$/#define BASEGAME\t\t\t"baseoa"/' code/qcommon/q_shared.h
+          # Add GAMEVERSION if not already present
+          if ! grep -q '^#define GAMEVERSION' code/game/g_local.h; then
+            DEFAULT_GAME_LINE=$(grep -n '// #define DEFAULT_GAME' code/game/g_local.h | head -1 | cut -d: -f1)
+            if [ -n "$DEFAULT_GAME_LINE" ]; then
+              sed -i "${DEFAULT_GAME_LINE}a#define GAMEVERSION \"NeonArena-0.37\"" code/game/g_local.h
+            else
+              echo '#define GAMEVERSION "NeonArena-0.37"' >> code/game/g_local.h
+            fi
+          fi
 
       - name: Build engine (Linux)
         if: matrix.platform == 'linux'
