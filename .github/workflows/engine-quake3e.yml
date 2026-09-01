@@ -34,18 +34,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libsdl2-dev libwayland-dev zip unzip libcurl4-openssl-dev libvulkan-dev glslang-tools
 
-      - name: Install build dependencies (Windows, MSYS2)
+      - name: Setup MSYS2 MINGW64 (Windows)
         if: matrix.platform == 'windows'
-        shell: bash
-        run: |
-          # Use MSYS2 MINGW64 environment (available on GitHub Actions Windows runners)
-          export MSYSTEM=MINGW64
-          export PATH="/c/msys64/mingw64/bin:$PATH"
-          pacman -S --noconfirm --needed \
-            mingw-w64-x86_64-gcc \
-            mingw-w64-x86_64-make \
-            mingw-w64-x86_64-sdl2 \
-            mingw-w64-x86_64-pkg-config
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-sdl2 mingw-w64-x86_64-pkg-config
 
       - name: Install build dependencies (macOS)
         if: matrix.platform == 'macos'
@@ -128,13 +122,16 @@ jobs:
         run: |
           mkdir -p dist/neonarena-engine/baseq3
           OUT=$(find /tmp/quake3e/build -type d -name "release-darwin-universal" | head -1)
-          if [ -z "$OUT" ]; then OUT=/tmp/quake3e/build/release-darwin-x86_64; fi
-          cp "$OUT/quake3e.x64" dist/neonarena-engine/
-          cp "$OUT/quake3e_opengl_x86_64.dylib" dist/neonarena-engine/ 2>/dev/null || true
-          if [ -f "$OUT/quake3e_vulkan_x86_64.dylib" ]; then
-            cp "$OUT/quake3e_vulkan_x86_64.dylib" dist/neonarena-engine/
-          else
-            echo "vulkan renderer not built - shipping OpenGL only"
+          if [ -z "$OUT" ]; then OUT=/tmp/quake3e/build/release-darwin-arm64; fi
+          BINARY=$(find "$OUT" -maxdepth 1 -type f -name "quake3e*" | head -1)
+          [ -z "$BINARY" ] && BINARY="$OUT/quake3e.universal"
+          cp "$BINARY" dist/neonarena-engine/
+          echo "Using engine binary: $BINARY"
+          # copy renderer dylibs if present
+          cp "$OUT/quake3e_opengl"*.dylib dist/neonarena-engine/ 2>/dev/null || true
+          cp "$OUT/quake3e_vulkan"*.dylib dist/neonarena-engine/ 2>/dev/null || true
+          if [ ! -f dist/neonarena-engine/quake3e_opengl*.dylib ] && [ ! -f dist/neonarena-engine/quake3e_vulkan*.dylib ]; then
+            echo "no renderer dylib found - shipping engine binary only"
           fi
           tar -czf dist/neonarena-engine-macos-universal.tar.gz -C dist neonarena-engine
           ls -la dist/neonarena-engine-macos-universal.tar.gz
