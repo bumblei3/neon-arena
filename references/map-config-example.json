@@ -1,0 +1,121 @@
+{
+  "_comment": "NeonArena Map Pool — Auswahl und Look-Overrides je Karte.",
+  "_comment2": "Aktuell: 3 Karten (Daily-Pool). Ziel: 5-8 Karten mit individuellen Look-Parametern.",
+  "_format_version": 1,
+  "daily_indices": {
+    "_comment": "Karten im Daily-Pool — Reihenfolge bestimmt Index 0,1,2... für den Datum-Hash-Auswahlalgorithmus.",
+    "pool": [
+      "oa_shine",
+      "oa_minia",
+      "oa_rpg3dm2",
+      "oa_bleed",
+      "oa_node",
+      "oa_pulse",
+      "oa_desert",
+      "oa_vortex"
+    ]
+  },
+  "maps": {
+    "oa_shine": {
+      "name": "Shine",
+      "daily_pool_index": 0,
+      "look": {
+        "skybox_dark": true,
+        "grid_additive": true,
+        "grid_alpha": 0.65,
+        "bloom_intensity": 1.0,
+        "bloom_intensity_dark_bg": 1.2
+      }
+    },
+    "oa_minia": {
+      "name": "Minia",
+      "daily_pool_index": 1,
+      "look": {
+        "skybox_dark": true,
+        "grid_additive": true,
+        "grid_alpha": 0.55,
+        "bloom_intensity": 0.9,
+        "bloom_intensity_dark_bg": 1.1
+      }
+    },
+    "oa_rpg3dm2": {
+      "name": "RPG 3DM2",
+      "daily_pool_index": 2,
+      "look": {
+        "skybox_dark": true,
+        "grid_additive": true,
+        "grid_alpha": 0.60,
+        "bloom_intensity": 0.95,
+        "bloom_intensity_dark_bg": 1.15
+      }
+    },
+    "oa_bleed": {
+      "name": "Bleed",
+      "daily_pool_index": 3,
+      "look": {
+        "skybox_dark": true,
+        "grid_additive": true,
+        "grid_alpha": 0.45,
+        "bloom_intensity": 1.1,
+        "bloom_intensity_dark_bg": 1.3,
+        "note": "Dunklerer Boden — höhere Bloom-Intensität für Neon-Contraste"
+      }
+    },
+    "oa_node": {
+      "name": "Node",
+      "daily_pool_index": 4,
+      "look": {
+        "skybox_dark": true,
+        "grid_additive": true,
+        "grid_alpha": 0.50,
+        "bloom_intensity": 1.0,
+        "bloom_intensity_dark_bg": 1.2
+      }
+    },
+    "oa_pulse": {
+      "name": "Pulse",
+      "daily_pool_index": 5,
+      "look": {
+        "skybox_dark": true,
+        "grid_additive": true,
+        "grid_alpha": 0.55,
+        "bloom_intensity": 1.1,
+        "bloom_intensity_dark_bg": 1.25,
+        "note": "Heller Untergrund — Bloom-Begrenzung"
+      }
+    },
+    "oa_desert": {
+      "name": "Desert Storm",
+      "daily_pool_index": 6,
+      "look": {
+        "skybox_dark": true,
+        "grid_additive": true,
+        "grid_alpha": 0.40,
+        "bloom_intensity": 0.85,
+        "bloom_intensity_dark_bg": 1.1,
+        "note": "Sand-Farben — niedrigere Grid-Alpha, um Dominanz zu vermeiden"
+      }
+    },
+    "oa_vortex": {
+      "name": "Vortex",
+      "daily_pool_index": 7,
+      "look": {
+        "skybox_dark": true,
+        "grid_additive": true,
+        "grid_alpha": 0.50,
+        "bloom_intensity": 1.0,
+        "bloom_intensity_dark_bg": 1.2,
+        "note": "Kreis-Form — Grid-Schicht konzentriert auf äußeres Ring-Muster"
+      }
+    }
+  },
+  "fallback": {
+    "look": {
+      "skybox_dark": true,
+      "grid_additive": true,
+      "grid_alpha": 0.60,
+      "bloom_intensity": 1.0,
+      "bloom_intensity_dark_bg": 1.2
+    }
+  }
+}

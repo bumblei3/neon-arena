@@ -341,13 +341,13 @@ und dass `TESTS.md` jeden Eintrag dokumentiert. Es wird in CI als Pre-Flight-Sch
 vor der Testsuite ausgeführt (siehe `.github/workflows/build-mod.yml`).
 Ein Aufruf `python3 tests/verify_catalog.py` klärt lokal, ob Katalog und Suite im Sync sind.
 
-## SDL2-Prototyp (`main.cpp`)
+### SDL2-Prototyp (`prototypes/sdl2/main.cpp`)
 
 Ein eigener Minimal-FPS (C++/SDL2/OpenGL, eingefroren – der OA-Mod ist der
 aktive Entwicklungspfad):
 
 ```sh
-make && ./neon-arena
+cd prototypes/sdl2 && make && ./neon-arena
 ```
 
 WASD bewegen · Maus umsehen · Linksklick/Space schießen · ESC Ende.
