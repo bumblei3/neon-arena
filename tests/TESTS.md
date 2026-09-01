@@ -56,15 +56,17 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 38 | glass-phase2 | startwave 10, bosstype 4 (GLASS CANNON), phaseforce 1 | `boss spawned: GLASS CANNON`, `NeonWave: GLASS CANNON ENTERS PHASE 2`, `GLASS CANNON summons support drone` | keine Fatal-Warnung |
 | 39 | pierce-rank | autostart, startwave 6, perkr 1, fastbreak 1 | `PERK RANK PIERCE rank 1`, `PERK EFFECT PIERCE` (bzw. korrekter Marker für Rank-1-Pierce) | keine Fatal-Warnung |
 | 40 | overcharge-rank | autostart, startwave 6, perkr 4, fastbreak 1 | `PERK RANK OVERCHARGE rank 2`, `PERK EFFECT OVERCHARGE` (bzw. korrekter Marker für Rank-2-Overcharge) | keine Fatal-Warnung |
-| 41 | synergy-pair | autostart, startwave 6, modifier 3 (LOWGRAV), modifier2 4 (DOUBLE POINTS), fastbreak 1 | `starting wave 6.*\[LOW GRAVITY\]`, `starting wave 6.*\[DOUBLE POINTS\]`, Marker für Synergie-Paarung (z.B. `NeonWave: SYNERGY active`) | keine Fatal-Warnung |
-| 42 | anti-synergy-pair | autostart, startwave 6, modifier 8 (OVERSHIELD), modifier2 6 (VAMPIRE), fastbreak 1 | `starting wave 6.*\[OVERSHIELD\]`, `starting wave 6.*\[VAMPIRE\]`, Marker für Anti-Synergie-Paarung (z.B. `NeonWave: ANTI-SYNERGY active`) | keine Fatal-Warnung |
+| 41 | synergy-pair | autostart, startwave 6, modifier 3 (LOWGRAV), modifier2 4 (DOUBLE POINTS), fastbreak 1 | `NeonWave: SYNERGY AERIAL ASSAULT`, `SYNERGY EFFECT AERIAL ASSAULT: gravity 280, points x3` | keine Fatal-Warnung |
+| 42 | anti-synergy-pair | autostart, startwave 6, modifier 8 (OVERSHIELD), modifier2 6 (VAMPIRE), fastbreak 1 | `NeonWave: ANTI-SYNERGY SHIELD BLEED`, `ANTI-SYNERGY EFFECT SHIELD BLEED: overshield 25, lifesteal 2`, `OVERSHIELD +25 armor granted` | keine Fatal-Warnung |
 | 43 | mirror-slot2 | startwave 6, modifier2 9 (MIRROR in Slot 2), fastbreak 1 | `starting wave 6.*\\[MIRROR\\]`, `NeonWave: MIRROR active (mask .*, slot2=1)` | keine Fatal-Warnung |
+| 44 | difficulty-lock-daily | autostart, daily 1, dailyseed 1, startwave 6, autokill, fastbreak | `dynamic difficulty locked (daily=1 hardcore=0)` | `dynamic difficulty ->` |
 
 ### Tabelle-Notizen
 
 - **Test 9b** ist kein eigener Boss-Type-Test; er ist die RAGE-Variante von Test 9 (SWARM MOTHER). Der Hook `rageforce 1` erzwingt den Enrage-Zustand des Mutter-Drones. Es wird erwartet, dass der Boss nach dem Trigger `SWARM MOTHER ENRAGED` ausgibt und danach `mini-drone (RAGE)` spawnt. Test 9 (ohne rageforce) als Basis-Kontrolle; 9b zeigt den Enrage-Pfad.
 - **Tests 39 und 40** prüfen jeweils einen bestimmten Perk-Rank (PIERCE = Perk-ID 1, OVERCHARGE = Perk-ID 4). Der Hook `perkr N` setzt am Run-Start den Rank des angegebenen Perks. Die korrekten Marker hängen von der Implementierung in `g_neonwave.c` ab; der Test verlangt mindestens eine Bestätigung, dass der Rank gesetzt wurde (z.B. `PERK RANK PIERCE rank 1`).
-- **Tests 41 und 42** prüfen die Synergie-/Anti-Synergie-Paarungslogik (2. Slot ab Welle 8). Die erwarteten Marker sind Implementierungs-abhängig; das Ziel ist die Existenz eines Paarungs-Markers (Synergie oder Anti-Synergie), nicht eine konkrete Wirkung (Synergien sind aktuell kosmetisch).
+- **Tests 41 und 42** prüfen die Synergie-/Anti-Synergie-Paarungslogik (2. Slot ab Welle 8, erzwungen auch auf Welle 6). v0.37 verlangt neben dem Namen eine **mechanische** Wirkung: AERIAL ASSAULT setzt gravity 280 / points x3, SHIELD BLEED halbiert Overshield (25) und Lifesteal (2).
+- **Test 44** stellt sicher, dass Daily (und Hardcore über denselben Helper) Adaptive Difficulty lockt — zwei Wave-Clears dürfen `dynamic difficulty ->` nicht ausgeben.
 - **Test 43** zeigt den MIRROR-Modifier im 2. Slot (Slot 2). Der Hook `modifier2` setzt einen zweiten Modifier; bei MIRROR in Slot 2 erwartet der Test den Marker `slot2=1` im MIRROR-Status.
 
 ## Ergänzung: v0.33 Boss-Phasenwechsel (PHASE 2)
@@ -115,7 +117,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **43 Tests** (1–40 inkl. 9b, 41–43). Der vollständige Katalog
+Die Suite umfasst **45 Tests** (1–44 inkl. 9b). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:

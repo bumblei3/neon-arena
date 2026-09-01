@@ -311,6 +311,7 @@ assert_20() {
   check "$1" "HARDCORE";                             [ $LAST_RESULT -eq 0 ] || ok=1
   # TANK boss base hc 600 -> hardcore x1.5 = 900
   check "$1" "boss spawned: TANK (hc 900)";          [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "dynamic difficulty locked (daily=0 hardcore=1)"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "hardcore-mode"
 }
@@ -528,21 +529,36 @@ assert_40() {
 
 # TEST 41: SYNERGY pairing (LOWGRAV + DOUBLEPTS = "AERIAL ASSAULT")
 # Forced via g_neonwave_modifier (3) + g_neonwave_modifier2 (4).
+# v0.37: pair also drops gravity to 280 and grants x3 points (not just a name).
 assert_41() {
   local ok=0
   check "$1" "NeonWave: SYNERGY AERIAL ASSAULT";           [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "starting wave 6.*+\[DOUBLE POINTS\]";        [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "SYNERGY EFFECT AERIAL ASSAULT: gravity 280, points x3"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "synergy-pair"
 }
 
 # TEST 42: ANTI-SYNERGY pairing (OVERSHIELD + VAMPIRE = "SHIELD BLEED")
 # Forced via g_neonwave_modifier (8) + g_neonwave_modifier2 (6).
+# v0.37: pair halves overshield (25) and lifesteal (2).
 assert_42() {
   local ok=0
   check "$1" "NeonWave: ANTI-SYNERGY SHIELD BLEED";       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "ANTI-SYNERGY EFFECT SHIELD BLEED: overshield 25, lifesteal 2"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "OVERSHIELD +25 armor granted";              [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "anti-synergy-pair"
+}
+
+# TEST 44: dynamic difficulty locked on Daily (and Hardcore — same helper).
+# Two autokill clears would otherwise bump NORMAL -> HARD. Daily must not adapt.
+assert_44() {
+  local ok=0
+  check "$1" "dynamic difficulty locked (daily=1 hardcore=0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  assert_no_pattern "$1" "dynamic difficulty ->" || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "difficulty-lock-daily"
 }
 
 # TEST 2: full run victory
@@ -625,6 +641,7 @@ assert_15() {
   count_min "$logfile" "DAILY CHALLENGE seed 12345" 2;  [ $? -eq 0 ] || ok=1
   # seed 12345 -> map index (12345/40)%3 = 2 -> oa_rpg3dm2
   check "$logfile" "DAILY MAP oa_rpg3dm2";              [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "dynamic difficulty locked (daily=1"; [ $LAST_RESULT -eq 0 ] || ok=1
   report $ok "daily-challenge-determinism"
 }
 
@@ -686,11 +703,12 @@ dispatch_test() {
     41) run_test 41 "synergy-pair" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 3 +set g_neonwave_modifier2 4 +set g_neonwave_fastbreak 1 ;;
     42) run_test 42 "anti-synergy-pair" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 8 +set g_neonwave_modifier2 6 +set g_neonwave_fastbreak 1 ;;
     43) run_test 43 "mirror-slot2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier2 9 +set g_neonwave_fastbreak 1 ;;
+    44) run_test 44 "difficulty-lock-daily" 60 +set g_neonwave_autostart 1 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44"
 
   case "$MODE" in
   all)
