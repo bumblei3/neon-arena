@@ -78,9 +78,11 @@ jobs:
         run: |
           export PATH="/c/msys64/mingw64/bin:$PATH"
           cd "$GITHUB_WORKSPACE/quake3e"
-          # Suppress unresolved Windows import symbols from bundled libcurl.a
-          export LDFLAGS="-Wl,--unresolved-symbols=ignore-in-object-files $LDFLAGS"
           export CFLAGS="-DRENDERER_PREFIX=\\\"quake3e\\\" $CFLAGS"
+          # Use system libcurl from MSYS2 (compatible with current toolchain)
+          # by symlinking it into the location the Makefile expects
+          mkdir -p code/libcurl/windows/mingw/lib64
+          ln -sf /c/msys64/mingw64/lib/libcurl.a code/libcurl/windows/mingw/lib64/libcurl.a
           # Try mingw64 target first, then mingw32 as fallback
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 \
             || make ARCH=x86_64 PLATFORM=mingw32 RCMDUMP= -j4
