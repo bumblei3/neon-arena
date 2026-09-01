@@ -49,9 +49,11 @@ jobs:
           echo "ARCH=universal" >> $GITHUB_ENV
 
       - name: Clone Quake3e
+        shell: msys2 {0}
         run: git clone --depth 1 https://github.com/ec-/quake3e.git /tmp/quake3e
 
       - name: Apply OpenArena compatibility patch (skip id-pak checksum check)
+        shell: msys2 {0}
         run: |
           cd /tmp/quake3e
           patch -p1 -i "$GITHUB_WORKSPACE/patches/engine-quake3e-oa.patch"
