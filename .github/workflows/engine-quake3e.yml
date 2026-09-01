@@ -78,10 +78,16 @@ jobs:
         run: |
           export PATH="/c/msys64/mingw64/bin:$PATH"
           cd "$GITHUB_WORKSPACE/quake3e"
-          # Work around mingw64 stralign.h GCC 15 conflict: override __CRT_INLINE
-          # (which expands to 'static inline' + __gnu_inline__ attribute) to just
-          # 'static', matching stralign.h's forward declarations.
-          export CFLAGS="-D__CRT_INLINE=static -DRENDERER_PREFIX=\\\\\\\"quake3e\\\\\\\" $CFLAGS"
+          export CFLAGS="-DRENDERER_PREFIX=\\\\\\\"quake3e\\\\\\\" $CFLAGS"
+          # Patch mingw64 stralign.h: replace __CRT_INLINE with __inline__
+          # (__inline is GCC's internal inline keyword, no __gnu_inline__ attribute)
+          STRALIGN_H=$(dirname "$(gcc -print-file-name=include)"/../x86_64-w64-mingw32/include/stralign.h 2>/dev/null || echo "/c/msys64/mingw64/x86_64-w64-mingw32/include/stralign.h")
+          if [ -f "$STRALIGN_H" ]; then
+            sed -i 's/__CRT_INLINE/__inline/g' "$STRALIGN_H"
+            echo "Patched $STRALIGN_H"
+          else
+            echo "WARNING: stralign.h not found at $STRALIGN_H"
+          fi
           # Build without curl (curl static lib not available in MSYS2)
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0
 
