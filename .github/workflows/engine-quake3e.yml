@@ -78,7 +78,7 @@ jobs:
         run: |
           export PATH="/c/msys64/mingw64/bin:$PATH"
           cd "$GITHUB_WORKSPACE/quake3e"
-          export LDFLAGS="-Wl,--unresolved-symbols=ignore-in-windows $LDFLAGS"
+          export LDFLAGS="--unresolved-symbols=ignore-in-windows $LDFLAGS"
           export CFLAGS="-DRENDERER_PREFIX=\\\"quake3e\\\" $CFLAGS"
           # Skip bundled libcurl.a (incompatible with current toolchain)
           rm -f code/libcurl/windows/mingw/lib64/libcurl.a
