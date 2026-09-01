@@ -79,10 +79,17 @@ jobs:
           # Fix mingw64 headers for GCC 15 (stralign.h, basetsd.h, winnt.h, ++):
           # replace __CRT_INLINE (static inline + __gnu_inline__) and __inline with plain __inline__
           # (GCC internal inline keyword, no conflicting attributes), and FORCEINLINE -> static __inline__
-          # Locate mingw64 include dir by searching under the MSYS2 MINGW64 prefix
-          INCDIR=$(find /c/msys64/mingw64 -type f -name stralign.h -path '*/x86_64-w64-mingw32/include/*' 2>/dev/null | head -1 | xargs dirname)
+          # Locate mingw64 include dir — try multiple known locations
+          INCDIR=""
+          for p in \
+            "/c/msys64/mingw64/x86_64-w64-mingw32/include" \
+            "/c/msys64/mingw64/include" \
+            "$(dirname "$(readlink -f /usr/bin/x86_64-w64-mingw32-gcc 2>/dev/null || echo /usr/bin/x86_64-w64-mingw32-gcc)" 2>/dev/null)/../x86_64-w64-mingw32/include" \
+            "$(dirname "$(gcc -print-file-name=include 2>/dev/null)" 2>/dev/null)/../x86_64-w64-mingw32/include"; do
+            [ -z "$INCDIR" ] && [ -f "$p/stralign.h" ] && INCDIR="$p"
+          done
           if [ -z "$INCDIR" ]; then
-            echo "WARNING: mingw64 stralign.h not found under /c/msys64/mingw64 — header fix skipped"
+            echo "WARNING: mingw64 stralign.h not found — header fix skipped"
           else
             echo "Mingw64 include dir: $INCDIR"
             for h in "$INCDIR"/stralign.h "$INCDIR"/basetsd.h "$INCDIR"/winnt.h "$INCDIR"/winbase.h "$INCDIR"/memoryapi.h "$INCDIR"/processthreadsapi.h; do
