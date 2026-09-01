@@ -48,14 +48,23 @@ jobs:
           # universal binaries: build for both arches
           echo "ARCH=universal" >> $GITHUB_ENV
 
-      - name: Clone Quake3e
-        shell: msys2 {0}
+      - name: Clone Quake3e (Windows)
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: git clone --depth 1 https://github.com/ec-/quake3e.git "$GITHUB_WORKSPACE/quake3e"
+
+      - name: Clone Quake3e (Linux/macOS)
+        if: matrix.platform != 'windows'
         run: git clone --depth 1 https://github.com/ec-/quake3e.git /tmp/quake3e
 
       - name: Apply OpenArena compatibility patch (skip id-pak checksum check)
-        shell: msys2 {0}
+        shell: bash
         run: |
-          cd /tmp/quake3e
+          if [ "${{ matrix.platform }}" = "windows" ]; then
+            cd "$GITHUB_WORKSPACE/quake3e"
+          else
+            cd /tmp/quake3e
+          fi
           patch -p1 -i "$GITHUB_WORKSPACE/patches/engine-quake3e-oa.patch"
 
       - name: Build engine (Linux)
@@ -68,7 +77,7 @@ jobs:
         run: |
           export MSYSTEM=MINGW64
           export PATH="/c/msys64/mingw64/bin:$PATH"
-          cd /tmp/quake3e
+          cd "$GITHUB_WORKSPACE/quake3e"
           # Try mingw64 target first, then mingw32 as fallback
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 \
             || make ARCH=x86_64 PLATFORM=mingw32 RCMDUMP= -j4
