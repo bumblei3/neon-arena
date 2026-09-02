@@ -611,6 +611,17 @@ assert_49() {
   report $ok "chaos-modifier"
 }
 
+# TEST 50: BERSERKER boss (bosstype 6, rageforce 1)
+assert_50() {
+  local ok=0
+  check "$1" "starting wave 15.*BOSS";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "boss spawned: BERSERKER";                   [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "BERSERKER ENTERS RAGE";                     [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "hc\\\\700";                                  [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "berserker-boss"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -759,11 +770,13 @@ dispatch_test() {
     47) run_test 47 "coop-scaling" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_coopmock 1 +set g_neonwave_coopdifficulty 2 +set g_neonwave_botasplayer 1 ;;
     48) run_test 48 "frost-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 12 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     49) run_test 49 "chaos-modifier" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_modifier 13 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    50) run_test 50 "berserker-boss" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_bosstype 6 +set g_neonwave_rageforce 1 +set g_neonwave_fastbreak 1 ;;
+
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50"
 
   case "$MODE" in
   all)
