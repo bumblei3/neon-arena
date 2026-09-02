@@ -82,19 +82,31 @@ jobs:
           cd "$QUAKE3E_DIR"
           echo "Quake3e dir: $(pwd)"
           echo "Files in code/sdl/: $(ls code/sdl/ 2>/dev/null | tr '\n' ' ' || echo MISSING)"
-          # Locate mingw64 include dir via pacman (robust across MSYS2 layouts)
-          INCDIR=$(pacman -Ql mingw-w64-x86_64-gcc 2>/dev/null | grep '/x86_64-w64-mingw32/include/$' | head -1 | cut -d' ' -f2 | xargs dirname 2>/dev/null || true)
-          if [ -z "$INCDIR" ] || [ ! -f "$INCDIR/stralign.h" ]; then
-            # fallback: use x86_64-w64-mingw32-gcc to locate include dir
-            GCC_INCLUDE=$(x86_64-w64-mingw32-gcc -print-file-name=include 2>/dev/null || true)
-            if [ -n "$GCC_INCLUDE" ] && [ -f "$GCC_INCLUDE/../x86_64-w64-mingw32/include/stralign.h" ]; then
-              INCDIR="$GCC_INCLUDE/../x86_64-w64-mingw32/include"
+          # Locate mingw64 include dir: try multiple methods
+          INCDIR=""
+          # Method 1: parse gcc's include search dirs via -Wp,-v
+          GCC_INC_DIRS=$(echo | x86_64-w64-mingw32-gcc -E -Wp,-v -xc /dev/null 2>&1 | grep '^ ' | tail -1 | tr -d '[:space:]' || true)
+          if [ -n "$GCC_INC_DIRS" ] && [ -f "$GCC_INC_DIRS/x86_64-w64-mingw32/stralign.h" ]; then
+            INCDIR="$GCC_INC_DIRS/x86_64-w64-mingw32"
+          fi
+          # Method 2: check mingw-w64-headers package via pacman
+          if [ -z "$INCDIR" ]; then
+            HDR_DIR=$(pacman -Ql mingw-w64-x86_64-headers 2>/dev/null | grep '/x86_64-w64-mingw32/include/stralign.h$' | head -1 | cut -d' ' -f2 | xargs dirname 2>/dev/null || true)
+            if [ -n "$HDR_DIR" ] && [ -f "$HDR_DIR/stralign.h" ]; then
+              INCDIR="$HDR_DIR"
             fi
+          fi
+          # Method 3: fallback to known msys2 paths
+          if [ -z "$INCDIR" ]; then
+            for p in "/c/msys64/mingw64/x86_64-w64-mingw32/include" "/c/msys64/mingw64/include"; do
+              [ -z "$INCDIR" ] && [ -f "$p/stralign.h" ] && INCDIR="$p"
+            done
           fi
           if [ -z "$INCDIR" ] || [ ! -f "$INCDIR/stralign.h" ]; then
             echo "WARNING: mingw64 stralign.h not found at any candidate path — header fix skipped"
             echo "Checked paths:"
-            pacman -Ql mingw-w64-x86_64-gcc 2>/dev/null | grep include | head -5 || true
+            echo "  gcc -Wp,-v output: $GCC_INC_DIRS"
+            pacman -Ql mingw-w64-x86_64-headers 2>/dev/null | grep include | head -3 || true
           else
             echo "Mingw64 include dir: $INCDIR"
             for h in "$INCDIR"/stralign.h "$INCDIR"/basetsd.h "$INCDIR"/winnt.h "$INCDIR"/winbase.h "$INCDIR"/memoryapi.h "$INCDIR"/processthreadsapi.h; do
@@ -103,7 +115,8 @@ jobs:
           fi
           SDL_GLIM="$(cygpath -u "$QUAKE3E_DIR")/code/sdl/sdl_glimp.c"
           if [ -f "$SDL_GLIM" ]; then
-            sed -i '/^void Sys_SetClipboardBitmap(/a #ifdef _WIN32\n#include <windows.h>\n#endif' "$SDL_GLIM"
+            # insert #include <windows.h> BEFORE Sys_SetClipboardBitmap definition (perl for cross-platform \n support)
+            perl -pi -e 's/^void Sys_SetClipboardBitmap(.*/#ifdef _WIN32\n#include <windows.h>\n#endif\n$&/' "$SDL_GLIM"
             echo "Patched sdl_glimp.c"
           else
             echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
