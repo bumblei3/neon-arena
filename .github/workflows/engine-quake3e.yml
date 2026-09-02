@@ -59,10 +59,11 @@ jobs:
       - name: Apply OpenArena compatibility (BASEGAME=baseoa)
         run: |
           perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' /tmp/quake3e/code/qcommon/q_shared.h
-          # Sys_SetClipboardBitmap uses HGLOBAL from windows.h. Pulling
-          # windows.h into this TU makes MinGW treat FORCEINLINE helpers as
-          # nested functions. Clipboard-bitmap is optional — stub it.
           if [ "${{ matrix.platform }}" = "windows" ]; then
+            # sdl_gamma.c includes windows.h INSIDE GLimp_SetGamma — MinGW then
+            # treats FORCEINLINE helpers as nested functions. Hoist to file scope.
+            python3 -c "from pathlib import Path; p=Path('/tmp/quake3e/code/sdl/sdl_gamma.c'); t=p.read_text(); t=t.replace('\n#ifdef _WIN32\n#include <windows.h>\n','\n#ifdef _WIN32\n'); p.write_text('#ifdef _WIN32\n#include <windows.h>\n#endif\n\n'+t)"
+            # Clipboard bitmap needs Win32 types; stub rather than include windows.h here.
             perl -0777 -pi -e 's/#ifdef _WIN32\n\tHGLOBAL hMem;/#if 0\n\tHGLOBAL hMem;/' \
               /tmp/quake3e/code/sdl/sdl_glimp.c
           fi
