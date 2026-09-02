@@ -61,12 +61,13 @@ jobs:
         shell: bash
         run: |
           if [ "${{ matrix.platform }}" = "windows" ]; then
-            cd "$GITHUB_WORKSPACE/quake3e"
+            QUAKE3E_DIR="$(cygpath -u "$GITHUB_WORKSPACE")/quake3e"
           else
-            cd /tmp/quake3e
+            QUAKE3E_DIR="/tmp/quake3e"
           fi
-          # Replace BASEGAME value for OpenArena compatibility
-          sed -i 's/^#define BASEGAME.*$/#define BASEGAME\t\t\t"baseoa"/' code/qcommon/q_shared.h
+          cd "$QUAKE3E_DIR"
+          # Replace BASEGAME value for OpenArena compatibility (use perl for cross-platform \t support)
+          perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' code/qcommon/q_shared.h
 
       - name: Build engine (Linux)
         if: matrix.platform == 'linux'
@@ -76,28 +77,37 @@ jobs:
         if: matrix.platform == 'windows'
         shell: bash
         run: |
-          # Fix mingw64 headers for GCC 15 (stralign.h, basetsd.h, winnt.h, ++):
-          # replace __CRT_INLINE (static inline + __gnu_inline__) and __inline with plain __inline__
-          # (GCC internal inline keyword, no conflicting attributes), and FORCEINLINE -> static __inline__
-          # Locate mingw64 include dir — try multiple known locations
-          INCDIR=""
-          for p in \
-            "/c/msys64/mingw64/x86_64-w64-mingw32/include" \
-            "/c/msys64/mingw64/include" \
-            "$(dirname "$(readlink -f /usr/bin/x86_64-w64-mingw32-gcc 2>/dev/null || echo /usr/bin/x86_64-w64-mingw32-gcc)" 2>/dev/null)/../x86_64-w64-mingw32/include" \
-            "$(dirname "$(gcc -print-file-name=include 2>/dev/null)" 2>/dev/null)/../x86_64-w64-mingw32/include"; do
-            [ -z "$INCDIR" ] && [ -f "$p/stralign.h" ] && INCDIR="$p"
-          done
-          if [ -z "$INCDIR" ]; then
-            echo "WARNING: mingw64 stralign.h not found — header fix skipped"
+          set -x
+          QUAKE3E_DIR="$(cygpath -u "$GITHUB_WORKSPACE")/quake3e"
+          cd "$QUAKE3E_DIR"
+          echo "Quake3e dir: $(pwd)"
+          echo "Files in code/sdl/: $(ls code/sdl/ 2>/dev/null | tr '\n' ' ' || echo MISSING)"
+          # Locate mingw64 include dir via pacman (robust across MSYS2 layouts)
+          INCDIR=$(pacman -Ql mingw-w64-x86_64-gcc 2>/dev/null | grep '/x86_64-w64-mingw32/include/$' | head -1 | cut -d' ' -f2 | xargs dirname 2>/dev/null || true)
+          if [ -z "$INCDIR" ] || [ ! -f "$INCDIR/stralign.h" ]; then
+            # fallback: use x86_64-w64-mingw32-gcc to locate include dir
+            GCC_INCLUDE=$(x86_64-w64-mingw32-gcc -print-file-name=include 2>/dev/null || true)
+            if [ -n "$GCC_INCLUDE" ] && [ -f "$GCC_INCLUDE/../x86_64-w64-mingw32/include/stralign.h" ]; then
+              INCDIR="$GCC_INCLUDE/../x86_64-w64-mingw32/include"
+            fi
+          fi
+          if [ -z "$INCDIR" ] || [ ! -f "$INCDIR/stralign.h" ]; then
+            echo "WARNING: mingw64 stralign.h not found at any candidate path — header fix skipped"
+            echo "Checked paths:"
+            pacman -Ql mingw-w64-x86_64-gcc 2>/dev/null | grep include | head -5 || true
           else
             echo "Mingw64 include dir: $INCDIR"
             for h in "$INCDIR"/stralign.h "$INCDIR"/basetsd.h "$INCDIR"/winnt.h "$INCDIR"/winbase.h "$INCDIR"/memoryapi.h "$INCDIR"/processthreadsapi.h; do
               [ -f "$h" ] && sed -i 's/__CRT_INLINE\b\|__inline\b\|__inline ;/__inline__/g; s/FORCEINLINE\b/static __inline__/g' "$h" && echo "Patched $h"
             done
           fi
-          # sdl_glimp.c: Sys_SetClipboardBitmap uses Windows clipboard APIs; add #include <windows.h>
-          sed -i '/^void Sys_SetClipboardBitmap(/a #ifdef _WIN32\n#include <windows.h>\n#endif' code/sdl/sdl_glimp.c
+          SDL_GLIM="$(cygpath -u "$QUAKE3E_DIR")/code/sdl/sdl_glimp.c"
+          if [ -f "$SDL_GLIM" ]; then
+            sed -i '/^void Sys_SetClipboardBitmap(/a #ifdef _WIN32\n#include <windows.h>\n#endif' "$SDL_GLIM"
+            echo "Patched sdl_glimp.c"
+          else
+            echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
+          fi
           # Build without curl (curl static lib not available in MSYS2)
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0
 
