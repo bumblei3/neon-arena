@@ -131,9 +131,10 @@ jobs:
             echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
           fi
           # Build without curl (curl static lib not available in MSYS2)
-          # Use -fno-gnu-inline to avoid GCC 15 inline keyword conflicts with mingw64 headers
-          # (avoids need to patch system headers which can break extern declarations)
-          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 CFLAGS="-fno-gnu-inline"
+          # Use -fgnu89-inline for GCC 15+ compatibility with mingw64 headers
+          # Override __CRT_INLINE to static __inline__ via -D to avoid header patching
+          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 \
+            CFLAGS="-fgnu89-inline -D__CRT_INLINE=static __inline__"
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
