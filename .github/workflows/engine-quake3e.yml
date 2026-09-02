@@ -76,8 +76,12 @@ jobs:
         run: |
           # Makefile auto-selects x86_64-w64-mingw32-gcc/windres when
           # PLATFORM=mingw64 and COMPILE_PLATFORM is linux.
+          # mingw-w64 headers use GNU89 extern-inline. GCC 10+ defaults to
+          # C99 inline, which then reports FORCEINLINE helpers as nested
+          # functions (stralign.h / winnt.h). Do not sed-patch headers.
           make -C /tmp/quake3e ARCH=x86_64 PLATFORM=mingw64 -j4 \
-            USE_CURL=0 USE_CURL_DLOPEN=0
+            USE_CURL=0 USE_CURL_DLOPEN=0 \
+            CFLAGS="-fgnu89-inline"
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
