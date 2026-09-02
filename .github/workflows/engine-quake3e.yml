@@ -90,9 +90,38 @@ jobs:
           else
             echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
           fi
+          # Patch mingw64 headers for GCC 15 compatibility:
+          # - __CRT_INLINE → inline (removes static, avoids conflict with extern forward decls)
+          # - FORCEINLINE → inline (same)
+          # - static __inline → __inline (basetsd.h direct usage)
+          # With -fgnu89-inline, 'inline' has GNU89 semantics (static-like linkage, no conflicts)
+          INCDIR=""
+          GCC_INC_DIRS=$(echo | x86_64-w64-mingw32-gcc -E -Wp,-v -xc /dev/null 2>&1 | grep '^ ' | tail -1 | tr -d '[:space:]' || true)
+          if [ -n "$GCC_INC_DIRS" ]; then
+            REAL_GCC_INC=$(cd "$GCC_INC_DIRS" 2>/dev/null && pwd || true)
+            if [ -n "$REAL_GCC_INC" ]; then
+              if [ -f "$REAL_GCC_INC/stralign.h" ]; then
+                INCDIR="$REAL_GCC_INC"
+              elif [ -f "$REAL_GCC_INC/x86_64-w64-mingw32/stralign.h" ]; then
+                INCDIR="$REAL_GCC_INC/x86_64-w64-mingw32"
+              fi
+            fi
+          fi
+          if [ -z "$INCDIR" ]; then
+            for p in "/c/msys64/mingw64/x86_64-w64-mingw32/include" "/c/msys64/mingw64/include"; do
+              [ -z "$INCDIR" ] && [ -f "$p/stralign.h" ] && INCDIR="$p"
+            done
+          fi
+          if [ -n "$INCDIR" ] && [ -f "$INCDIR/stralign.h" ]; then
+            echo "Mingw64 include dir: $INCDIR"
+            for h in "$INCDIR"/stralign.h "$INCDIR"/basetsd.h "$INCDIR"/winnt.h "$INCDIR"/winbase.h "$INCDIR"/memoryapi.h "$INCDIR"/processthreadsapi.h; do
+              [ -f "$h" ] && sed -i 's/__CRT_INLINE\b/inline/g; s/FORCEINLINE\b/inline/g; s/static __inline\b/__inline/g' "$h" && echo "Patched $h"
+            done
+          else
+            echo "WARNING: mingw64 stralign.h not found — header fix skipped"
+          fi
           # Build without curl (curl static lib not available in MSYS2)
-          # -fgnu89-inline restores GCC 8 inline semantics for compatibility with
-          # mingw64 headers that use __CRT_INLINE (which expands to static inline + __gnu_inline__)
+          # -fgnu89-inline: GNU89 inline semantics so 'inline' has static-like linkage
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 \
             CFLAGS="-fgnu89-inline"
 
