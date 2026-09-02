@@ -90,13 +90,12 @@ jobs:
           else
             echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
           fi
-          # Write GCC 15 inline-keyword override header next to quake3e source (MSYS2 /tmp may be invisible to make)
-          printf '#define __CRT_INLINE static inline\n#define __inline__ inline\n#define __inline inline\n' > "$QUAKE3E_DIR/fix_inline.h"
           # Build without curl (curl static lib not available in MSYS2)
-          # -include fix_inline.h: override inline keywords before mingw headers
-          # -fgnu89-inline: GNU89 inline semantics (matches quake3e code style)
+          # -fgnu89-inline: use GNU89 inline semantics so __CRT_INLINE expands
+          # to static __inline__ __gnu_inline__ which GCC 15 accepts without
+          # "invalid storage class" or "static declaration follows non-static" errors.
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 \
-            CFLAGS="-fgnu89-inline -include fix_inline.h"
+            CFLAGS="-fgnu89-inline"
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
