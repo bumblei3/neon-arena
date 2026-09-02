@@ -90,16 +90,13 @@ jobs:
           else
             echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
           fi
+          # Write GCC 15 inline-keyword override header (included before mingw headers via -include)
+          printf '#define __CRT_INLINE static inline\n#define __inline__ inline\n#define __inline inline\n' > /tmp/fix_inline.h
           # Build without curl (curl static lib not available in MSYS2)
-          # GCC 15 rejects static __inline / static __inline__ as invalid storage class.
-          # Override the keywords via -D so MinGW64 headers compile:
-          #   __CRT_INLINE → static inline  (keeps static linkage, valid in GCC 15)
-          #   __inline__   → inline         (C99 inline, external linkage — fine for header fns)
-          #   __inline     → inline         (same)
-          # No -fgnu89-inline (that flag caused extern+initializer conflicts on common.c
-          # when combined with __CRT_INLINE expansion in forward declarations).
+          # -include fix_inline.h: override inline keywords before mingw headers
+          # -fgnu89-inline: GNU89 inline semantics (matches quake3e code style)
           make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 \
-            CFLAGS="-D__CRT_INLINE=static inline -D__inline__=inline -D__inline=inline"
+            CFLAGS="-fgnu89-inline -include /tmp/fix_inline.h"
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
