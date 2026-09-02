@@ -22,7 +22,9 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
-          - os: ubuntu-latest
+          # 22.04 ships MinGW GCC 10/11. ubuntu-latest (GCC 15) rejects
+          # mingw-w64 FORCEINLINE/__CRT_INLINE as nested functions.
+          - os: ubuntu-22.04
             platform: windows
           - os: macos-latest
             platform: macos
@@ -57,6 +59,15 @@ jobs:
       - name: Apply OpenArena compatibility (BASEGAME=baseoa)
         run: |
           perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' /tmp/quake3e/code/qcommon/q_shared.h
+          # Sys_SetClipboardBitmap uses Win32 types (HGLOBAL). Include at file
+          # scope — never inside the function, or GCC treats FORCEINLINE
+          # helpers in windows.h as nested functions.
+          if [ "${{ matrix.platform }}" = "windows" ]; then
+            { printf '%s\n' '#ifdef _WIN32' '#include <windows.h>' '#endif' ''
+              cat /tmp/quake3e/code/sdl/sdl_glimp.c
+            } > /tmp/sdl_glimp.c.new
+            mv /tmp/sdl_glimp.c.new /tmp/quake3e/code/sdl/sdl_glimp.c
+          fi
 
       - name: Build engine (Linux)
         if: matrix.platform == 'linux'
