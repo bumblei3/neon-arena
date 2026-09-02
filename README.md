@@ -219,7 +219,7 @@ archiviert im Branch `archive/patches`.
   Tracker) — der ≥5-Bonus greift jetzt zuverlässig auch headless.
 - **Gamecode als Submodule** (`bumblei3/oa-gamecode`): gepinnte Versionen,
   CI baut direkt aus dem getaggten Stand; Patch-Serie archiviert.
-- **Suite 45 Fälle** (1–44 inkl. 9b) unter ioq3ded, plus CI-Gates verify_catalog + GAMEVERSION-Drift.
+- **Suite 50 Fälle** (1–50 inkl. 9b) unter ioq3ded, plus CI-Gates verify_catalog + GAMEVERSION-Drift.
 
 ### v0.12-Highlights (Juice)
 
@@ -313,11 +313,22 @@ archiviert im Branch `archive/patches`.
   vorher nur Slot 1). Vampire-Heal hängt auch an echten Drone-Kills, nicht
   nur am Autokill-Hook.
 
+### v0.40-Highlights (Coop & Content)
+
+- **Coop Wave-Clear:** Welle endet erst wenn alle Drones tot UND mindestens ein Human lebt.
+- **Coop Respawn:** Tote Spieler respawnen bei Wellenstart mit vollem HP/Armor.
+- **Coop Skalierung:** `g_neonwave_coopdifficulty` (1=einfach, 2=normal, 3=viel Drones/Skill).
+- **FROST Modifier (12):** Verlangsamt Spieler (g_speed 220), frostige Drones.
+- **CHAOS Modifier (13):** Zufälliger Skill pro Drone — jede Welle unvorhersehbar.
+- **BERSERKER Boss (#6):** Rotiert ab Welle 15, Rage bei unter 30% HP, 700 HC.
+- **Test-Suite 50 Fälle** (1–50 inkl. 9b).
+- **GAMEVERSION 0.40.**
+
 ## CI
 
 `.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodul)
 und führt `tests/run_suite.sh` aus: Quick-Subset auf `main`-Pushes, volle Suite
-(Tests 1–44 inkl. 9b, 45 Fälle) auf Tags und manuellem Dispatch.
+(Tests 1–50 inkl. 9b, 50 Fälle) auf Tags und manuellem Dispatch.
 
 Zusätzlich baut `.github/workflows/engine-quake3e.yml` die Quake3e-Engine
 (OpenGL2+Vulkan, Bloom) als optionales Binary-Artifact.
@@ -333,7 +344,7 @@ Zusätzliche technische Dokumentation und Testdetails liegen im Verzeichnis [`re
 - `references/runstats-json.md` — Run-Statistiken JSON-Schema und Tooling
 - `references/background-music.md` — Sound-Assets und lokale Synthese
 
-Die Test-Katalogtabelle (alle 45 Fälle, 1–44 inkl. 9b) befindet sich in `tests/TESTS.md`.
+Die Test-Katalogtabelle (alle 50 Fälle, 1–50 inkl. 9b) befindet sich in `tests/TESTS.md`.
 
 Das Skript `tests/verify_catalog.py` prüft vor jedem Testlauf (lokal und in CI),
 dass jede Nummer aus `ALL_TESTS` und `QUICK_TESTS` eine `dispatch_test()`-Case hat
