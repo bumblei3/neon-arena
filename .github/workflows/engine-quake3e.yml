@@ -39,7 +39,8 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
-          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-SDL2 mingw-w64-x86_64-pkg-config mingw-w64-x86_64-curl zip
+          path-type: minimal
+          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-SDL2 zip
 
       - name: Install build dependencies (macOS)
         if: matrix.platform == 'macos'
@@ -68,6 +69,10 @@ jobs:
           cd "$QUAKE3E_DIR"
           # Replace BASEGAME value for OpenArena compatibility (use perl for cross-platform \t support)
           perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' code/qcommon/q_shared.h
+          # sdl_glimp.c uses Win32 clipboard APIs; make the include explicit.
+          if [ -f code/sdl/sdl_glimp.c ]; then
+            perl -pi -e 's/^void Sys_SetClipboardBitmap.*$/#ifdef _WIN32\n#include <windows.h>\n#endif\n$&/' code/sdl/sdl_glimp.c
+          fi
 
       - name: Build engine (Linux)
         if: matrix.platform == 'linux'
@@ -75,59 +80,18 @@ jobs:
 
       - name: Build engine (Windows, MSYS2 MINGW64)
         if: matrix.platform == 'windows'
-        shell: bash
+        shell: msys2 {0}
         run: |
-          set -x
-          QUAKE3E_DIR="$(cygpath -u "$GITHUB_WORKSPACE")/quake3e"
-          cd "$QUAKE3E_DIR"
-          echo "Quake3e dir: $(pwd)"
-          echo "Files in code/sdl/: $(ls code/sdl/ 2>/dev/null | tr '\n' ' ' || echo MISSING)"
-          SDL_GLIM="$(cygpath -u "$QUAKE3E_DIR")/code/sdl/sdl_glimp.c"
-          if [ -f "$SDL_GLIM" ]; then
-            perl -pi -e 's/^void Sys_SetClipboardBitmap.*$/#ifdef _WIN32\n#include <windows.h>\n#endif\n$&/' "$SDL_GLIM"
-            echo "Patched sdl_glimp.c"
-          else
-            echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
-          fi
-          # Patch mingw64 headers for GCC 15:
-          # Replace __inline__ / __inline / __CRT_INLINE / FORCEINLINE with 'inline'
-          # This fixes both "invalid storage class" (static __inline → static inline)
-          # and "static declaration follows non-static" (extern inline after extern forward decl)
-          INCDIR=""
-          GCC_INC_DIRS=$(echo | x86_64-w64-mingw32-gcc -E -Wp,-v -xc /dev/null 2>&1 | grep '^ ' | tail -1 | tr -d '[:space:]' || true)
-          if [ -n "$GCC_INC_DIRS" ]; then
-            REAL_GCC_INC=$(cd "$GCC_INC_DIRS" 2>/dev/null && pwd || true)
-            if [ -n "$REAL_GCC_INC" ]; then
-              if [ -f "$REAL_GCC_INC/stralign.h" ]; then
-                INCDIR="$REAL_GCC_INC"
-              elif [ -f "$REAL_GCC_INC/x86_64-w64-mingw32/stralign.h" ]; then
-                INCDIR="$REAL_GCC_INC/x86_64-w64-mingw32"
-              fi
-            fi
-          fi
-          if [ -z "$INCDIR" ]; then
-            for p in "/c/msys64/mingw64/x86_64-w64-mingw32/include" "/c/msys64/mingw64/include"; do
-              [ -z "$INCDIR" ] && [ -f "$p/stralign.h" ] && INCDIR="$p"
-            done
-          fi
-          if [ -n "$INCDIR" ] && [ -f "$INCDIR/stralign.h" ]; then
-            echo "Mingw64 include dir: $INCDIR"
-            find "$INCDIR" -name '*.h' -exec sed -i \
-              -e 's/static inline/static/g' \
-              -e 's/\(__CRT_INLINE\)/inline/g' \
-              -e 's/\(FORCEINLINE\)/inline/g' {} +
-            echo "Patched all mingw64 headers"
-          else
-            echo "WARNING: mingw64 stralign.h not found — header fix skipped"
-          fi
-          # Build without curl (curl static lib not available in MSYS2)
-          # -fgnu89-inline: use GNU89 inline semantics (mingw64 headers were written
-          # for GNU89-style __inline__ behavior). Combined with header patching that
-          # replaces __inline__/__inline/__CRT_INLINE/FORCEINLINE with 'inline',
-          # this avoids "invalid storage class" and "static declaration follows
-          # non-static" errors from GCC 15 in strict C99 mode.
-          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 \
-            CFLAGS="-fgnu89-inline"
+          set -euo pipefail
+          cd "$GITHUB_WORKSPACE/quake3e"
+          gcc --version
+          # GCC 15 defaults to gnu23, which disagrees with mingw-w64 headers and
+          # with this 1990s C codebase. Do not sed-patch system headers and do
+          # not pass -fgnu89-inline: that combo #define'd inline to
+          # `extern __inline__` and then failed on libvorbis `static inline`.
+          mingw32-make ARCH=x86_64 PLATFORM=mingw64 -j4 \
+            USE_CURL=0 USE_CURL_DLOPEN=0 \
+            CFLAGS="-std=gnu11"
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
@@ -151,28 +115,35 @@ jobs:
 
       - name: Package engine (Windows)
         if: matrix.platform == 'windows'
-        shell: bash
+        shell: msys2 {0}
         run: |
-          export PATH="/c/msys64/mingw64/bin:$PATH"
+          set -euo pipefail
           mkdir -p dist/neonarena-engine/baseq3
-          # Find the build output directory (quake3e names it release*-x86_64)
           OUT=$(find "$GITHUB_WORKSPACE/quake3e/build" -type d -name "release*x86_64" | head -1)
           if [ -z "$OUT" ]; then
             OUT="$GITHUB_WORKSPACE/quake3e/build/release-mingw64-x86_64"
           fi
           echo "OUT=$OUT"
-          ls -la "$OUT" 2>/dev/null || echo "WARNING: OUT dir not found, listing build root:" && ls "$GITHUB_WORKSPACE/quake3e/build/" 2>/dev/null || true
-          cp "$OUT/quake3e.exe" dist/neonarena-engine/
-          cp "$OUT/quake3e_opengl_x86_64.dll" dist/neonarena-engine/ 2>/dev/null || true
-          if [ -f "$OUT/quake3e_vulkan_x86_64.dll" ]; then
-            cp "$OUT/quake3e_vulkan_x86_64.dll" dist/neonarena-engine/
+          ls -la "$OUT"
+          # mingw build emits quake3e.x64.exe, not quake3e.exe
+          if [ -f "$OUT/quake3e.x64.exe" ]; then
+            cp "$OUT/quake3e.x64.exe" dist/neonarena-engine/quake3e.exe
+          else
+            cp "$OUT"/quake3e*.exe dist/neonarena-engine/
+          fi
+          cp "$OUT"/quake3e_opengl*.dll dist/neonarena-engine/ 2>/dev/null || true
+          if ls "$OUT"/quake3e_vulkan*.dll >/dev/null 2>&1; then
+            cp "$OUT"/quake3e_vulkan*.dll dist/neonarena-engine/
           else
             echo "vulkan renderer not built - shipping OpenGL only"
           fi
-          # Bundle SDL2 runtime from MSYS2 MINGW64 installation
-          cp "/c/msys64/mingw64/bin/SDL2.dll" dist/neonarena-engine/ 2>/dev/null
+          # Prefer the SDL2 DLL the Makefile staged; fall back to MSYS2.
+          cp "$OUT"/SDL*.dll dist/neonarena-engine/ 2>/dev/null || true
+          if ! ls dist/neonarena-engine/SDL*.dll >/dev/null 2>&1; then
+            cp /mingw64/bin/SDL2.dll dist/neonarena-engine/
+          fi
           cd dist && zip -r neonarena-engine-win64.zip neonarena-engine
-          ls -la dist/neonarena-engine-win64.zip
+          ls -la neonarena-engine-win64.zip
 
       - name: Package engine (macOS, universal)
         if: matrix.platform == 'macos'
