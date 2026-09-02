@@ -15,7 +15,9 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
 - **Wellen-Modifier** (ab Welle 5, nicht in Boss-Wellen): **GLASS DRONES**
   (1 Treffer tot, aber aggressiver), **SWARM** (doppelte Drone-Zahl),
-  **LOW GRAVITY**, **DOUBLE POINTS**. Wird per Centerprint angesagt.
+  **LOW GRAVITY**, **DOUBLE POINTS**, **TIME WARP**, **VAMPIRE**, **FRENZY**,
+  **OVERSHIELD**, **MIRROR**, **REGEN**, **SURGE**, **FROST**, **CHAOS**.
+  Wird per Centerprint angesagt.
 - **Combo-System:** Kills innerhalb von 3 s ketten sich zu einer Serie.
   Ab Best-Serie 5 gibt es Bonus-Upgrade-Punkte (+1 pro weitere 5er-Stufe).
 - **Upgrade-System:** Gesammelte Punkte in der Pause ausgeben —
@@ -299,8 +301,6 @@ archiviert im Branch `archive/patches`.
 - **Daily** wählt die Map per Datum-Hash: `oa_shine` / `oa_minia` / `oa_rpg3dm2`.
   HUD zeigt `MAP <name>`. Start: `scripts/start-quake3e.sh --daily`
   (oder `--map oa_minia` zum Erzwingen). Standard-Run bleibt `oa_shine`.
-
-### v0.37-Highlights (Synergy is real)
 
 - **Named-Pair-Effekte:** Der zweite Modifier-Slot (ab Welle 8) ändert jetzt
   Zahlen, nicht nur den Log. AERIAL ASSAULT (Low Grav + Double Points) →
