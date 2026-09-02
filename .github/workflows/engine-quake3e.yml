@@ -122,7 +122,13 @@ jobs:
             echo "WARNING: mingw64 stralign.h not found — header fix skipped"
           fi
           # Build without curl (curl static lib not available in MSYS2)
-          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0
+          # -fgnu89-inline: use GNU89 inline semantics (mingw64 headers were written
+          # for GNU89-style __inline__ behavior). Combined with header patching that
+          # replaces __inline__/__inline/__CRT_INLINE/FORCEINLINE with 'inline',
+          # this avoids "invalid storage class" and "static declaration follows
+          # non-static" errors from GCC 15 in strict C99 mode.
+          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 \
+            CFLAGS="-fgnu89-inline"
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
