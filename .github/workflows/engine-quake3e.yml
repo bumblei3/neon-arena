@@ -113,10 +113,9 @@ jobs:
           if [ -n "$INCDIR" ] && [ -f "$INCDIR/stralign.h" ]; then
             echo "Mingw64 include dir: $INCDIR"
             find "$INCDIR" -name '*.h' -exec sed -i \
-              -e 's/\b__inline__\b/inline/g' \
-              -e 's/\b__inline\b/inline/g' \
-              -e 's/\b__CRT_INLINE\b/inline/g' \
-              -e 's/\bFORCEINLINE\b/inline/g' {} +
+              -e 's/static __inline\([[:space:];(]\|$\)/static inline\1/g' \
+              -e 's/\(__CRT_INLINE\)/inline/g' \
+              -e 's/\(FORCEINLINE\)/inline/g' {} +
             echo "Patched all mingw64 headers"
           else
             echo "WARNING: mingw64 stralign.h not found — header fix skipped"
