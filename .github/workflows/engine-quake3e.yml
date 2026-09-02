@@ -89,8 +89,13 @@ jobs:
           if [ -n "$GCC_INC_DIRS" ]; then
             # resolve .. components in path
             REAL_GCC_INC=$(cd "$GCC_INC_DIRS" 2>/dev/null && pwd || true)
-            if [ -n "$REAL_GCC_INC" ] && [ -f "$REAL_GCC_INC/x86_64-w64-mingw32/stralign.h" ]; then
-              INCDIR="$REAL_GCC_INC/x86_64-w64-mingw32"
+            if [ -n "$REAL_GCC_INC" ]; then
+              # stralign.h may be directly in REAL_GCC_INC or in REAL_GCC_INC/x86_64-w64-mingw32/
+              if [ -f "$REAL_GCC_INC/stralign.h" ]; then
+                INCDIR="$REAL_GCC_INC"
+              elif [ -f "$REAL_GCC_INC/x86_64-w64-mingw32/stralign.h" ]; then
+                INCDIR="$REAL_GCC_INC/x86_64-w64-mingw32"
+              fi
             fi
           fi
           # Method 2: check mingw-w64-headers package via pacman
