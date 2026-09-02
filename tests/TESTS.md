@@ -64,6 +64,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 46 | coop-respawn | autostart, startwave 3, autokill, fastbreak, selfkill 1, botasplayer 1 | `starting wave 3`, `COOP RESPAWN revived dead human` | keine Fatal-Warnung |
 | 47 | coop-scaling | autostart, startwave 5, autokill, fastbreak, coopmock 1, coopdifficulty 2, botasplayer 1 | `starting wave 5`, `COOP scale 2 humans`, `All waves cleared` | keine Fatal-Warnung |
 | 48 | frost-modifier | autostart, startwave 6, modifier 12, botasplayer 1, autokill, fastbreak | `starting wave 6.*\\[FROST\\]`, `FROST slowed to 220` | keine Fatal-Warnung |
+| 49 | chaos-modifier | autostart, startwave 5, modifier 13, botasplayer 1, autokill, fastbreak | `starting wave 5.*\\[CHAOS\\]`, `CHAOS mode — random skill per drone`, `Drone W5-1 CHAOS` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 

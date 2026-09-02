@@ -601,6 +601,16 @@ assert_48() {
   report $ok "frost-modifier"
 }
 
+# TEST 49: CHAOS modifier (modifier 13 → random skill per drone)
+assert_49() {
+  local ok=0
+  check "$1" "starting wave 5.*\\[CHAOS\\]";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "CHAOS mode — random skill per drone";         [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "Drone W5-1 CHAOS";                            [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "chaos-modifier"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -679,7 +689,7 @@ assert_14() {
 assert_15() {
   local ok=0 logfile="$1"
   count_min "$logfile" "DAILY CHALLENGE seed 12345" 2;  [ $? -eq 0 ] || ok=1
-  # seed 12345 -> map index (12345/60)%8 = 5 -> oa_pulse
+  # seed 12345 -> map index (12345/65)%8 = 5 -> oa_pulse
   check "$logfile" "DAILY MAP oa_pulse";                [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "dynamic difficulty locked (daily=1"; [ $LAST_RESULT -eq 0 ] || ok=1
   report $ok "daily-challenge-determinism"
@@ -748,11 +758,12 @@ dispatch_test() {
     46) run_test 46 "coop-respawn" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_selfkill 1 +set g_neonwave_botasplayer 1 ;;
     47) run_test 47 "coop-scaling" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_coopmock 1 +set g_neonwave_coopdifficulty 2 +set g_neonwave_botasplayer 1 ;;
     48) run_test 48 "frost-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 12 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    49) run_test 49 "chaos-modifier" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_modifier 13 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49"
 
   case "$MODE" in
   all)
