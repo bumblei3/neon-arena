@@ -60,6 +60,8 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 42 | anti-synergy-pair | autostart, startwave 6, modifier 8 (OVERSHIELD), modifier2 6 (VAMPIRE), fastbreak 1 | `NeonWave: ANTI-SYNERGY SHIELD BLEED`, `ANTI-SYNERGY EFFECT SHIELD BLEED: overshield 25, lifesteal 2`, `OVERSHIELD +25 armor granted` | keine Fatal-Warnung |
 | 43 | mirror-slot2 | startwave 6, modifier2 9 (MIRROR in Slot 2), fastbreak 1 | `starting wave 6.*\\[MIRROR\\]`, `NeonWave: MIRROR active (mask .*, slot2=1)` | keine Fatal-Warnung |
 | 44 | difficulty-lock-daily | autostart, daily 1, dailyseed 1, startwave 6, autokill, fastbreak | `dynamic difficulty locked (daily=1 hardcore=0)` | `dynamic difficulty ->` |
+| 45 | coop-wave-clear | autostart, startwave 3, autokill, fastbreak, coopmock 1, botasplayer 1 | `starting wave 3`, `All waves cleared` | keine Fatal-Warnung |
+| 46 | coop-respawn | autostart, startwave 3, autokill, fastbreak, selfkill 1, botasplayer 1 | `starting wave 3`, `COOP RESPAWN revived dead human` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 

@@ -561,6 +561,27 @@ assert_44() {
   report $ok "difficulty-lock-daily"
 }
 
+# TEST 45: coop wave-clear (mock extra human)
+# g_neonwave_coopmock 1 → simulates 1 extra alive human
+# Wave clears when drones==0 AND at least one human alive
+assert_45() {
+  local ok=0
+  check "$1" "starting wave 3";                            [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "All waves cleared";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "coop-wave-clear"
+}
+
+# TEST 46: coop respawn (selfkill each frame → respawn at wave start)
+# g_neonwave_selfkill 1 → kills human each frame, respawns at next wave
+assert_46() {
+  local ok=0
+  check "$1" "starting wave 3";                            [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "COOP RESPAWN revived dead human";            [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "coop-respawn"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -704,11 +725,13 @@ dispatch_test() {
     42) run_test 42 "anti-synergy-pair" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 8 +set g_neonwave_modifier2 6 +set g_neonwave_fastbreak 1 ;;
     43) run_test 43 "mirror-slot2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier2 9 +set g_neonwave_fastbreak 1 ;;
     44) run_test 44 "difficulty-lock-daily" 60 +set g_neonwave_autostart 1 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    45) run_test 45 "coop-wave-clear" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_coopmock 1 +set g_neonwave_botasplayer 1 ;;
+    46) run_test 46 "coop-respawn" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_selfkill 1 +set g_neonwave_botasplayer 1 ;;
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46"
 
   case "$MODE" in
   all)
