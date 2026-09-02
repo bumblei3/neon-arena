@@ -59,14 +59,12 @@ jobs:
       - name: Apply OpenArena compatibility (BASEGAME=baseoa)
         run: |
           perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' /tmp/quake3e/code/qcommon/q_shared.h
-          # Sys_SetClipboardBitmap uses Win32 types (HGLOBAL). Include at file
-          # scope — never inside the function, or GCC treats FORCEINLINE
-          # helpers in windows.h as nested functions.
+          # Sys_SetClipboardBitmap uses HGLOBAL from windows.h. Pulling
+          # windows.h into this TU makes MinGW treat FORCEINLINE helpers as
+          # nested functions. Clipboard-bitmap is optional — stub it.
           if [ "${{ matrix.platform }}" = "windows" ]; then
-            { printf '%s\n' '#ifdef _WIN32' '#include <windows.h>' '#endif' ''
-              cat /tmp/quake3e/code/sdl/sdl_glimp.c
-            } > /tmp/sdl_glimp.c.new
-            mv /tmp/sdl_glimp.c.new /tmp/quake3e/code/sdl/sdl_glimp.c
+            perl -0777 -pi -e 's/#ifdef _WIN32\n\tHGLOBAL hMem;/#if 0\n\tHGLOBAL hMem;/' \
+              /tmp/quake3e/code/sdl/sdl_glimp.c
           fi
 
       - name: Build engine (Linux)
