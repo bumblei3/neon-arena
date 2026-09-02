@@ -86,8 +86,12 @@ jobs:
           INCDIR=""
           # Method 1: parse gcc's include search dirs via -Wp,-v
           GCC_INC_DIRS=$(echo | x86_64-w64-mingw32-gcc -E -Wp,-v -xc /dev/null 2>&1 | grep '^ ' | tail -1 | tr -d '[:space:]' || true)
-          if [ -n "$GCC_INC_DIRS" ] && [ -f "$GCC_INC_DIRS/x86_64-w64-mingw32/stralign.h" ]; then
-            INCDIR="$GCC_INC_DIRS/x86_64-w64-mingw32"
+          if [ -n "$GCC_INC_DIRS" ]; then
+            # resolve .. components in path
+            REAL_GCC_INC=$(cd "$GCC_INC_DIRS" 2>/dev/null && pwd || true)
+            if [ -n "$REAL_GCC_INC" ] && [ -f "$REAL_GCC_INC/x86_64-w64-mingw32/stralign.h" ]; then
+              INCDIR="$REAL_GCC_INC/x86_64-w64-mingw32"
+            fi
           fi
           # Method 2: check mingw-w64-headers package via pacman
           if [ -z "$INCDIR" ]; then
@@ -116,7 +120,7 @@ jobs:
           SDL_GLIM="$(cygpath -u "$QUAKE3E_DIR")/code/sdl/sdl_glimp.c"
           if [ -f "$SDL_GLIM" ]; then
             # insert #include <windows.h> BEFORE Sys_SetClipboardBitmap definition (perl for cross-platform \n support)
-            perl -pi -e 's/^void Sys_SetClipboardBitmap(.*/#ifdef _WIN32\n#include <windows.h>\n#endif\n$&/' "$SDL_GLIM"
+            perl -pi -e 's/^void Sys_SetClipboardBitmap.*$/#ifdef _WIN32\n#include <windows.h>\n#endif\n$&/' "$SDL_GLIM"
             echo "Patched sdl_glimp.c"
           else
             echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
