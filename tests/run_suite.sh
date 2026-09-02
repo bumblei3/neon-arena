@@ -582,6 +582,16 @@ assert_46() {
   report $ok "coop-respawn"
 }
 
+# TEST 47: coop scaling (coopmock 1 + coopdifficulty 2 → more drones)
+assert_47() {
+  local ok=0
+  check "$1" "starting wave 5";                            [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "COOP scale 2 humans";                        [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "All waves cleared";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "coop-scaling"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -727,11 +737,12 @@ dispatch_test() {
     44) run_test 44 "difficulty-lock-daily" 60 +set g_neonwave_autostart 1 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     45) run_test 45 "coop-wave-clear" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_coopmock 1 +set g_neonwave_botasplayer 1 ;;
     46) run_test 46 "coop-respawn" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_selfkill 1 +set g_neonwave_botasplayer 1 ;;
+    47) run_test 47 "coop-scaling" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_coopmock 1 +set g_neonwave_coopdifficulty 2 +set g_neonwave_botasplayer 1 ;;
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47"
 
   case "$MODE" in
   all)

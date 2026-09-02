@@ -62,6 +62,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 44 | difficulty-lock-daily | autostart, daily 1, dailyseed 1, startwave 6, autokill, fastbreak | `dynamic difficulty locked (daily=1 hardcore=0)` | `dynamic difficulty ->` |
 | 45 | coop-wave-clear | autostart, startwave 3, autokill, fastbreak, coopmock 1, botasplayer 1 | `starting wave 3`, `All waves cleared` | keine Fatal-Warnung |
 | 46 | coop-respawn | autostart, startwave 3, autokill, fastbreak, selfkill 1, botasplayer 1 | `starting wave 3`, `COOP RESPAWN revived dead human` | keine Fatal-Warnung |
+| 47 | coop-scaling | autostart, startwave 5, autokill, fastbreak, coopmock 1, coopdifficulty 2, botasplayer 1 | `starting wave 5`, `COOP scale 2 humans`, `All waves cleared` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 
