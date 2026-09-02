@@ -90,39 +90,16 @@ jobs:
           else
             echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
           fi
-          # Patch mingw64 headers for GCC 15 compatibility:
-          # - __CRT_INLINE → static __inline__ (keeps static linkage, removes __gnu_inline__ attribute)
-          # - FORCEINLINE → static __inline__
-          # - static __inline (single underscore, GCC internal keyword) → static __inline__
-          #   (fixes basetsd.h "invalid storage class" error)
-          INCDIR=""
-          GCC_INC_DIRS=$(echo | x86_64-w64-mingw32-gcc -E -Wp,-v -xc /dev/null 2>&1 | grep '^ ' | tail -1 | tr -d '[:space:]' || true)
-          if [ -n "$GCC_INC_DIRS" ]; then
-            REAL_GCC_INC=$(cd "$GCC_INC_DIRS" 2>/dev/null && pwd || true)
-            if [ -n "$REAL_GCC_INC" ]; then
-              if [ -f "$REAL_GCC_INC/stralign.h" ]; then
-                INCDIR="$REAL_GCC_INC"
-              elif [ -f "$REAL_GCC_INC/x86_64-w64-mingw32/stralign.h" ]; then
-                INCDIR="$REAL_GCC_INC/x86_64-w64-mingw32"
-              fi
-            fi
-          fi
-          if [ -z "$INCDIR" ]; then
-            for p in "/c/msys64/mingw64/x86_64-w64-mingw32/include" "/c/msys64/mingw64/include"; do
-              [ -z "$INCDIR" ] && [ -f "$p/stralign.h" ] && INCDIR="$p"
-            done
-          fi
-          if [ -n "$INCDIR" ] && [ -f "$INCDIR/stralign.h" ]; then
-            echo "Mingw64 include dir: $INCDIR"
-            # Only patch GCC-internal-keyword usage; leave __CRT_INLINE macro definitions alone
-            for h in "$INCDIR"/basetsd.h; do
-              [ -f "$h" ] && sed -i 's/static __inline\b/static __inline__/g' "$h" && echo "Patched $h"
-            done
-          else
-            echo "WARNING: mingw64 stralign.h not found — header fix skipped"
-          fi
           # Build without curl (curl static lib not available in MSYS2)
-          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0
+          # GCC 15 rejects static __inline / static __inline__ as invalid storage class.
+          # Override the keywords via -D so MinGW64 headers compile:
+          #   __CRT_INLINE → static inline  (keeps static linkage, valid in GCC 15)
+          #   __inline__   → inline         (C99 inline, external linkage — fine for header fns)
+          #   __inline     → inline         (same)
+          # No -fgnu89-inline (that flag caused extern+initializer conflicts on common.c
+          # when combined with __CRT_INLINE expansion in forward declarations).
+          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 \
+            CFLAGS="-D__CRT_INLINE=static inline -D__inline__=inline -D__inline=inline"
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
