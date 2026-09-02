@@ -4,6 +4,10 @@ name: engine-quake3e
 # as optional binary artifacts. The OpenArena compatibility patch (BASEGAME=baseoa)
 # is applied so Quake3e loads OA content directly. BaseOA pk3s are supplied by the
 # player (see README) — only the engine binaries are shipped here.
+#
+# Windows is cross-compiled from Ubuntu with gcc-mingw-w64. Native MSYS2/GCC 15
+# rejects mingw-w64 headers (FORCEINLINE/__CRT_INLINE → "nested function declared
+# extern") and header-sed workarounds then break libvorbis `static inline`.
 
 on:
   push:
@@ -18,7 +22,7 @@ jobs:
         include:
           - os: ubuntu-latest
             platform: linux
-          - os: windows-latest
+          - os: ubuntu-latest
             platform: windows
           - os: macos-latest
             platform: macos
@@ -34,64 +38,37 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libsdl2-dev libwayland-dev zip unzip libcurl4-openssl-dev libvulkan-dev glslang-tools
 
-      - name: Setup MSYS2 MINGW64 (Windows)
+      - name: Install MinGW cross toolchain (Windows)
         if: matrix.platform == 'windows'
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          path-type: minimal
-          install: mingw-w64-x86_64-gcc mingw-w64-x86_64-make mingw-w64-x86_64-SDL2 zip
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-mingw-w64-x86-64 zip
+          x86_64-w64-mingw32-gcc --version
 
       - name: Install build dependencies (macOS)
         if: matrix.platform == 'macos'
         run: |
           brew install sdl2 vulkan-headers molten-vk
-          # universal binaries: build for both arches
           echo "ARCH=universal" >> $GITHUB_ENV
 
-      - name: Clone Quake3e (Windows)
-        if: matrix.platform == 'windows'
-        shell: bash
-        run: git clone --depth 1 https://github.com/ec-/quake3e.git "$GITHUB_WORKSPACE/quake3e"
-
-      - name: Clone Quake3e (Linux/macOS)
-        if: matrix.platform != 'windows'
+      - name: Clone Quake3e
         run: git clone --depth 1 https://github.com/ec-/quake3e.git /tmp/quake3e
 
-      - name: Apply OpenArena compatibility (skip id-pak checksum check)
-        shell: bash
+      - name: Apply OpenArena compatibility (BASEGAME=baseoa)
         run: |
-          if [ "${{ matrix.platform }}" = "windows" ]; then
-            QUAKE3E_DIR="$(cygpath -u "$GITHUB_WORKSPACE")/quake3e"
-          else
-            QUAKE3E_DIR="/tmp/quake3e"
-          fi
-          cd "$QUAKE3E_DIR"
-          # Replace BASEGAME value for OpenArena compatibility (use perl for cross-platform \t support)
-          perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' code/qcommon/q_shared.h
-          # sdl_glimp.c uses Win32 clipboard APIs; make the include explicit.
-          if [ -f code/sdl/sdl_glimp.c ]; then
-            perl -pi -e 's/^void Sys_SetClipboardBitmap.*$/#ifdef _WIN32\n#include <windows.h>\n#endif\n$&/' code/sdl/sdl_glimp.c
-          fi
+          perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' /tmp/quake3e/code/qcommon/q_shared.h
 
       - name: Build engine (Linux)
         if: matrix.platform == 'linux'
         run: make -C /tmp/quake3e ARCH=x86_64 -j4
 
-      - name: Build engine (Windows, MSYS2 MINGW64)
+      - name: Build engine (Windows, MinGW cross)
         if: matrix.platform == 'windows'
-        shell: msys2 {0}
         run: |
-          set -euo pipefail
-          cd "$GITHUB_WORKSPACE/quake3e"
-          gcc --version
-          # GCC 15 defaults to gnu23, which disagrees with mingw-w64 headers and
-          # with this 1990s C codebase. Do not sed-patch system headers and do
-          # not pass -fgnu89-inline: that combo #define'd inline to
-          # `extern __inline__` and then failed on libvorbis `static inline`.
-          mingw32-make ARCH=x86_64 PLATFORM=mingw64 -j4 \
-            USE_CURL=0 USE_CURL_DLOPEN=0 \
-            CFLAGS="-std=gnu11"
+          # Makefile auto-selects x86_64-w64-mingw32-gcc/windres when
+          # PLATFORM=mingw64 and COMPILE_PLATFORM is linux.
+          make -C /tmp/quake3e ARCH=x86_64 PLATFORM=mingw64 -j4 \
+            USE_CURL=0 USE_CURL_DLOPEN=0
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
@@ -115,17 +92,15 @@ jobs:
 
       - name: Package engine (Windows)
         if: matrix.platform == 'windows'
-        shell: msys2 {0}
         run: |
           set -euo pipefail
           mkdir -p dist/neonarena-engine/baseq3
-          OUT=$(find "$GITHUB_WORKSPACE/quake3e/build" -type d -name "release*x86_64" | head -1)
+          OUT=$(find /tmp/quake3e/build -type d -name "release-mingw*-x86_64" | head -1)
           if [ -z "$OUT" ]; then
-            OUT="$GITHUB_WORKSPACE/quake3e/build/release-mingw64-x86_64"
+            OUT=/tmp/quake3e/build/release-mingw64-x86_64
           fi
           echo "OUT=$OUT"
           ls -la "$OUT"
-          # mingw build emits quake3e.x64.exe, not quake3e.exe
           if [ -f "$OUT/quake3e.x64.exe" ]; then
             cp "$OUT/quake3e.x64.exe" dist/neonarena-engine/quake3e.exe
           else
@@ -137,11 +112,7 @@ jobs:
           else
             echo "vulkan renderer not built - shipping OpenGL only"
           fi
-          # Prefer the SDL2 DLL the Makefile staged; fall back to MSYS2.
           cp "$OUT"/SDL*.dll dist/neonarena-engine/ 2>/dev/null || true
-          if ! ls dist/neonarena-engine/SDL*.dll >/dev/null 2>&1; then
-            cp /mingw64/bin/SDL2.dll dist/neonarena-engine/
-          fi
           cd dist && zip -r neonarena-engine-win64.zip neonarena-engine
           ls -la neonarena-engine-win64.zip
 
@@ -155,7 +126,6 @@ jobs:
           [ -z "$BINARY" ] && BINARY="$OUT/quake3e.universal"
           cp "$BINARY" dist/neonarena-engine/
           echo "Using engine binary: $BINARY"
-          # copy renderer dylibs if present
           cp "$OUT/quake3e_opengl"*.dylib dist/neonarena-engine/ 2>/dev/null || true
           cp "$OUT/quake3e_vulkan"*.dylib dist/neonarena-engine/ 2>/dev/null || true
           if [ ! -f dist/neonarena-engine/quake3e_opengl*.dylib ] && [ ! -f dist/neonarena-engine/quake3e_vulkan*.dylib ]; then
