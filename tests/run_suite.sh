@@ -679,8 +679,8 @@ assert_14() {
 assert_15() {
   local ok=0 logfile="$1"
   count_min "$logfile" "DAILY CHALLENGE seed 12345" 2;  [ $? -eq 0 ] || ok=1
-  # seed 12345 -> map index (12345/55)%8 = 0 -> oa_shine
-  check "$logfile" "DAILY MAP oa_shine";                [ $LAST_RESULT -eq 0 ] || ok=1
+  # seed 12345 -> map index (12345/60)%8 = 5 -> oa_pulse
+  check "$logfile" "DAILY MAP oa_pulse";                [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "dynamic difficulty locked (daily=1"; [ $LAST_RESULT -eq 0 ] || ok=1
   report $ok "daily-challenge-determinism"
 }
