@@ -91,10 +91,10 @@ jobs:
             echo "WARNING: sdl_glimp.c not found at $SDL_GLIM"
           fi
           # Patch mingw64 headers for GCC 15 compatibility:
-          # - __CRT_INLINE → inline (removes static, avoids conflict with extern forward decls)
-          # - FORCEINLINE → inline (same)
-          # - static __inline → __inline (basetsd.h direct usage)
-          # With -fgnu89-inline, 'inline' has GNU89 semantics (static-like linkage, no conflicts)
+          # - __CRT_INLINE → static __inline__ (keeps static linkage, removes __gnu_inline__ attribute)
+          # - FORCEINLINE → static __inline__
+          # - static __inline (single underscore, GCC internal keyword) → static __inline__
+          #   (fixes basetsd.h "invalid storage class" error)
           INCDIR=""
           GCC_INC_DIRS=$(echo | x86_64-w64-mingw32-gcc -E -Wp,-v -xc /dev/null 2>&1 | grep '^ ' | tail -1 | tr -d '[:space:]' || true)
           if [ -n "$GCC_INC_DIRS" ]; then
@@ -114,16 +114,15 @@ jobs:
           fi
           if [ -n "$INCDIR" ] && [ -f "$INCDIR/stralign.h" ]; then
             echo "Mingw64 include dir: $INCDIR"
-            for h in "$INCDIR"/stralign.h "$INCDIR"/basetsd.h "$INCDIR"/winnt.h "$INCDIR"/winbase.h "$INCDIR"/memoryapi.h "$INCDIR"/processthreadsapi.h; do
-              [ -f "$h" ] && sed -i 's/__CRT_INLINE\b/inline/g; s/FORCEINLINE\b/inline/g; s/static __inline\b/__inline/g' "$h" && echo "Patched $h"
+            # Only patch GCC-internal-keyword usage; leave __CRT_INLINE macro definitions alone
+            for h in "$INCDIR"/basetsd.h; do
+              [ -f "$h" ] && sed -i 's/static __inline\b/static __inline__/g' "$h" && echo "Patched $h"
             done
           else
             echo "WARNING: mingw64 stralign.h not found — header fix skipped"
           fi
           # Build without curl (curl static lib not available in MSYS2)
-          # -fgnu89-inline: GNU89 inline semantics so 'inline' has static-like linkage
-          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0 \
-            CFLAGS="-fgnu89-inline"
+          make ARCH=x86_64 PLATFORM=mingw64 RCMDUMP= -j4 USE_CURL=0 USE_CURL_DLOPEN=0
 
       - name: Build engine (macOS, universal)
         if: matrix.platform == 'macos'
