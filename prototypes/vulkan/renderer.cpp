@@ -22,7 +22,8 @@ void Renderer::init() {
     createPipelines();
     createFramebuffers();
     createCommandPool();
-    createVertexBuffer();
+    createTriangleBuffer();
+    createLineBuffer();
     createUniformBuffer();
     createDescriptorPool();
     createCommandBuffers();
@@ -359,9 +360,14 @@ void Renderer::createSyncObjects() {
     VK_CHECK(vkCreateFence(device, &fci, nullptr, &inFlight));
 }
 
-void Renderer::createVertexBuffer() {
+void Renderer::createTriangleBuffer() {
     VkDeviceSize size = MAX_VERTICES * sizeof(Vertex);
-    createBuffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vertexBuffer, vertexBufferMemory);
+    createBuffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, triangleBuffer, triangleBufferMemory);
+}
+
+void Renderer::createLineBuffer() {
+    VkDeviceSize size = MAX_VERTICES * sizeof(Vertex);
+    createBuffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, lineBuffer, lineBufferMemory);
 }
 
 void Renderer::createUniformBuffer() {
@@ -460,13 +466,22 @@ VkShaderModule Renderer::createShaderModule(const std::vector<char>& code) {
     return mod;
 }
 
-void Renderer::updateVertices(const std::vector<Vertex>& verts) {
+void Renderer::updateTriangles(const std::vector<Vertex>& verts) {
     VkDeviceSize size = verts.size() * sizeof(Vertex);
     void* data;
-    vkMapMemory(device, vertexBufferMemory, 0, size, 0, &data);
+    vkMapMemory(device, triangleBufferMemory, 0, size, 0, &data);
     memcpy(data, verts.data(), size);
-    vkUnmapMemory(device, vertexBufferMemory);
-    verts_ = (uint32_t)verts.size();
+    vkUnmapMemory(device, triangleBufferMemory);
+    triangleVerts_ = (uint32_t)verts.size();
+}
+
+void Renderer::updateLines(const std::vector<Vertex>& verts) {
+    VkDeviceSize size = verts.size() * sizeof(Vertex);
+    void* data;
+    vkMapMemory(device, lineBufferMemory, 0, size, 0, &data);
+    memcpy(data, verts.data(), size);
+    vkUnmapMemory(device, lineBufferMemory);
+    lineVerts_ = (uint32_t)verts.size();
 }
 
 void Renderer::updateUniform(const UniformBufferObject& ubo) {
@@ -499,15 +514,21 @@ void Renderer::drawFrame() {
     vkCmdBeginRenderPass(commandBuffers[imageIndex], &rpbi, VK_SUBPASS_CONTENTS_INLINE);
 
     vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[imageIndex], 0, nullptr);
-    VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(commandBuffers[imageIndex], 0, 1, &vertexBuffer, &offset);
 
-    // Draw all geometry as triangles
-    // TODO: separate line drawing for grid + tracers using linePipeline
-    uint32_t vertexCount = (uint32_t)verts_.size();
-    if (vertexCount > 0) {
+    // Draw lines first (grid + tracers)
+    if (lineVerts_ > 0) {
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(commandBuffers[imageIndex], 0, 1, &lineBuffer, &offset);
+        vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, linePipeline);
+        vkCmdDraw(commandBuffers[imageIndex], lineVerts_, 1, 0, 0);
+    }
+
+    // Then draw triangles (enemies + sparks)
+    if (triangleVerts_ > 0) {
+        VkDeviceSize offset = 0;
+        vkCmdBindVertexBuffers(commandBuffers[imageIndex], 0, 1, &triangleBuffer, &offset);
         vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, trianglePipeline);
-        vkCmdDraw(commandBuffers[imageIndex], vertexCount, 1, 0, 0);
+        vkCmdDraw(commandBuffers[imageIndex], triangleVerts_, 1, 0, 0);
     }
 
     vkCmdEndRenderPass(commandBuffers[imageIndex]);
@@ -550,8 +571,10 @@ void Renderer::cleanup() {
     vkDestroyRenderPass(device, renderPass, nullptr);
     for (auto iv : swapchainImageViews) vkDestroyImageView(device, iv, nullptr);
     vkDestroySwapchainKHR(device, swapchain, nullptr);
-    vkDestroyBuffer(device, vertexBuffer, nullptr);
-    vkFreeMemory(device, vertexBufferMemory, nullptr);
+    vkDestroyBuffer(device, triangleBuffer, nullptr);
+    vkFreeMemory(device, triangleBufferMemory, nullptr);
+    vkDestroyBuffer(device, lineBuffer, nullptr);
+    vkFreeMemory(device, lineBufferMemory, nullptr);
     vkDestroyBuffer(device, uniformBuffer, nullptr);
     vkFreeMemory(device, uniformBufferMemory, nullptr);
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);

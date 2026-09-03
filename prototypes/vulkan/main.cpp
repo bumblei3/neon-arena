@@ -57,18 +57,23 @@ int main(int argc, char** argv) {
 
         game.update(dt);
 
-        // Build vertex buffer from game state
-        std::vector<Vertex> verts;
+        // Build vertex buffers from game state
         auto arena = game.getArenaGeometry();
         auto enemies = game.getEnemyGeometry();
         auto tracers = game.getTracerGeometry();
         auto sparks = game.getSparkGeometry();
-        verts.insert(verts.end(), arena.begin(), arena.end());
-        verts.insert(verts.end(), enemies.begin(), enemies.end());
-        verts.insert(verts.end(), tracers.begin(), tracers.end());
-        verts.insert(verts.end(), sparks.begin(), sparks.end());
 
-        r.updateVertices(verts);
+        // Lines: arena grid + tracers
+        std::vector<Vertex> lines;
+        lines.insert(lines.end(), arena.begin(), arena.end());
+        lines.insert(lines.end(), tracers.begin(), tracers.end());
+        r.updateLines(lines);
+
+        // Triangles: enemies + sparks
+        std::vector<Vertex> tris;
+        tris.insert(tris.end(), enemies.begin(), enemies.end());
+        tris.insert(tris.end(), sparks.begin(), sparks.end());
+        r.updateTriangles(tris);
 
         // Update uniform buffer
         UniformBufferObject ubo{};

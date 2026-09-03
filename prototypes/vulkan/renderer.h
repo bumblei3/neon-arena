@@ -61,14 +61,17 @@ public:
     uint32_t presentFamily = 0;
 
     // Buffers
-    VkBuffer vertexBuffer = VK_NULL_HANDLE;
-    VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
+    VkBuffer triangleBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory triangleBufferMemory = VK_NULL_HANDLE;
+    VkBuffer lineBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory lineBufferMemory = VK_NULL_HANDLE;
     VkBuffer uniformBuffer = VK_NULL_HANDLE;
     VkDeviceMemory uniformBufferMemory = VK_NULL_HANDLE;
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    uint32_t verts_ = 0;
+    uint32_t triangleVerts_ = 0;
+    uint32_t lineVerts_ = 0;
 
     static const int WIDTH = 1280;
     static const int HEIGHT = 720;
@@ -76,7 +79,8 @@ public:
 
     void init();
     void cleanup();
-    void updateVertices(const std::vector<Vertex>& verts);
+    void updateTriangles(const std::vector<Vertex>& verts);
+    void updateLines(const std::vector<Vertex>& verts);
     void updateUniform(const UniformBufferObject& ubo);
     void drawFrame();
 
@@ -94,7 +98,8 @@ private:
     void createCommandPool();
     void createCommandBuffers();
     void createSyncObjects();
-    void createVertexBuffer();
+    void createTriangleBuffer();
+    void createLineBuffer();
     void createUniformBuffer();
     void createDescriptorPool();
 
