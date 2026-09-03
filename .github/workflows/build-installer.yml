@@ -35,8 +35,13 @@ jobs:
           workflow: engine-quake3e.yml
           workflow_conclusion: success
           branch: main
-          name: engine-windows
-          path: installer/engine
+          name: neonarena-engine-windows
+          path: engine-zip
+
+      - name: Extract Engine
+        run: |
+          cd engine-zip
+          unzip -q *.zip -d ../installer/engine
 
       - name: Copy Mod Files
         run: |
