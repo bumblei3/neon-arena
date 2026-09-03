@@ -396,18 +396,26 @@ void Game::renderParticles() {
 }
 
 void Game::renderArena() {
-    // Draw arena floor grid
-    Vec3 gridColor(0.1f, 0.1f, 0.2f);
+    // Draw arena floor grid with distance-based glow
+    Vec3 eye = player.pos;
     for (int i = -10; i <= 10; i++) {
         float pos = i * 4.0f;
         // X lines
-        Vertex v1(Vec3(-arenaSize, 0, pos), gridColor);
-        Vertex v2(Vec3(arenaSize, 0, pos), gridColor);
-        renderer_->drawLineLoop(&v1, 2, gridColor);
+        Vec3 midX(0, 0, pos);
+        float distX = (midX - eye).length();
+        float glowX = 1.0f / (1.0f + distX * 0.05f);
+        Vec3 gridColorX(0.0f, 0.4f * glowX, 0.8f * glowX);
+        Vertex v1(Vec3(-arenaSize, 0, pos), gridColorX);
+        Vertex v2(Vec3(arenaSize, 0, pos), gridColorX);
+        renderer_->drawLineLoop(&v1, 2, gridColorX);
         // Z lines
-        Vertex v3(Vec3(pos, 0, -arenaSize), gridColor);
-        Vertex v4(Vec3(pos, 0, arenaSize), gridColor);
-        renderer_->drawLineLoop(&v3, 2, gridColor);
+        Vec3 midZ(pos, 0, 0);
+        float distZ = (midZ - eye).length();
+        float glowZ = 1.0f / (1.0f + distZ * 0.05f);
+        Vec3 gridColorZ(0.0f, 0.4f * glowZ, 0.8f * glowZ);
+        Vertex v3(Vec3(pos, 0, -arenaSize), gridColorZ);
+        Vertex v4(Vec3(pos, 0, arenaSize), gridColorZ);
+        renderer_->drawLineLoop(&v3, 2, gridColorZ);
     }
 
     // Draw arena walls (neon cyan)
@@ -531,12 +539,12 @@ void Game::renderBots() {
 void Game::renderProjectiles() {
     for (auto& proj : projectiles) {
         Vec3 projColor = proj.fromPlayer ? Vec3(0.0f, 1.0f, 1.0f) : Vec3(1.0f, 0.3f, 0.0f);
-        float s = 0.2f;
+        float s = 0.5f;
 
-        // Draw projectile as a small line in direction of travel
+        // Draw projectile as a glowing trail
         Vertex line[] = {
-            Vertex(proj.pos - proj.dir * s, projColor),
-            Vertex(proj.pos + proj.dir * s, projColor),
+            Vertex(proj.pos - proj.dir * s * 2.0f, projColor * 0.3f),
+            Vertex(proj.pos, projColor),
         };
         renderer_->drawLineLoop(line, 2, projColor);
     }
