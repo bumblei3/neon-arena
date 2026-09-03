@@ -249,6 +249,10 @@ void Game::updateBots(float dt) {
         // Rotate towards player
         bot.yaw = atan2f(toPlayer.x, -toPlayer.z);
 
+        // Hover animation (sinusoidal Y offset)
+        float hoverOffset = sinf(gameTime * 2.0f + bot.pos.x * 0.1f + bot.pos.z * 0.1f) * 0.3f;
+        bot.pos.y = hoverOffset;
+
         // Keep bots in bounds
         if (bot.pos.x < -arenaSize + 2) bot.pos.x = -arenaSize + 2;
         if (bot.pos.x > arenaSize - 2) bot.pos.x = arenaSize - 2;
@@ -460,72 +464,88 @@ void Game::renderBots() {
         if (!bot.alive) continue;
 
         // Draw bot as a glowing diamond/octahedron shape
-        Vec3 botColor(0.0f, 1.0f, 0.5f);  // Green-cyan
-        float s = 0.8f;  // Size
+        // Pulsating size based on game time
+        float pulse = 1.0f + sinf(gameTime * 4.0f + bot.pos.x * 0.5f) * 0.15f;
+        float s = 0.8f * pulse;  // Size with pulse
 
-        // Top pyramid
+        // Color based on health (green-cyan when healthy, red when damaged)
+        float healthPct = bot.health / (100.0f + wave * 10);
+        Vec3 botColor(
+            (1.0f - healthPct) * 0.8f,
+            healthPct * 1.0f,
+            healthPct * 0.5f
+        );
+
+        // Rotation offset based on game time
+        float rotOffset = gameTime * 1.5f + bot.pos.x * 0.3f;
+        float cosR = cosf(rotOffset);
+        float sinR = sinf(rotOffset);
+
+        // Top pyramid (rotated)
         Vertex top[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x - s, bot.pos.y, bot.pos.z - s), botColor),
-            Vertex(Vec3(bot.pos.x + s, bot.pos.y, bot.pos.z - s), botColor),
+            Vertex(Vec3(bot.pos.x - s * cosR, bot.pos.y, bot.pos.z - s * sinR), botColor),
+            Vertex(Vec3(bot.pos.x + s * sinR, bot.pos.y, bot.pos.z - s * cosR), botColor),
         };
         renderer_->drawLineLoop(top, 3, botColor);
 
         Vertex top2[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x + s, bot.pos.y, bot.pos.z - s), botColor),
-            Vertex(Vec3(bot.pos.x + s, bot.pos.y, bot.pos.z + s), botColor),
+            Vertex(Vec3(bot.pos.x + s * sinR, bot.pos.y, bot.pos.z - s * cosR), botColor),
+            Vertex(Vec3(bot.pos.x + s * cosR, bot.pos.y, bot.pos.z + s * sinR), botColor),
         };
         renderer_->drawLineLoop(top2, 3, botColor);
 
         Vertex top3[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x + s, bot.pos.y, bot.pos.z + s), botColor),
-            Vertex(Vec3(bot.pos.x - s, bot.pos.y, bot.pos.z + s), botColor),
+            Vertex(Vec3(bot.pos.x + s * cosR, bot.pos.y, bot.pos.z + s * sinR), botColor),
+            Vertex(Vec3(bot.pos.x - s * sinR, bot.pos.y, bot.pos.z + s * cosR), botColor),
         };
         renderer_->drawLineLoop(top3, 3, botColor);
 
         Vertex top4[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x - s, bot.pos.y, bot.pos.z + s), botColor),
-            Vertex(Vec3(bot.pos.x - s, bot.pos.y, bot.pos.z - s), botColor),
+            Vertex(Vec3(bot.pos.x - s * sinR, bot.pos.y, bot.pos.z + s * cosR), botColor),
+            Vertex(Vec3(bot.pos.x - s * cosR, bot.pos.y, bot.pos.z - s * sinR), botColor),
         };
         renderer_->drawLineLoop(top4, 3, botColor);
 
-        // Bottom pyramid
+        // Bottom pyramid (rotated opposite direction)
+        float rotOffset2 = -rotOffset * 0.7f;
+        float cosR2 = cosf(rotOffset2);
+        float sinR2 = sinf(rotOffset2);
+
         Vertex bot1[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y - s, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x - s, bot.pos.y, bot.pos.z - s), botColor),
-            Vertex(Vec3(bot.pos.x + s, bot.pos.y, bot.pos.z - s), botColor),
+            Vertex(Vec3(bot.pos.x - s * cosR2, bot.pos.y, bot.pos.z - s * sinR2), botColor),
+            Vertex(Vec3(bot.pos.x + s * sinR2, bot.pos.y, bot.pos.z - s * cosR2), botColor),
         };
         renderer_->drawLineLoop(bot1, 3, botColor);
 
         Vertex bot2[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y - s, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x + s, bot.pos.y, bot.pos.z - s), botColor),
-            Vertex(Vec3(bot.pos.x + s, bot.pos.y, bot.pos.z + s), botColor),
+            Vertex(Vec3(bot.pos.x + s * sinR2, bot.pos.y, bot.pos.z - s * cosR2), botColor),
+            Vertex(Vec3(bot.pos.x + s * cosR2, bot.pos.y, bot.pos.z + s * sinR2), botColor),
         };
         renderer_->drawLineLoop(bot2, 3, botColor);
 
         Vertex bot3[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y - s, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x + s, bot.pos.y, bot.pos.z + s), botColor),
-            Vertex(Vec3(bot.pos.x - s, bot.pos.y, bot.pos.z + s), botColor),
+            Vertex(Vec3(bot.pos.x + s * cosR2, bot.pos.y, bot.pos.z + s * sinR2), botColor),
+            Vertex(Vec3(bot.pos.x - s * sinR2, bot.pos.y, bot.pos.z + s * cosR2), botColor),
         };
         renderer_->drawLineLoop(bot3, 3, botColor);
 
         Vertex bot4[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y - s, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x - s, bot.pos.y, bot.pos.z + s), botColor),
-            Vertex(Vec3(bot.pos.x - s, bot.pos.y, bot.pos.z - s), botColor),
+            Vertex(Vec3(bot.pos.x - s * cosR2, bot.pos.y, bot.pos.z - s * sinR2), botColor),
+            Vertex(Vec3(bot.pos.x - s * sinR2, bot.pos.y, bot.pos.z + s * cosR2), botColor),
         };
         renderer_->drawLineLoop(bot4, 3, botColor);
 
         // Health bar above bot
-        float healthPct = bot.health / (100.0f + wave * 10);
         Vec3 hpColor(1.0f - healthPct, healthPct, 0.0f);
         float hbWidth = 1.5f;
-        float hbHeight = 0.15f;
         float hbY = bot.pos.y + 2.5f;
 
         Vertex hp[] = {
