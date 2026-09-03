@@ -641,6 +641,45 @@ assert_52() {
   report $ok "mimic-modifier"
 }
 
+# TEST 53: BERSERKER boss enters PHASE 2 (g_neonwave_phaseforce 1)
+assert_53() {
+  local ok=0
+  check "$1" "boss spawned: BERSERKER";                  [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: BERSERKER ENTERS PHASE 2";       [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "berserker-phase2"
+}
+
+# TEST 54: TELEPORTER boss enters PHASE 2 (g_neonwave_phaseforce 1)
+assert_54() {
+  local ok=0
+  check "$1" "boss spawned: TELEPORTER";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "NeonWave: TELEPORTER ENTERS PHASE 2";      [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "teleporter-phase2"
+}
+
+# TEST 55: two modifiers active simultaneously (REGEN + FROST)
+# Verifies both modifier names appear in the wave banner and both effects fire.
+assert_55() {
+  local ok=0 logfile="$1"
+  check "$logfile" "starting wave 6.*\\\\[REGEN\\\\]";    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "starting wave 6.*\\\\[FROST\\\\]";    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "NeonWave: REGEN health topped up";    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "FROST slowed to";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "modifier-interaction"
+}
+
+# TEST 56: daily challenge records saved (DAILY RECORDS SAVED marker)
+assert_56() {
+  local ok=0
+  check "$1" "DAILY CHALLENGE seed 12345";               [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "DAILY RECORDS SAVED";                      [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "daily-records"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -795,11 +834,16 @@ dispatch_test() {
 
     52) run_test 52 "mimic-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 14 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
 
+    53) run_test 53 "berserker-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_bosstype 6 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
+    54) run_test 54 "teleporter-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 16 +set g_neonwave_bosstype 7 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
+    55) run_test 55 "modifier-interaction" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 10 +set g_neonwave_modifier2 12 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    56) run_test 56 "daily-records" 120 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 10 ;;
+
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56"
 
   case "$MODE" in
   all)

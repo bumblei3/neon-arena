@@ -68,6 +68,10 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 50 | berserker-boss | autostart, startwave 15, bosstype 6, rageforce 1, fastbreak | `starting wave 15.*BOSS`, `boss spawned: BERSERKER`, `BERSERKER ENTERS RAGE`, `hc\\700` | keine Fatal-Warnung |
 | 51 | teleporter-boss | autostart, startwave 16, bosstype 7, fastbreak | `starting wave 16.*BOSS`, `boss spawned: TELEPORTER`, `TELEPORTER blinks to new position` | keine Fatal-Warnung |
 | 52 | mimic-modifier | autostart, startwave 6, modifier 14, botasplayer 1, autokill, fastbreak | `starting wave 6.*\\[MIMIC\\]`, `MIMIC copied` | keine Fatal-Warnung |
+| 53 | berserker-phase2 | autostart, startwave 15, bosstype 6, phaseforce 1, fastbreak, autokill | `boss spawned: BERSERKER`, `NeonWave: BERSERKER ENTERS PHASE 2` | keine Fatal-Warnung |
+| 54 | teleporter-phase2 | autostart, startwave 16, bosstype 7, phaseforce 1, fastbreak, autokill | `boss spawned: TELEPORTER`, `NeonWave: TELEPORTER ENTERS PHASE 2` | keine Fatal-Warnung |
+| 55 | modifier-interaction | autostart, startwave 6, modifier 10, modifier2 12, botasplayer 1, autokill, fastbreak | `starting wave 6.*\\[REGEN\\]`, `starting wave 6.*\\[FROST\\]`, `NeonWave: REGEN health topped up`, `FROST slowed to` | keine Fatal-Warnung |
+| 56 | daily-records | daily 1, dailyseed 12345, autostart, autokill, fastbreak, startwave 10 | `DAILY CHALLENGE seed 12345`, `DAILY RECORDS SAVED` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 
