@@ -372,6 +372,7 @@ void Game::render() {
 
     renderer_->setView(view);
     renderer_->setProjection(proj);
+    renderer_->setViewPos(eye);
 
     renderer_->beginFrame();
     renderer_->clear(0.02f, 0.02f, 0.05f, 1.0f);

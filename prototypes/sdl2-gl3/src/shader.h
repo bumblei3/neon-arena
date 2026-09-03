@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <GL/glew.h>
+#include "math.h"
 
 class Shader {
 public:
@@ -20,6 +21,7 @@ public:
     void setFloat(const std::string& name, float value) const;
     void setVec2(const std::string& name, float x, float y) const;
     void setVec3(const std::string& name, float x, float y, float z) const;
+    void setVec3(const std::string& name, const struct Vec3& v) const;
     void setMat4(const std::string& name, const float* mat) const;
 
 private:

@@ -33,6 +33,7 @@ public:
 
     void setProjection(const Mat4& proj) { projection = proj; }
     void setView(const Mat4& view) { this->view = view; }
+    void setViewPos(const Vec3& pos) { viewPos = pos; }
 
     int getWidth() const { return width_; }
     int getHeight() const { return height_; }
@@ -44,6 +45,7 @@ private:
     int width_, height_;
     Mat4 projection;
     Mat4 view;
+    Vec3 viewPos;
 
     // VBOs
     unsigned int VAOVertex = 0, VBOVertex = 0;

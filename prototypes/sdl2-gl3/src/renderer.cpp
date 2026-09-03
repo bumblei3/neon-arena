@@ -59,14 +59,26 @@ static const char* triangleFragSrc = R"(
     in vec3 vNormal;
     in vec3 vWorldPos;
     out vec4 FragColor;
+    uniform vec3 viewPos;
     uniform vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
     uniform vec3 lightColor = vec3(1.0, 0.95, 0.8);
     uniform vec3 ambientColor = vec3(0.15, 0.15, 0.2);
+    uniform float fresnelPower = 2.0;
+    uniform vec3 fresnelColor = vec3(0.0, 0.8, 1.0);
+    uniform float fresnelIntensity = 0.6;
     void main() {
         vec3 normal = normalize(vNormal);
+        vec3 viewDir = normalize(viewPos - vWorldPos);
+        
+        // Diffuse lighting
         float diff = max(dot(normal, lightDir), 0.0);
         vec3 diffuse = diff * lightColor;
-        vec3 result = (ambientColor + diffuse) * vColor;
+        
+        // Fresnel glow (edge glow)
+        float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), fresnelPower);
+        vec3 fresnelGlow = fresnel * fresnelColor * fresnelIntensity;
+        
+        vec3 result = (ambientColor + diffuse) * vColor + fresnelGlow;
         FragColor = vec4(result, 1.0);
     }
 )";
@@ -431,6 +443,7 @@ void Renderer::drawTriangles(const Vertex* verts, int count, const Vec3& color) 
     triangleShader->setMat4("proj", projection.ptr());
     triangleShader->setMat4("view", view.ptr());
     triangleShader->setMat4("model", model.ptr());
+    triangleShader->setVec3("viewPos", viewPos);
 
     glBindVertexArray(VAOVertex);
     glBindBuffer(GL_ARRAY_BUFFER, VBOVertex);
