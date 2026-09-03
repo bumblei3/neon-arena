@@ -1,11 +1,13 @@
 // NEON ARENA - Vulkan + SDL2 Prototype
-// Game state: arena, enemies, waves, player
+// Game state: arena, enemies, waves, player, audio
 #pragma once
 
 #include <vector>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+
+class AudioSystem; // Forward declaration
 
 struct Vec3 {
     float x, y, z;
@@ -71,6 +73,8 @@ public:
     bool keyW = false, keyA = false, keyS = false, keyD = false;
     bool keySpace = false;
 
+    void setAudio(AudioSystem* a) { m_audio = a; }
+
     void update(float dt);
     void shoot();
     void spawnEnemy();
@@ -93,6 +97,8 @@ public:
     std::vector<Vertex> getSparkGeometry() const;
 
 private:
+    AudioSystem* m_audio = nullptr;
+
     static void mat4_identity(float* m);
     static void mat4_lookAt(float* m, const Vec3& eye, const Vec3& center, const Vec3& up);
     static void mat4_perspective(float* m, float fovy, float aspect, float zn, float zf);

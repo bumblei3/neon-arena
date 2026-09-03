@@ -1,9 +1,10 @@
 // NEON ARENA - Vulkan + SDL2 Prototype
-// Main: bootstrap, game loop, input
+// Main: bootstrap, game loop, input, audio
 #include "renderer.h"
 #include "game.h"
 #include "hud.h"
 #include "particle_system.h"
+#include "audio.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -12,9 +13,12 @@
 int main(int argc, char** argv) {
     (void)argc; (void)argv;
 
+    Renderer r;
+    AudioSystem audio;
     ParticleSystem particles;
 
     r.init();
+    audio.init();
     particles.init(r.device, r.physicalDevice);
 
     Game game;
@@ -55,7 +59,10 @@ int main(int argc, char** argv) {
                 if (game.ppitch < -1.45f) game.ppitch = -1.45f;
                 break;
             case SDL_MOUSEBUTTONDOWN:
-                if (ev.button.button == SDL_BUTTON_LEFT) game.shoot();
+                if (ev.button.button == SDL_BUTTON_LEFT) {
+                    game.shoot();
+                    audio.playShoot();
+                }
                 break;
             }
         }
@@ -96,6 +103,8 @@ int main(int argc, char** argv) {
 
         // Update particle buffer in renderer
         r.updateParticles(particles.getVertices(), particles.getActiveCount());
+
+        // Update uniform buffer
         UniformBufferObject ubo{};
         game.getViewMatrix(ubo.view);
         game.getProjMatrix(ubo.proj, (float)Renderer::WIDTH / (float)Renderer::HEIGHT);
@@ -104,6 +113,7 @@ int main(int argc, char** argv) {
         r.drawFrame();
     }
 
+    audio.cleanup();
     r.cleanup();
     printf("Exit clean. Final score: %d\n", game.score);
     return 0;

@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
 
-add_executable(neon-arena main.cpp game.cpp renderer.cpp hud.cpp)
+add_executable(neon-arena main.cpp game.cpp renderer.cpp hud.cpp particle_system.cpp audio.cpp)
 add_executable(compute_demo compute_demo.cpp)
 
 target_link_libraries(compute_demo PRIVATE
