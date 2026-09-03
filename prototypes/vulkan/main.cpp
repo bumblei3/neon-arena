@@ -25,9 +25,12 @@ int main(int argc, char** argv) {
     Game game;
     HudRenderer hud;
     
-    // Load map once before game loop
+    // Load map from JSON file
     MapData map;
-    MapLoader::generateDefaultArena(map);
+    if (!MapLoader::loadFromJSON("maps/neon_arena_v2.json", map)) {
+        printf("Failed to load map, using default arena\n");
+        MapLoader::generateDefaultArena(map);
+    }
     auto mapGeometry = MapLoader::extractGeometry(map);
     
     bool running = true;
