@@ -225,6 +225,7 @@ void Game::updatePlayer(float dt) {
         );
         Vec3 muzzlePos = player.pos + forward * 0.5f;
         projectiles.push_back(Projectile(muzzlePos, forward, true));
+        playSnd(g_sndShoot);
     }
 }
 

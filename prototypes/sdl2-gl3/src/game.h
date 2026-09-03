@@ -1,12 +1,23 @@
 // game.h - Game logic for neon arena prototype
 #pragma once
 #include <SDL.h>
+#include <SDL_mixer.h>
 #include "renderer.h"
 #include "math.h"
 #include "particle.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
+
+// Global sound pointers (set in main.cpp)
+extern Mix_Chunk* g_sndShoot;
+extern Mix_Chunk* g_sndExplosion;
+extern Mix_Chunk* g_sndWave;
+extern Mix_Chunk* g_sndGameOver;
+
+inline void playSnd(Mix_Chunk* snd) {
+    if (snd) Mix_PlayChannel(-1, snd, 0);
+}
 
 struct Entity {
     Vec3 pos;

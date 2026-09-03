@@ -11,12 +11,19 @@ find_package(OpenGL REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(GLEW REQUIRED)
 
+# Find SDL2_Mixer
+find_path(SDL2_MIXER_INCLUDE_DIR SDL_mixer.h
+    PATHS /usr/include/SDL2
+)
+find_library(SDL2_MIXER_LIBRARY SDL2_mixer)
+
 add_executable(neon-arena
     src/main.cpp
     src/shader.cpp
     src/renderer.cpp
     src/game.cpp
     src/texture.cpp
+    src/sound.cpp
 )
 
 target_include_directories(neon-arena PRIVATE src)
@@ -24,4 +31,5 @@ target_link_libraries(neon-arena PRIVATE
     OpenGL::GL
     SDL2::SDL2
     GLEW::GLEW
+    ${SDL2_MIXER_LIBRARY}
 )
