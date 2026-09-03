@@ -622,6 +622,25 @@ assert_50() {
   report $ok "berserker-boss"
 }
 
+# TEST 51: TELEPORTER boss (bosstype 7, teleports away)
+assert_51() {
+  local ok=0
+  check "$1" "starting wave 16.*BOSS";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "boss spawned: TELEPORTER";                  [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "TELEPORTER blinks to new position";         [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "teleporter-boss"
+}
+
+# TEST 52: MIMIC modifier (modifier 14 — drones copy player upgrades)
+assert_52() {
+  local ok=0
+  check "$1" "starting wave 6.*\\[MIMIC\\]";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "MIMIC copied";                                [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "mimic-modifier"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -772,11 +791,15 @@ dispatch_test() {
     49) run_test 49 "chaos-modifier" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_modifier 13 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     50) run_test 50 "berserker-boss" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_bosstype 6 +set g_neonwave_rageforce 1 +set g_neonwave_fastbreak 1 ;;
 
+    51) run_test 51 "teleporter-boss" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 16 +set g_neonwave_bosstype 7 +set g_neonwave_fastbreak 1 ;;
+
+    52) run_test 52 "mimic-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 14 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52"
 
   case "$MODE" in
   all)

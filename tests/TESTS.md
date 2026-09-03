@@ -66,6 +66,8 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 48 | frost-modifier | autostart, startwave 6, modifier 12, botasplayer 1, autokill, fastbreak | `starting wave 6.*\\[FROST\\]`, `FROST slowed to 220` | keine Fatal-Warnung |
 | 49 | chaos-modifier | autostart, startwave 5, modifier 13, botasplayer 1, autokill, fastbreak | `starting wave 5.*\\[CHAOS\\]`, `CHAOS mode — random skill per drone`, `Drone W5-1 CHAOS` | keine Fatal-Warnung |
 | 50 | berserker-boss | autostart, startwave 15, bosstype 6, rageforce 1, fastbreak | `starting wave 15.*BOSS`, `boss spawned: BERSERKER`, `BERSERKER ENTERS RAGE`, `hc\\700` | keine Fatal-Warnung |
+| 51 | teleporter-boss | autostart, startwave 16, bosstype 7, fastbreak | `starting wave 16.*BOSS`, `boss spawned: TELEPORTER`, `TELEPORTER blinks to new position` | keine Fatal-Warnung |
+| 52 | mimic-modifier | autostart, startwave 6, modifier 14, botasplayer 1, autokill, fastbreak | `starting wave 6.*\\[MIMIC\\]`, `MIMIC copied` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 
