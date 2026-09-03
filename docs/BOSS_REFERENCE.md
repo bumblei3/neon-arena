@@ -3,6 +3,8 @@
 Alle 7 Boss-Typen in NeonArena. Bosse spawnen ab Welle 10, einer pro Welle.
 Rotation: `(wave / 10 + dailyOffset) % NW_BOSS_COUNT`.
 
+> **Feedback willkommen!** Siehe [README](../README.md#feedback).
+
 ## Boss-Tabelle
 
 | # | Name | Basis-HP | Waffe | Besonderheit | Phase-2-Eskalation |

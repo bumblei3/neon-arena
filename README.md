@@ -37,7 +37,14 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
   Drohnen-Cyan-Shell (Boss magenta), Rail-Impact-Burst, LG-Sparks, Muzzle-Flare,
   pulsierende Boss-Gefahr-Vignette, Energy statt Blut, Vignette-HUD.
 - **Coop:** Bis 4 Spieler, Wave-Clear erfordert alle Drones tot + mindestens
-  ein Human lebt. Tote Spieler respawnen am Wellenstart.
+  ein Human lebt. Tote Spieler respawnen am Wellenstart oder können als
+  Spectator zuschauen.
+- **Wave-Select:** Wähle die Startwelle (1, 5, 10, 15, 20) per `waveselect` in der
+  Konsole.
+- **Achievements:** Erfolge wie FIRST VICTORY, SURVIVOR, SHARPSHOOTER, COMBOMASTER,
+  SPEEDRUNNER, HARDCORE werden beim Freischalten im HUD angezeigt.
+- **Daily Challenge:** Gleicher Tag = gleiche Herausforderung (FNV-1a-Hash über
+  Datum bestimmt Boss-Rotation und Modifier-Reihenfolge).
 
 ## Dokumentation
 
@@ -215,3 +222,17 @@ GAMEVERSION in `code/game/g_local.h` muss mit dem Tag übereinstimmen.
 ## Lizenz
 
 GNU GPL v2 (kompatibel mit OpenArena).
+
+## Feedback
+
+Feedback willkommen! Probleme, Ideen und Feature-Requests:
+
+- **Issues:** https://github.com/bumblei3/neon-arena/issues
+- **Discord:** *(Link folgt)*
+- **Email:** *(optional)*
+
+Jede Rückmeldung hilft, NeonArena besser zu machen. Egal ob Bug-Bericht, Balancing-Vorschlag oder Lob — ich höre zu.
+
+---
+
+**Version:** v0.53 | **Letzte Aktualisierung:** 2026-09-03

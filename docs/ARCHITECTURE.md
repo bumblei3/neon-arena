@@ -2,6 +2,8 @@
 
 Code-Struktur und Build-System von NeonArena.
 
+> **Feedback willkommen!** Siehe [README](../README.md#feedback).
+
 ## Überblick
 
 NeonArena ist ein Wave-Survival-Mod für OpenArena (Quake III Arena). Der Mod

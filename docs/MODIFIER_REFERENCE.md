@@ -2,6 +2,8 @@
 
 Alle 14 Modifier + Synergie-/Anti-Synergie-System in NeonArena.
 
+> **Feedback willkommen!** Siehe [README](../README.md#feedback).
+
 ## Überblick
 
 Modifier treten ab Welle 5 auf (auch in Boss-Wellen seit v0.37). Ein zweiter Modifier (Slot 2) wird ab Welle 8 hinzugefügt — wenn beide Slots belegt sind, wird geprüft, ob sie einen Synergie- oder Anti-Synergie-Paar bilden.
