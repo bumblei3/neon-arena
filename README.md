@@ -18,7 +18,7 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - **Combo-System:** Kills innerhalb von 3 s ketten sich zu einer Serie.
   Ab Best-Serie 5 gibt es Bonus-Upgrade-Punkte (+1 pro weitere 5er-Stufe).
 - **Upgrade-System:** Gesammelte Punkte in der Pause ausgeben —
-  F1 = HP (bis 8), F2 = DMG (bis 7, +10 %/Level), F3 = SPD (bis 7).
+  F1 = HP (bis 8), F2 = DMG (bis 7, +10 %/Level), F3 = SPD (bis 7). Kosten: 1 Punkt für Level 0-3, 2 Punkte für Level 4+.
   HUD zeigt Punkte + Level live.
 - **Perk-System:** 3 Angebote pro Pause, F1/F2/F3 wählen. 6 Perks:
   PIERCE, OVERCHARGE, CHAIN, SKIP, SECOND WIND, MIRROR.
