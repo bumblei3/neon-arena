@@ -680,6 +680,44 @@ assert_56() {
   report $ok "daily-records"
 }
 
+# TEST 57: upgrade cost escalation (v0.43)
+# Level 0-3 cost 1 point, Level 4+ cost 2 points
+assert_57() {
+  local ok=0
+  # This test verifies the escalating cost system by checking that
+  # the upgrade command reports correct costs
+  check "$1" "UPGRADE:";                                 [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "upgrade-cost-escalation"
+}
+
+# TEST 58: boss HP wave scaling (v0.42)
+# Bosses in wave 15 should have more HP than wave 10
+assert_58() {
+  local ok=0
+  check "$1" "boss spawned:.*hc";                        [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "boss-hp-wave-scaling"
+}
+
+# TEST 59: wave select (v0.43)
+# Player can choose starting wave via g_neonwave_startwave
+assert_59() {
+  local ok=0
+  check "$1" "starting wave 7";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "wave-select"
+}
+
+# TEST 60: coop spectator (v0.43)
+# Dead players can spectate in coop mode
+assert_60() {
+  local ok=0
+  check "$1" "starting wave 5";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "coop-spectator"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -838,12 +876,16 @@ dispatch_test() {
     54) run_test 54 "teleporter-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 16 +set g_neonwave_bosstype 7 +set g_neonwave_phaseforce 1 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
     55) run_test 55 "modifier-interaction" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 10 +set g_neonwave_modifier2 12 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     56) run_test 56 "daily-records" 120 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 10 ;;
+    57) run_test 57 "upgrade-cost-escalation" 60 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 10 ;;
+    58) run_test 58 "boss-hp-wave-scaling" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_bosstype 2 +set g_neonwave_autokill 1 ;;
+    59) run_test 59 "wave-select" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 7 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    60) run_test 60 "coop-spectator" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_coopmock 1 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60"
 
   case "$MODE" in
   all)

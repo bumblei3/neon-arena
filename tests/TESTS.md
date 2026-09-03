@@ -72,6 +72,10 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 54 | teleporter-phase2 | autostart, startwave 16, bosstype 7, phaseforce 1, fastbreak, autokill | `boss spawned: TELEPORTER`, `NeonWave: TELEPORTER ENTERS PHASE 2` | keine Fatal-Warnung |
 | 55 | modifier-interaction | autostart, startwave 6, modifier 10, modifier2 12, botasplayer 1, autokill, fastbreak | `starting wave 6.*\\[REGEN\\]`, `starting wave 6.*\\[FROST\\]`, `NeonWave: REGEN health topped up`, `FROST slowed to` | keine Fatal-Warnung |
 | 56 | daily-records | daily 1, dailyseed 12345, autostart, autokill, fastbreak, startwave 10 | `DAILY CHALLENGE seed 12345`, `DAILY RECORDS SAVED` | keine Fatal-Warnung |
+| 57 | upgrade-cost-escalation | autostart, autokill, fastbreak, startwave 10 | `UPGRADE:` | keine Fatal-Warnung |
+| 58 | boss-hp-wave-scaling | autostart, startwave 15, bosstype 2, autokill | `boss spawned:.*hc` | keine Fatal-Warnung |
+| 59 | wave-select | autostart, startwave 7, autokill, fastbreak | `starting wave 7` | keine Fatal-Warnung |
+| 60 | coop-spectator | autostart, startwave 5, coopmock 1, botasplayer 1, autokill, fastbreak | `starting wave 5` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 
