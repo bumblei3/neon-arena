@@ -541,7 +541,7 @@ void Renderer::createHudBuffer() {
 }
 
 void Renderer::createParticleBuffer() {
-    VkDeviceSize size = MAX_PARTICLES * sizeof(Vertex);
+    VkDeviceSize size = 4096 * sizeof(Vertex);
     createBuffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, particleBuffer, particleBufferMemory);
 }
 
