@@ -50,6 +50,23 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 
 ## Schnellstart (Spieler)
 
+### Option A: Installer (empfohlen)
+
+```bash
+curl -sL https://raw.githubusercontent.com/bumblei3/neon-arena/main/scripts/install.sh | bash
+```
+
+Oder manuell:
+```bash
+git clone https://github.com/bumblei3/neon-arena.git
+cd neon-arena
+./scripts/install.sh
+```
+
+Starte mit: `neonarena`
+
+### Option B: Manuell
+
 1. PK3 aus den [Releases](https://github.com/bumblei3/neon-arena/releases)
    herunterladen und nach `~/.openarena/` entpacken (es entsteht `neonarena/`).
 2. `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
