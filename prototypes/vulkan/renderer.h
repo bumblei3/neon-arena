@@ -51,6 +51,9 @@ public:
     VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
     VkPipeline trianglePipeline = VK_NULL_HANDLE;
     VkPipeline linePipeline = VK_NULL_HANDLE;
+    VkPipeline brightPipeline = VK_NULL_HANDLE;
+    VkPipeline blurPipeline = VK_NULL_HANDLE;
+    VkPipeline compositePipeline = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> framebuffers;
     VkCommandPool commandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> commandBuffers;
@@ -70,8 +73,24 @@ public:
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    uint32_t triangleVerts_ = 0;
-    uint32_t lineVerts_ = 0;
+    // Bloom resources
+    VkImage bloomImage1 = VK_NULL_HANDLE;
+    VkDeviceMemory bloomMemory1 = VK_NULL_HANDLE;
+    VkImageView bloomView1 = VK_NULL_HANDLE;
+    VkImage bloomImage3 = VK_NULL_HANDLE;
+    VkDeviceMemory bloomMemory3 = VK_NULL_HANDLE;
+    VkImageView bloomView3 = VK_NULL_HANDLE;
+    VkFramebuffer bloomFramebuffer1 = VK_NULL_HANDLE;
+    VkFramebuffer bloomFramebuffer2 = VK_NULL_HANDLE;
+    VkFramebuffer compositeFramebuffer = VK_NULL_HANDLE;
+    VkRenderPass bloomRenderPass = VK_NULL_HANDLE;
+    VkDescriptorSetLayout bloomDescriptorSetLayout = VK_NULL_HANDLE;
+    VkPipelineLayout bloomPipelineLayout = VK_NULL_HANDLE;
+    VkDescriptorPool bloomDescriptorPool = VK_NULL_HANDLE;
+    VkDescriptorSet bloomDescriptorSet1 = VK_NULL_HANDLE;
+    VkDescriptorSet bloomDescriptorSet2 = VK_NULL_HANDLE;
+    VkDescriptorSet compositeDescriptorSet = VK_NULL_HANDLE;
+    VkSampler textureSampler = VK_NULL_HANDLE;
 
     static const int WIDTH = 1280;
     static const int HEIGHT = 720;
@@ -102,6 +121,14 @@ private:
     void createLineBuffer();
     void createUniformBuffer();
     void createDescriptorPool();
+    void createBloomResources();
+    void createBloomPipelines();
+    void createBloomDescriptorSets();
+    void createSampler();
+    void createBloomImages();
+    void createBloomRenderPass();
+    void createBloomFramebuffers();
+    void drawBloom(VkCommandBuffer cmd);
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& memory);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);

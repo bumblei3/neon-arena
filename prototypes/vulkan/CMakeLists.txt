@@ -22,6 +22,10 @@ file(MAKE_DIRECTORY ${SHADER_OUT_DIR})
 set(SHADERS
     ${SHADER_DIR}/triangle.vert
     ${SHADER_DIR}/triangle.frag
+    ${SHADER_DIR}/fullscreen.vert
+    ${SHADER_DIR}/brightpass.frag
+    ${SHADER_DIR}/blur.frag
+    ${SHADER_DIR}/composite.frag
 )
 
 foreach(SHADER ${SHADERS})
