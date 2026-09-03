@@ -50,20 +50,31 @@ void Game::mat4_mul(float* out, const float* a, const float* b) {
 }
 
 void Game::getViewMatrix(float* out) const {
-    float bob = std::sqrt(pvel_x * pvel_x + pvel_z * pvel_z) * 0.012f;
-    float cy = 1.6f + bob * std::sin(now_s * 14);
-    Vec3 eye(px + std::sin(pyaw) * recoil * -0.06f, cy - recoil * 0.03f, pz - std::cos(pyaw) * recoil * -0.06f);
-    Vec3 center(
-        eye.x + std::sin(pyaw) * std::cos(ppitch),
-        eye.y - std::sin(ppitch),
-        eye.z - std::cos(pyaw) * std::cos(ppitch)
+    // Camera at player position, looking forward
+    float cy = 1.6f;
+    
+    // Camera position (eye)
+    Vec3 eye(px, cy, pz);
+    
+    // Look direction from yaw and pitch
+    // yaw=0 looks down -Z, yaw=90 looks down +X
+    float yawRad = pyaw;
+    float pitchRad = ppitch;
+    
+    Vec3 forward(
+        std::sin(yawRad) * std::cos(pitchRad),
+        -std::sin(pitchRad),
+        -std::cos(yawRad) * std::cos(pitchRad)
     );
+    
+    Vec3 center = eye + forward;
     Vec3 up(0, 1, 0);
+    
     mat4_lookAt(out, eye, center, up);
 }
 
 void Game::getProjMatrix(float* out, float aspect) const {
-    mat4_perspective(out, (75.0f + recoil * 4) * 3.14159f / 180.0f, aspect, 0.1f, 200.0f);
+    mat4_perspective(out, 75.0f * 3.14159f / 180.0f, aspect, 0.1f, 200.0f);
 }
 
 void Game::update(float dt) {
@@ -245,50 +256,19 @@ std::vector<Vertex> Game::getEnemyGeometry() const {
         if (!e.alive) continue;
         float fl = e.hitFlash;
         Vec3 c(0.25f + fl * 0.75f, 0.02f + fl * 0.6f, 0.35f + fl * 0.6f);
-        float s = 0.55f;
-        // 12 triangles for a cube (2 per face, 6 faces)
-        // Front face
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z + s}, c });
-        // Back face
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z - s}, c });
-        // Top face
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z - s}, c });
-        // Bottom face
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z + s}, c });
-        // Right face
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y - s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x + s, e.pos.y + s, e.pos.z + s}, c });
-        // Left face
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y - s, e.pos.z - s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z + s}, c });
-        verts.push_back({ {e.pos.x - s, e.pos.y + s, e.pos.z - s}, c });
+        
+        // Simple quad for each enemy (billboard-style)
+        float s = 0.8f;
+        Vec3 pos = e.pos;
+        
+        // Two triangles for a quad
+        verts.push_back({{pos.x - s, pos.y - s, pos.z}, c});
+        verts.push_back({{pos.x + s, pos.y - s, pos.z}, c});
+        verts.push_back({{pos.x + s, pos.y + s, pos.z}, c});
+        
+        verts.push_back({{pos.x - s, pos.y - s, pos.z}, c});
+        verts.push_back({{pos.x + s, pos.y + s, pos.z}, c});
+        verts.push_back({{pos.x - s, pos.y + s, pos.z}, c});
     }
     return verts;
 }

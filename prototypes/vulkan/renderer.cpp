@@ -77,22 +77,18 @@ void Renderer::pickPhysicalDevice() {
         std::vector<VkQueueFamilyProperties> qf(qfCount);
         vkGetPhysicalDeviceQueueFamilyProperties(d, &qfCount, qf.data());
 
-        bool hasGraphics = false, hasPresent = false;
+        // Find queue family that supports both graphics and present
         for (uint32_t i = 0; i < qfCount; i++) {
             if (qf[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                graphicsFamily = i;
-                hasGraphics = true;
+                VkBool32 present = false;
+                vkGetPhysicalDeviceSurfaceSupportKHR(d, i, surface, &present);
+                if (present) {
+                    graphicsFamily = i;
+                    presentFamily = i;
+                    physicalDevice = d;
+                    return;
+                }
             }
-            VkBool32 present = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(d, i, surface, &present);
-            if (present) {
-                presentFamily = i;
-                hasPresent = true;
-            }
-        }
-        if (hasGraphics && hasPresent) {
-            physicalDevice = d;
-            return;
         }
     }
     fprintf(stderr, "No suitable GPU found\n");
@@ -116,14 +112,9 @@ void Renderer::createDevice() {
     ci.ppEnabledExtensionNames = &ext;
     VK_CHECK(vkCreateDevice(physicalDevice, &ci, nullptr, &device));
 
-    // If graphics and present family are the same, use one queue
-    if (graphicsFamily == presentFamily) {
-        vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
-        presentQueue = graphicsQueue;
-    } else {
-        vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
-        vkGetDeviceQueue(device, presentFamily, 0, &presentQueue);
-    }
+    // Use single queue for graphics and present
+    vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
+    presentQueue = graphicsQueue;
 }
 
 void Renderer::createSwapchain() {
@@ -843,11 +834,11 @@ void Renderer::drawFrame() {
     bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     VK_CHECK(vkBeginCommandBuffer(commandBuffers[imageIndex], &bi));
 
-    // --- Pass 1: Render scene + HUD + Particles to offscreen buffer ---
+    // --- Pass 1: Render scene + HUD + Particles directly to swapchain ---
     VkRenderPassBeginInfo scenePass{};
     scenePass.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    scenePass.renderPass = renderPass;
-    scenePass.framebuffer = bloomFramebuffer1;
+    scenePass.renderPass = compositeRenderPass;
+    scenePass.framebuffer = framebuffers[imageIndex];
     scenePass.renderArea.extent = swapchainExtent;
     VkClearValue clear{{0.02f, 0.02f, 0.05f, 1.0f}};
     scenePass.clearValueCount = 1;
@@ -886,57 +877,6 @@ void Renderer::drawFrame() {
 
     vkCmdEndRenderPass(commandBuffers[imageIndex]);
 
-    // --- Pass 2: Bright pass ---
-    VkRenderPassBeginInfo brightPassInfo{};
-    brightPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    brightPassInfo.renderPass = bloomRenderPass;
-    brightPassInfo.framebuffer = bloomFramebuffer2;
-    brightPassInfo.renderArea.extent = swapchainExtent;
-    vkCmdBeginRenderPass(commandBuffers[imageIndex], &brightPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, brightPipeline);
-    vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, bloomPipelineLayout, 0, 1, &bloomDescriptorSet1, 0, nullptr);
-    vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
-    vkCmdEndRenderPass(commandBuffers[imageIndex]);
-
-    // --- Pass 3: Blur H ---
-    VkRenderPassBeginInfo blurPassInfo{};
-    blurPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    blurPassInfo.renderPass = bloomRenderPass;
-    blurPassInfo.framebuffer = bloomFramebuffer3;
-    blurPassInfo.renderArea.extent = swapchainExtent;
-    vkCmdBeginRenderPass(commandBuffers[imageIndex], &blurPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, blurPipeline);
-    vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, bloomPipelineLayout, 0, 1, &bloomDescriptorSet2, 0, nullptr);
-    float dirH[3] = {1.0f, 0.0f, 2.0f};
-    vkCmdPushConstants(commandBuffers[imageIndex], bloomPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(dirH), dirH);
-    vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
-    vkCmdEndRenderPass(commandBuffers[imageIndex]);
-
-    // --- Pass 4: Blur V ---
-    blurPassInfo.framebuffer = bloomFramebuffer2;
-    vkCmdBeginRenderPass(commandBuffers[imageIndex], &blurPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, blurPipeline);
-    vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, bloomPipelineLayout, 0, 1, &bloomDescriptorSet3, 0, nullptr);
-    float dirV[3] = {0.0f, 1.0f, 2.0f};
-    vkCmdPushConstants(commandBuffers[imageIndex], bloomPipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(dirV), dirV);
-    vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
-    vkCmdEndRenderPass(commandBuffers[imageIndex]);
-
-    // --- Pass 5: Composite ---
-    VkRenderPassBeginInfo compositePass{};
-    compositePass.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    compositePass.renderPass = compositeRenderPass;
-    compositePass.framebuffer = framebuffers[imageIndex];
-    compositePass.renderArea.extent = swapchainExtent;
-    VkClearValue compositeClear{{0.0f, 0.0f, 0.0f, 1.0f}};
-    compositePass.clearValueCount = 1;
-    compositePass.pClearValues = &compositeClear;
-    vkCmdBeginRenderPass(commandBuffers[imageIndex], &compositePass, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, compositePipeline);
-    vkCmdBindDescriptorSets(commandBuffers[imageIndex], VK_PIPELINE_BIND_POINT_GRAPHICS, bloomPipelineLayout, 0, 1, &compositeDescriptorSet, 0, nullptr);
-    vkCmdDraw(commandBuffers[imageIndex], 3, 1, 0, 0);
-    vkCmdEndRenderPass(commandBuffers[imageIndex]);
-
     VK_CHECK(vkEndCommandBuffer(commandBuffers[imageIndex]));
 
     VkSubmitInfo si{};
@@ -960,7 +900,7 @@ void Renderer::drawFrame() {
     pi.swapchainCount = 1;
     pi.pSwapchains = &swapchain;
     pi.pImageIndices = &imageIndex;
-    vkQueuePresentKHR(presentQueue, &pi);
+    vkQueuePresentKHR(graphicsQueue, &pi);
 }
 
 void Renderer::cleanup() {

@@ -31,12 +31,15 @@ int main(int argc, char** argv) {
         "maps/neon_arena_v2.json",
         "../maps/neon_arena_v2.json",
         "../../maps/neon_arena_v2.json",
+        "../../../maps/neon_arena_v2.json",
         "/home/tobber/neon-arena/prototypes/vulkan/maps/neon_arena_v2.json"
     };
     bool mapLoaded = false;
     for (const char* path : mapPaths) {
+        printf("Trying map path: %s\n", path);
         if (MapLoader::loadFromJSON(path, map)) {
             mapLoaded = true;
+            printf("Map loaded from: %s\n", path);
             break;
         }
     }
