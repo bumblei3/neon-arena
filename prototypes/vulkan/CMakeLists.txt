@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
 
-add_executable(neon-arena main.cpp)
+add_executable(neon-arena main.cpp game.cpp renderer.cpp)
 
 target_link_libraries(neon-arena PRIVATE
     SDL2::SDL2
