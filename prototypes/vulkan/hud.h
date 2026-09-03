@@ -2,7 +2,7 @@
 // HUD: bitmap font rendering for HP, Score, Wave
 #pragma once
 
-#include "renderer.h"
+#include "types.h" // For Vertex, HudVertex
 #include <vector>
 #include <cstring>
 
@@ -44,12 +44,6 @@ static const char* FONT[36] = {
     "101101010101101", //X
     "101101010010010", //Y
     "111001010100111"  //Z
-};
-
-struct HudVertex {
-    float pos[2];
-    float uv[2];
-    float color[3];
 };
 
 class HudRenderer {

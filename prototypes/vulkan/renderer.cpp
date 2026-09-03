@@ -706,7 +706,15 @@ void Renderer::createBloomImages() {
     ii.tiling = VK_IMAGE_TILING_OPTIMAL;
     ii.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-    auto createImageWithView = [this](VkImage& img, VkDeviceMemory& mem, VkImageView& view) {
+    VkImageViewCreateInfo ivci{};
+    ivci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    ivci.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    ivci.format = swapchainFormat;
+    ivci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    ivci.subresourceRange.levelCount = 1;
+    ivci.subresourceRange.layerCount = 1;
+
+    auto createImage = [&](VkImage& img, VkDeviceMemory& mem, VkImageView& view) {
         VK_CHECK(vkCreateImage(device, &ii, nullptr, &img));
         VkMemoryRequirements req;
         vkGetImageMemoryRequirements(device, img, &req);
@@ -716,21 +724,13 @@ void Renderer::createBloomImages() {
         ai.memoryTypeIndex = findMemoryType(req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         VK_CHECK(vkAllocateMemory(device, &ai, nullptr, &mem));
         vkBindImageMemory(device, img, mem, 0);
-
-        VkImageViewCreateInfo ivci{};
-        ivci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         ivci.image = img;
-        ivci.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        ivci.format = swapchainFormat;
-        ivci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        ivci.subresourceRange.levelCount = 1;
-        ivci.subresourceRange.layerCount = 1;
         VK_CHECK(vkCreateImageView(device, &ivci, nullptr, &view));
     };
 
-    createImageWithView(bloomImage1, bloomMemory1, bloomView1);
-    createImageWithView(bloomImage2, bloomMemory2, bloomView2);
-    createImageWithView(bloomImage3, bloomMemory3, bloomView3);
+    createImage(bloomImage1, bloomMemory1, bloomView1);
+    createImage(bloomImage2, bloomMemory2, bloomView2);
+    createImage(bloomImage3, bloomMemory3, bloomView3);
 }
 
 void Renderer::createBloomFramebuffers() {

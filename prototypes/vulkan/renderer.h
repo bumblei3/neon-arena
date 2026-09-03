@@ -22,21 +22,7 @@
         }                                                                       \
     } while (0)
 
-struct Vertex {
-    float pos[3];
-    float color[3];
-};
-
-struct HudVertex {
-    float pos[2];
-    float uv[2];
-    float color[3];
-};
-
-struct UniformBufferObject {
-    float view[16];
-    float proj[16];
-};
+#include "types.h" // For Vec3, Vertex, HudVertex, UniformBufferObject
 
 class Renderer {
 public:

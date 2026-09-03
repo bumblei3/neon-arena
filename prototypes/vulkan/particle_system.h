@@ -2,39 +2,9 @@
 // GPU particle system via compute shader
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_vulkan.h>
-#include <vulkan/vulkan.h>
-
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "types.h" // For Vertex, Vec3
 #include <vector>
-
-#define VK_CHECK(call)                                                          \
-    do {                                                                        \
-        VkResult _r = (call);                                                   \
-        if (_r != VK_SUCCESS) {                                                 \
-            fprintf(stderr, "Vulkan error %d at %s:%d\n", _r, __FILE__, __LINE__); \
-            std::exit(1);                                                       \
-        }                                                                       \
-    } while (0)
-
-struct Particle {
-    float pos[3];
-    float vel[3];
-    float life;
-    float size;
-    float color[3];
-    float padding[2]; // Align to 48 bytes (std430)
-};
-
-struct ParticleUBO {
-    float dt;
-    uint32_t count;
-    float gravity[3];
-};
+#include <cstring>
 
 class ParticleSystem {
 public:
@@ -59,8 +29,12 @@ public:
     VkPipelineLayout renderPipelineLayout = VK_NULL_HANDLE;
 
     uint32_t activeCount = 0;
+    std::vector<Vertex> vertices;
 
-    void init(VkDevice dev, VkPhysicalDevice phys, VkDescriptorPool sharedPool);
+    const std::vector<Vertex>& getVertices() const { return vertices; }
+    uint32_t getActiveCount() const { return activeCount; }
+
+    void init(VkDevice dev, VkPhysicalDevice phys);
     void cleanup();
 
     void emit(uint32_t count, const float* pos, const float* color, float spread, float speed);

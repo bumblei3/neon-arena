@@ -7,6 +7,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
 
+# SDL2_mixer may not have pkg-config, find it manually
+find_path(SDL2_MIXER_INCLUDE_DIR SDL_mixer.h PATHS /usr/include/SDL2)
+find_library(SDL2_MIXER_LIBRARY SDL2_mixer)
+
+if(NOT SDL2_MIXER_INCLUDE_DIR OR NOT SDL2_MIXER_LIBRARY)
+    message(WARNING "SDL2_mixer not found, audio will be disabled")
+    set(SDL2_MIXER_INCLUDE_DIR "")
+    set(SDL2_MIXER_LIBRARY "")
+endif()
+
 add_executable(neon-arena main.cpp game.cpp renderer.cpp hud.cpp particle_system.cpp audio.cpp map_loader.cpp)
 add_executable(compute_demo compute_demo.cpp)
 
@@ -15,9 +25,11 @@ target_link_libraries(compute_demo PRIVATE
     Vulkan::Vulkan
 )
 
+target_include_directories(neon-arena PRIVATE ${SDL2_MIXER_INCLUDE_DIR})
 target_link_libraries(neon-arena PRIVATE
     SDL2::SDL2
     Vulkan::Vulkan
+    ${SDL2_MIXER_LIBRARY}
 )
 
 # Compile GLSL to SPIR-V at build time (requires glslangValidator)
