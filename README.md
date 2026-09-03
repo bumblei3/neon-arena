@@ -46,7 +46,7 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - [Perk-Reference](docs/PERK_REFERENCE.md) — Perk-System mit allen 6 Perks
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
 - [Test-Suite](tests/TESTS.md) — 56 Tests mit CVar-Hooks
-- [CI/CD](docs/CI-engine-quake3e.md) — Build-, Test- und Release-Pipeline
+- [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
 
 ## Schnellstart (Spieler)
 
