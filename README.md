@@ -107,12 +107,20 @@ automatisch auf X11 zurück.
 
 ### Bloom-Kalibrierung (optional)
 
-Quake3e bietet zusätzliche Bloom-Cvars, die eingeschossen werden können, wenn Neon zu stark / zu schwach überblitzt:
+Quake3e bietet zusätzliche Bloom-CVars, die eingestellt werden können, wenn Neon zu stark / zu schwach überblitzt:
 
 - `r_bloom` – Bloom an/aus (1/0).
-- Je nach Quake3e-Version zusätzlich `r_bloomIntensity`, `r_bloomResolution`, `r_bloomQuality` – in der Konsole mit `seta r_bloom*` ersichtlich.
+- `r_bloom_intensity` – Endgültige Bloom-Blend-Faktor, Standard 0.5. Höher = stärkerer Bloom, niedriger = dezenterer Bloom.
+- `r_bloom_threshold` – Farb-Schwellenwert für die Bloom-Extraktion, Standard 0.6. Höher = weniger Bloom, niedriger = stärkerer Bloom.
+- `r_bloom_modulate` – Farbmodulation: 0 = aus (Standard), 1 = self-modulate (color × color), 2 = Intensity-modulate (color × luma).
+- `r_bloom_threshold_mode` – Extraktionsmodus: 0 = beliebiger Kanal ≥ Schwellenwert, 1 = Durchschnitt ≥ Schwellenwert, 2 = Luminanz ≥ Schwellenwert.
 
-Empfehlung: erst mit `r_bloom 1` spielen, dann nur nachregulieren, wenn konkrete Elemente (z. B. Rail-Impact, Vignette, HUD) über- oder unterbelichtet wirken.
+Weitere Grafik-CVars:
+
+- `r_ext_multisample` – MSAA Anti-Aliasing (0/2/4/6/8). Bessert Kanten in geometrischen Details (Grid-Linien, Wände).
+- `r_hdr` – HDR-Framebuffer (0/1). 16-bit Farbtiefe, bessere Bloom-Precision, aber schlechtere Performance.
+
+Empfehlung: erst mit `r_bloom 1` spielen, dann nur nachregulieren, wenn konkrete Elemente (z.B. Rail-Impact, Vignette, HUD) über- oder unterbelichtet wirken.
 
 ### Kompatibilitäts-Checkliste (Look-Pack + Bloom)
 
