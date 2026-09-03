@@ -153,6 +153,66 @@ static const char* blurFragSrc = R"(
     }
 )";
 
+static const char* groundVertSrc = R"(
+    #version 330 core
+    layout(location = 0) in vec3 aPos;
+    layout(location = 1) in vec3 aNormal;
+    layout(location = 2) in vec3 aColor;
+    layout(location = 3) in vec2 aUV;
+    uniform mat4 proj;
+    uniform mat4 view;
+    uniform mat4 model;
+    out vec2 vUV;
+    out vec3 vWorldPos;
+    void main() {
+        vec4 worldPos = model * vec4(aPos, 1.0);
+        gl_Position = proj * view * worldPos;
+        vUV = aUV;
+        vWorldPos = worldPos.xyz;
+    }
+)";
+
+static const char* groundFragSrc = R"(
+    #version 330 core
+    in vec2 vUV;
+    in vec3 vWorldPos;
+    out vec4 FragColor;
+    uniform float time;
+    void main() {
+        vec2 uv = vUV * 20.0;
+        
+        // Plasma effect
+        float plasma = 0.0;
+        plasma += sin(uv.x * 0.5 + time * 0.5);
+        plasma += sin(uv.y * 0.3 + time * 0.7);
+        plasma += sin((uv.x + uv.y) * 0.4 + time * 0.6);
+        plasma += sin(length(uv - vec2(10.0, 10.0)) * 0.5 - time * 0.8);
+        plasma = plasma * 0.25;
+        
+        // Neon color palette (cyan, magenta, purple)
+        vec3 col1 = vec3(0.0, 0.8, 1.0);  // Cyan
+        vec3 col2 = vec3(1.0, 0.0, 0.8);  // Magenta
+        vec3 col3 = vec3(0.4, 0.0, 1.0);  // Purple
+        
+        float t = plasma * 0.5 + 0.5;
+        vec3 color = mix(col1, col2, smoothstep(0.0, 0.5, t));
+        color = mix(color, col3, smoothstep(0.5, 1.0, t));
+        
+        // Grid overlay
+        vec2 grid = abs(fract(uv) - 0.5);
+        float gridLine = min(grid.x, grid.y);
+        float gridGlow = 1.0 - smoothstep(0.0, 0.05, gridLine);
+        color += vec3(0.0, 0.6, 0.8) * gridGlow * 0.3;
+        
+        // Distance fade
+        float dist = length(vWorldPos.xz);
+        float fade = 1.0 / (1.0 + dist * 0.02);
+        color *= fade;
+        
+        FragColor = vec4(color, 1.0);
+    }
+)";
+
 static const char* compositeFragSrc = R"(
     #version 330 core
     in vec2 vTexCoord;
@@ -262,6 +322,12 @@ bool Renderer::init(SDL_Window* window, int w, int h) {
         return false;
     }
 
+    groundShader = new Shader();
+    if (!groundShader->load(groundVertSrc, groundFragSrc)) {
+        fprintf(stderr, "Failed to load ground shader\n");
+        return false;
+    }
+
     setupVBOs();
     setupBloom();
 
@@ -302,6 +368,8 @@ void Renderer::setupVBOs() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, u));
     glBindVertexArray(0);
 
     // Quad VAO
@@ -316,6 +384,8 @@ void Renderer::setupVBOs() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, u));
     glBindVertexArray(0);
 }
 
@@ -537,6 +607,43 @@ void Renderer::drawParticles(const Particle* particles, int count) {
 
     glDisable(GL_PROGRAM_POINT_SIZE);
     glDisable(GL_POINT_SPRITE);
+    glBindVertexArray(0);
+}
+
+void Renderer::drawGround(float time) {
+    // Draw a large ground quad with plasma shader
+    float s = 80.0f;
+    Vec3 up(0, 1, 0);
+    Vertex verts[] = {
+        Vertex(Vec3(-s, 0, -s), up, Vec3(0, 0, 0), 0, 0),
+        Vertex(Vec3( s, 0, -s), up, Vec3(0, 0, 0), 1, 0),
+        Vertex(Vec3( s, 0,  s), up, Vec3(0, 0, 0), 1, 1),
+        Vertex(Vec3(-s, 0,  s), up, Vec3(0, 0, 0), 0, 1),
+    };
+
+    Mat4 model(true);
+    groundShader->use();
+    groundShader->setMat4("proj", projection.ptr());
+    groundShader->setMat4("view", view.ptr());
+    groundShader->setMat4("model", model.ptr());
+    groundShader->setFloat("time", time);
+
+    glBindVertexArray(VAOVertex);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOVertex);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * 4, verts);
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, u));
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glBindVertexArray(0);
 }
 

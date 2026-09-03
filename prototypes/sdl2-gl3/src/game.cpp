@@ -400,27 +400,8 @@ void Game::renderParticles() {
 }
 
 void Game::renderArena() {
-    // Draw arena floor grid with distance-based glow
-    Vec3 eye = player.pos;
-    for (int i = -10; i <= 10; i++) {
-        float pos = i * 4.0f;
-        // X lines
-        Vec3 midX(0, 0, pos);
-        float distX = (midX - eye).length();
-        float glowX = 1.0f / (1.0f + distX * 0.05f);
-        Vec3 gridColorX(0.0f, 0.4f * glowX, 0.8f * glowX);
-        Vertex v1(Vec3(-arenaSize, 0, pos), gridColorX);
-        Vertex v2(Vec3(arenaSize, 0, pos), gridColorX);
-        renderer_->drawLineLoop(&v1, 2, gridColorX);
-        // Z lines
-        Vec3 midZ(pos, 0, 0);
-        float distZ = (midZ - eye).length();
-        float glowZ = 1.0f / (1.0f + distZ * 0.05f);
-        Vec3 gridColorZ(0.0f, 0.4f * glowZ, 0.8f * glowZ);
-        Vertex v3(Vec3(pos, 0, -arenaSize), gridColorZ);
-        Vertex v4(Vec3(pos, 0, arenaSize), gridColorZ);
-        renderer_->drawLineLoop(&v3, 2, gridColorZ);
-    }
+    // Draw plasma ground
+    renderer_->drawGround(gameTime);
 
     // Draw arena walls (neon cyan)
     Vec3 wallColor(0.0f, 0.8f, 1.0f);

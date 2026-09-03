@@ -11,7 +11,9 @@ struct Vertex {
     Vec3 pos;
     Vec3 normal;
     Vec3 color;
-    Vertex(Vec3 p = {}, Vec3 n = {}, Vec3 c = {}) : pos(p), normal(n), color(c) {}
+    float u, v;
+    Vertex(Vec3 p = {}, Vec3 n = {}, Vec3 c = {}, float u = 0, float v = 0)
+        : pos(p), normal(n), color(c), u(u), v(v) {}
 };
 
 class Renderer {
@@ -28,6 +30,8 @@ public:
     void drawTriangles(const Vertex* verts, int count, const Vec3& color);
     void drawQuad(const Vertex* verts);
     void drawParticles(const Particle* particles, int count);
+
+    void drawGround(float time);
 
     void clear(float r, float g, float b, float a = 1.0f);
 
@@ -58,6 +62,7 @@ private:
     Shader* brightPassShader = nullptr;
     Shader* blurShader = nullptr;
     Shader* compositeShader = nullptr;
+    Shader* groundShader = nullptr;
 
     // Bloom framebuffer
     unsigned int fbo = 0;
