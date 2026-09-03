@@ -13,16 +13,15 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - **Waffen-Identität:** Spawn mit Railgun + Lightning Gun + Gauntlet. Andere
   Waffen-Pickups werden ignoriert – Rail/LG-Pickups dienen als Ammo-Nachschub.
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
-- **Wellen-Modifier** (ab Welle 5, nicht in Boss-Wellen): **GLASS DRONES**
-  (1 Treffer tot, aber aggressiver), **SWARM** (doppelte Drone-Zahl),
-  **LOW GRAVITY**, **DOUBLE POINTS**, **TIME WARP**, **VAMPIRE**, **FRENZY**,
-  **OVERSHIELD**, **MIRROR**, **REGEN**, **SURGE**, **FROST**, **CHAOS**.
-  Wird per Centerprint angesagt.
+- **Wellen-Modifier** (ab Welle 5, auch in Boss-Wellen): 14 Modifier mit
+  Synergie-/Anti-Synergie-System (ab Welle 8). Siehe [Modifier-Reference](docs/MODIFIER_REFERENCE.md).
 - **Combo-System:** Kills innerhalb von 3 s ketten sich zu einer Serie.
   Ab Best-Serie 5 gibt es Bonus-Upgrade-Punkte (+1 pro weitere 5er-Stufe).
 - **Upgrade-System:** Gesammelte Punkte in der Pause ausgeben —
-  F1 = HP (bis 6), F2 = DMG (bis 5, +10 %/Level), F3 = SPD (bis 5).
+  F1 = HP (bis 8), F2 = DMG (bis 7, +10 %/Level), F3 = SPD (bis 7).
   HUD zeigt Punkte + Level live.
+- **Perk-System:** 3 Angebote pro Pause, F1/F2/F3 wählen. 6 Perks:
+  PIERCE, OVERCHARGE, CHAIN, SKIP, SECOND WIND, MIRROR.
 - **Run-Statistik & End-Screen:** Bei Victory/Game Over Overlay mit
   überlebten Wellen, Kills, bester Combo und Laufzeit.
 - **Benannte Drones:** Killfeed zeigt `Drone W3-1` statt `sarge`.
@@ -30,20 +29,23 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
   Rail/LG-Ammo an deiner Position.
 - **Highscore:** Beste Welle persistent (`g_neonwave_best`). Game-Over-Screen
   mit Welle/Best; FIRE startet neu.
+- **Daily Challenge:** Gleicher Tag = gleiche Herausforderung (FNV-1a-Hash
+  über Datum bestimmt Boss-Rotation und Modifier-Reihenfolge).
 - **Wellen-Jingles:** Sound-Signal bei Wellenstart und -clear.
 - **Neon-Look:** Dunkle Skybox, Neon-Grid auf oa_shine, Cyan-Rail/LG mit D-Lights,
   Drohnen-Cyan-Shell (Boss magenta), Rail-Impact-Burst, LG-Sparks, Muzzle-Flare,
   pulsierende Boss-Gefahr-Vignette, Energy statt Blut, Vignette-HUD.
+- **Coop:** Bis 4 Spieler, Wave-Clear erfordert alle Drones tot + mindestens
+  ein Human lebt. Tote Spieler respawnen am Wellenstart.
 
-## Test-Hooks (Headless/CI)
+## Dokumentation
 
-- `g_neonwave_autostart 1` — Wellen starten ohne menschlichen Spieler
-- `g_neonwave_startwave N` — erzwingt Start bei Welle N (fire-once)
-- `g_neonwave_autokill 1` — tötet alle Drones jeden Frame (Auto-Durchlauf)
-- `g_neonwave_fastbreak 1` — 500 ms statt 12 s Wellenpause
-
-Der CI-Workflow spielt damit eine komplette 20-Wellen-Partie headless durch
-und prüft Victory, Highscore und Upgrade-Punkte-Ökonomie.
+- [Boss-Reference](docs/BOSS_REFERENCE.md) — Alle 7 Boss-Typen mit Phase-2-Verhalten
+- [Modifier-Reference](docs/MODIFIER_REFERENCE.md) — Alle 14 Modifier + Synergien
+- [Perk-Reference](docs/PERK_REFERENCE.md) — Perk-System mit allen 6 Perks
+- [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
+- [Test-Suite](tests/TESTS.md) — 56 Tests mit CVar-Hooks
+- [CI/CD](docs/CI-engine-quake3e.md) — Build-, Test- und Release-Pipeline
 
 ## Schnellstart (Spieler)
 
@@ -154,28 +156,6 @@ Voraussetzungen: `build-essential`, `bison`, `flex`, `zip` (+ installiertes
 OpenArena zum Testen).
 
 ```sh
-git clone https://github.com/OpenArena/gamecode.git oa-gamecode
-cd oa-gamecode
-for p in ../patches/0*.patch ../patches/1*.patch ../patches/2*.patch; do
-  git apply --recount --whitespace=fix "$p"
-done
-cp ../patches/g_neonwave.c code/game/
-cp ../Makefile.local .
-make          # QVMs + native Module
-cd ..
-./build-mod.sh  # installiert nach ~/.openarena/neonarena/ + packt Look-PK3
-```
-
-(Hinweis: `engine-quake3e-oa.patch` ist kein Mod-Patch — er wird nur beim
-Quake3e-Engine-Build angewendet, siehe Workflow `engine-quake3e.yml`.)
-
-### Gamecode-Submodule (seit v0.13)
-
-Der Mod-Gamecode lebt im eigenen Repo **bumblei3/oa-gamecode** und ist als
-Git-Submodule unter `oa-gamecode/` eingebunden. Der Submodule-Commit PINNT
-die exakte Gamecode-Version — kein Patch-Drift mehr.
-
-```sh
 git clone --recurse-submodules https://github.com/bumblei3/neon-arena.git
 cd neon-arena && ./build-mod.sh   # baut + installiert nach ~/.openarena/neonarena
 ```
@@ -184,189 +164,36 @@ Gamecode-Änderungen werden **im Submodule** committed und gepusht
 (`cd oa-gamecode && git push`), danach der neue Stand im Parent-Repo
 festgehalten (`git add oa-gamecode && git commit`).
 
-Historie: Bis v0.12 wurde der Gamecode per Patch-Serie auf den
-OpenArena-Upstream angewandt. Diese Serie (inkorrekter Hunk-Zähler,
-kumulativer 280er-Patch) ist seit dem Submodule-Ansatz obsolet und liegt
-archiviert im Branch `archive/patches`.
+### Build-System
 
-### v0.5-Highlights
+- `build-mod.sh` — baut QVMs + native Module, installiert nach `~/.openarena/neonarena/`
+- `Makefile.local` — Build-Konfiguration (NEONARENA_MOD, lcc-Toolchain)
+- `oa-gamecode/Makefile` — OpenArena-Makefile mit NeonArena-Erweiterungen
 
-- **Boss-Railgun:** Der BOSS-W10+-Drone spawnt mit Railgun (999 Ammo) statt MG.
-- **Boss-Healthbar:** Magenta Balken im HUD, live über den Configstring.
-- **Upgrades:** Nur in der Wellen-Pause. **F1** +HP, **F2** +DMG, **F3** +SPEED
-  (oder `upgrade hp|dmg|speed`). 1 Punkt pro Clear, 2 auf Boss-Wellen.
-  +25 MaxHP (max 6), +10% Damage (max 5), +5% Speed (max 5).
+### Code-Struktur
 
-### v0.8-Highlights (Replay-Wert)
-
-- **Wellen-Modifier:** ab Welle 5 rotieren GLASS DRONES / SWARM / LOW GRAVITY /
-  DOUBLE POINTS durch die Normalwellen (Boss-Wellen ausgenommen).
-- **Combos:** Kill-Serien innerhalb von 3 s; ab Best-Serie 5 Bonus-Upgrade-Punkte.
-- **End-Screen:** Waves / Kills / Best Combo / Zeit bei Victory und Game Over.
-
-### v0.9-Highlights (Modi & Bosse)
-
-- **Endless Mode:** `g_neonwave_maxwave 0` (Standard) = klassische 20 Wellen;
-  höherer Wert = mehr Wellen mit weiter wachsender Bot-Zahl. Victory bei der
-  gesetzten Zielwelle.
-- **Time Attack:** Bei jedem Sieg wird die Laufzeit gegen `g_neonwave_besttime`
-  getauscht — `NEW BEST TIME` im Log/HUD.
-- **Boss-Vielfalt:** SNIPER (Rail, 4× HP), TANK (MG-Spam, 6× HP, 40 % langsamer),
-  SWARM MOTHER (Rail + spawnt alle 10 s Mini-Drones) — rotieren pro Boss-Welle,
-  Test-Hook `g_neonwave_bosstype 1..3`.
-- **Boss-Kill-Bonus:** +3 Upgrade-Punkte pro bezwungenem Boss.
-
-### v0.13-Highlights
-
-- **GLASS CANNON (Boss #4):** schnell (140 % Speed), nur 2× HP, Railgun —
-  fragile Gefahr. Rotiert ab der 4. Boss-Welle in den Zyklus;
-  Test-Hook `g_neonwave_bosstype 4`.
-- **Mega-Combo-Reward:** Best-Serie ≥ 8 droppt einen Quad-Damage-Pickup
-  beim Wellen-Abschluss.
-- **Combo-Bonus-Fix:** Run-Best-Serie überlebt Bot-Disconnects (globaler
-  Tracker) — der ≥5-Bonus greift jetzt zuverlässig auch headless.
-- **Gamecode als Submodule** (`bumblei3/oa-gamecode`): gepinnte Versionen,
-  CI baut direkt aus dem getaggten Stand; Patch-Serie archiviert.
-- **Suite 50 Fälle** (1–50 inkl. 9b) unter ioq3ded, plus CI-Gates verify_catalog + GAMEVERSION-Drift.
-
-### v0.12-Highlights (Juice)
-
-- **Combo-Sounds:** Pentatonik-Synth-Blips (C5→E6) pro Combo-Stufe 1–8 —
-  jede höhere Stufe klingt höher, nur beim Aufsteigen der Serie.
-- **Boss-Hit-Shake:** Screenshake (180 ms, decaying) bei Boss-Treffern,
-  serverseitig rate-limitet (400 ms).
-- **NEW-RECORD-Fanfare:** Arpeggio-Jingle einmalig pro Lauf, wenn neue
-  Bestwerte (Welle/Zeit) erreicht werden.
-- **Test-Suite 13/13 grün unter ioq3ded** (dedicated-Headless): FFA-Fix
-  für GT_NEONWAVE, entkoppelter failrun-Hook, Mini-Drone-Cap angehoben,
-  Cvar-Reset deckt `q3config_server.cfg` ab.
-
-### v0.14-Highlights (Daily Challenge)
-
-- **DAILY CHALLENGE:** `g_neonwave_daily 1` aktiviert den Tagesmodus — ein
-  FNV-1a-Hash über das Datum (YYYY-MM-DD) leitet Boss-Rotation und
-  Modifier-Reihenfolge ab. Gleicher Tag = gleiche Herausforderung für alle.
-  Eigener Records-File (`neonwave_daily_records.dat`), normale Bestwerte
-  bleiben unberührt. Test-Hook `g_neonwave_dailyseed N` erzwingt einen Seed
-  (Suite-Test 15 verifiziert die Determinismus).
-- Ohne `g_neonwave_daily` ändert sich nichts — Standardverhalten unverändert.
-
-### v0.15-Highlights (WARDEN)
-
-- **WARDEN (Boss #5):** teleportiert periodisch IN die Spielerzone
-  (offensiver Gegenentwurf zum SNIPER-Dash) und hat danach eine kurze
-  Armor-Phase (3 s). 5× HP (hc 500). Rotiert ab der 5. Boss-Welle in den
-  Zyklus; Test-Hooks `g_neonwave_bosstype 5` und `g_neonwave_wardenforce 1`
-  (erzwingt den Strike deterministisch, Suite-Test 16).
-
-### v0.16–v0.26 (kurz)
-
-- **Dynamic Difficulty** (v0.16), **TIME WARP** (v0.19), Run-Stats JSON +
-  `tools/neon-stats.py` (v0.21), persistente Achievements (v0.22),
-  Background-Synth (v0.23), **Hardcore** (v0.24), **VAMPIRE** (v0.25),
-  **FRENZY** + **OVERSHIELD** (v0.26).
-
-### v0.27-Highlights (Reveal)
-
-- **Voller Modifier-Pool:** Rotation über alle 8 (nicht nur die ersten 5).
-  Modifier laufen von Welle 5 bis max−1, **auch auf Boss-Wellen**. Daily
-  verschiebt den Start (`offset % 8`).
-- **Boss-Zyklus 5:** Ab Welle 10 ein Schritt pro Welle —
-  SNIPER → TANK → SWARM MOTHER → GLASS CANNON → WARDEN. Daily `% 5`.
-- **HUD:** eigene Kantenfarben für TIME WARP / VAMPIRE / FRENZY / OVERSHIELD;
-  Boss-Healthbar zeigt den **Namen**.
-- **Achievements:** COMBOMASTER (Combo ≥ 12), SPEEDRUNNER (Victory ≤ 300 s),
-  HARDCORE (Victory im Hardcore). Suite-Tests 24–26.
-- **Start:** `scripts/start-quake3e.sh --daily` und `--hardcore`.
-
-### v0.28-Highlights (Builds)
-
-- **Perk-Karten in der Wellenpause:** F1/F2/F3 wählen eine von 3 Angeboten
-  statt immer HP/DMG/SPD. Pool: **PIERCE** (Rail durch mehr Drones),
-  **CHAIN** (LG springt), **DASH** (1.5 s Speed nach Wellenstart),
-  **OVERCHARGE** (nächste Welle härter, weniger HP), **SECOND WIND**
-  (ein Tod abfangen), **SKIP** (nächste Welle ohne Modifier).
-- PIERCE/CHAIN stackbar bis 2, Rest 1 Charge. 1 Punkt = 1 Karte.
-- Test-Hooks: `g_neonwave_perkforce 123` (PIERCE/CHAIN/DASH), `g_neonwave_autopick 1`.
-- Legacy `upgrade hp|dmg|speed` bleibt in der Konsole.
-
-### v0.29-Highlights (Shop)
-
-- Wellenpause **12 s**. Drei Perk-Karten mit Name, Effektzeile und F-Taste.
-- Countdown **NEXT WAVE IN N**, gewählte Karte flasht + Combo-Sound.
-- `g_neonwave_fastbreak 1` bleibt 500 ms (CI).
-
-### v0.30-Highlights (Combat Juice)
-
-- **CHAIN:** sichtbarer LG-Bolt zum Jump-Ziel (`EV_LIGHTNINGBOLT`).
-- **PIERCE:** zweiter Rail-Trail + kurzer Cyan-Flash bei Multi-Hit (≥2).
-- **DASH:** Cyan-Kanten + FOV-Kick für 1.5 s nach Wellenstart.
-- **OVERCHARGE / SECOND WIND:** magenta- bzw. goldener Screen-Flash.
-
-### v0.31-Highlights (Arenas)
-
-- Neon-Grid + dunkle Sky auf **`oa_minia`** und **`oa_rpg3dm2`** (neben `oa_shine`).
-- **Daily** wählt die Map per Datum-Hash: `oa_shine` / `oa_minia` / `oa_rpg3dm2`.
-  HUD zeigt `MAP <name>`. Start: `scripts/start-quake3e.sh --daily`
-  (oder `--map oa_minia` zum Erzwingen). Standard-Run bleibt `oa_shine`.
-
-- **Named-Pair-Effekte:** Der zweite Modifier-Slot (ab Welle 8) ändert jetzt
-  Zahlen, nicht nur den Log. AERIAL ASSAULT (Low Grav + Double Points) →
-  gravity 280 / x3 Punkte. BLOOD WELL → Lifesteal 8. OVERDRIVE → quadfactor 6.
-  HIVE MIRROR → Reflect 1/2. SHIELD BLEED → Overshield 25 + Lifesteal 2.
-  DRIFT LOCK → speed 400 / gravity 600. HUD zeigt den Paar-Namen.
-- **Daily/Hardcore locken Adaptive Difficulty.** Dieselbe Daily-Seed-Challenge
-  für alle; Hardcore wird nicht durch Deaths weicher. Test 44.
-- Modifier in **beiden Slots** wirken (DOUBLEPTS/SURGE/VAMPIRE/GLASS waren
-  vorher nur Slot 1). Vampire-Heal hängt auch an echten Drone-Kills, nicht
-  nur am Autokill-Hook.
-
-### v0.40-Highlights (Coop & Content)
-
-- **Coop Wave-Clear:** Welle endet erst wenn alle Drones tot UND mindestens ein Human lebt.
-- **Coop Respawn:** Tote Spieler respawnen bei Wellenstart mit vollem HP/Armor.
-- **Coop Skalierung:** `g_neonwave_coopdifficulty` (1=einfach, 2=normal, 3=viel Drones/Skill).
-- **FROST Modifier (12):** Verlangsamt Spieler (g_speed 220), frostige Drones.
-- **CHAOS Modifier (13):** Zufälliger Skill pro Drone — jede Welle unvorhersehbar.
-- **BERSERKER Boss (#6):** Rotiert ab Welle 15, Rage bei unter 30% HP, 700 HC.
-- **Test-Suite 50 Fälle** (1–50 inkl. 9b).
-- **GAMEVERSION 0.40.**
-
-## CI
-
-`.github/workflows/build-mod.yml` baut bei jedem Push den Mod (Gamecode-Submodul)
-und führt `tests/run_suite.sh` aus: Quick-Subset auf `main`-Pushes, volle Suite
-(Tests 1–50 inkl. 9b, 50 Fälle) auf Tags und manuellem Dispatch.
-
-Zusätzlich baut `.github/workflows/engine-quake3e.yml` die Quake3e-Engine
-(OpenGL2+Vulkan, Bloom) als optionales Binary-Artifact.
-Tag-Pushes erzeugen Releases.
-
-## Dokumentation
-
-Zusätzliche technische Dokumentation und Testdetails liegen im Verzeichnis [`references/`](references/):
-
-- `references/test-harness.md` — Test-Harness-Details, Payload-Parsing, Flaky-Tests
-- `references/build-test-release.md` — Build, Install, Dist, Release-Gate
-- `references/parallel-suite.md` — Parallelisierung (`--parallel N`)
-- `references/runstats-json.md` — Run-Statistiken JSON-Schema und Tooling
-- `references/background-music.md` — Sound-Assets und lokale Synthese
-
-Die Test-Katalogtabelle (alle 50 Fälle, 1–50 inkl. 9b) befindet sich in `tests/TESTS.md`.
-
-Das Skript `tests/verify_catalog.py` prüft vor jedem Testlauf (lokal und in CI),
-dass jede Nummer aus `ALL_TESTS` und `QUICK_TESTS` eine `dispatch_test()`-Case hat
-und dass `TESTS.md` jeden Eintrag dokumentiert. Es wird in CI als Pre-Flight-Schritt
-vor der Testsuite ausgeführt (siehe `.github/workflows/build-mod.yml`).
-Ein Aufruf `python3 tests/verify_catalog.py` klärt lokal, ob Katalog und Suite im Sync sind.
-
-### SDL2-Prototyp (`prototypes/sdl2/main.cpp`)
-
-Ein eigener Minimal-FPS (C++/SDL2/OpenGL, eingefroren – der OA-Mod ist der
-aktive Entwicklungspfad):
-
-```sh
-cd prototypes/sdl2 && make && ./neon-arena
+```
+oa-gamecode/
+├── code/game/
+│   ├── g_neonwave.c      # Hauptlogik (Waves, Modifier, Boss, Perks, Records)
+│   ├── g_neonwave.h      # Defines (NW_MOD_*, NW_BOSS_*, NW_PERK_*)
+│   ├── g_cmds.c          # Upgrade-Kommando (upgrade hp|dmg|speed)
+│   └── g_main.c          # CVar-Registrierungen
+└── code/cgame/
+    └── cg_draw.c         # HUD, Modifier-Anzeige, Codex
 ```
 
-WASD bewegen · Maus umsehen · Linksklick/Space schießen · ESC Ende.
+Siehe [Architektur](docs/ARCHITECTURE.md) für Details.
+
+### Releases
+
+Ein Tag `v*` triggert automatisch:
+1. Build der QVMs und PK3-Dateien
+2. Vollständige Test-Suite (56 Tests)
+3. Erstellung eines GitHub Releases mit `neonarena.pk3` und `neonarena-qvm.pk3`
+
+GAMEVERSION in `code/game/g_local.h` muss mit dem Tag übereinstimmen.
+
+## Lizenz
+
+GNU GPL v2 (kompatibel mit OpenArena).
