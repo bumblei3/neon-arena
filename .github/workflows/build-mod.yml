@@ -7,6 +7,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 # one run per ref: supersede in-progress runs on rapid pushes
 concurrency:
   group: build-mod-${{ github.ref }}
@@ -16,8 +19,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 90
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v7
         with:
