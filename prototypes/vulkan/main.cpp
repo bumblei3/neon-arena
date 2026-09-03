@@ -3,6 +3,7 @@
 #include "renderer.h"
 #include "game.h"
 #include "hud.h"
+#include "particle_system.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -11,8 +12,10 @@
 int main(int argc, char** argv) {
     (void)argc; (void)argv;
 
-    Renderer r;
+    ParticleSystem particles;
+
     r.init();
+    particles.init(r.device, r.physicalDevice);
 
     Game game;
     HudRenderer hud;
@@ -81,7 +84,15 @@ int main(int argc, char** argv) {
         hud.buildHud(game.hp, game.score, game.wave, Renderer::WIDTH, Renderer::HEIGHT);
         r.updateHud(hud.getVertices());
 
-        // Update uniform buffer
+        // Update particles
+        particles.update(dt);
+        
+        // Emit particles on shoot (simplified: emit at player position)
+        if (game.keySpace) {
+            float pos[3] = {game.px, 1.5f, game.pz};
+            float color[3] = {0.2f, 1.0f, 1.0f};
+            particles.emit(5, pos, color, 0.5f, 5.0f);
+        }
         UniformBufferObject ubo{};
         game.getViewMatrix(ubo.view);
         game.getProjMatrix(ubo.proj, (float)Renderer::WIDTH / (float)Renderer::HEIGHT);
