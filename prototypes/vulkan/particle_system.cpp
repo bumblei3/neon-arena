@@ -1,25 +1,35 @@
 // NEON ARENA - Vulkan + SDL2 Prototype
 // Particle system: CPU update, GPU point rendering
 #include "particle_system.h"
+#include "types.h"
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
+#include <cstdint>
+#include <cstdio>
+#include <vulkan/vulkan.h>
+
+#define VK_CHECK(call)                                                          \
+    do {                                                                        \
+        VkResult _r = (call);                                                   \
+        if (_r != VK_SUCCESS) {                                                 \
+            fprintf(stderr, "Vulkan error %d at %s:%d\n", _r, __FILE__, __LINE__); \
+            std::exit(1);                                                       \
+        }                                                                       \
+    } while (0)
 
 void ParticleSystem::init(VkDevice dev, VkPhysicalDevice phys) {
     device = dev;
     physicalDevice = phys;
 
-    // Create particle buffer
     VkDeviceSize bufferSize = MAX_PARTICLES * sizeof(Particle);
     createBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                  particleBuffer, particleBufferMemory);
 
-    // Initialize particles to dead
     void* data;
     vkMapMemory(device, particleBufferMemory, 0, bufferSize, 0, &data);
-    Particle* particles = static_cast<Particle*>(data);
-    memset(particles, 0, bufferSize);
+    memset(data, 0, bufferSize);
     vkUnmapMemory(device, particleBufferMemory);
 }
 
@@ -59,7 +69,6 @@ void ParticleSystem::emit(uint32_t count, const float* pos, const float* color, 
     Particle* particles = static_cast<Particle*>(data);
 
     uint32_t emitted = 0;
-    activeCount = 0;
     for (uint32_t i = 0; i < MAX_PARTICLES && emitted < count; i++) {
         if (particles[i].life <= 0.0f) {
             particles[i].pos[0] = pos[0] + ((rand() % 1000) / 1000.0f - 0.5f) * spread;
