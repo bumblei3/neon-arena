@@ -1,10 +1,11 @@
 // NEON ARENA - Vulkan + SDL2 Prototype
-// Main: bootstrap, game loop, input, audio
+// Main: bootstrap, game loop, input, audio, map loading
 #include "renderer.h"
 #include "game.h"
 #include "hud.h"
 #include "particle_system.h"
 #include "audio.h"
+#include "map_loader.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -23,6 +24,12 @@ int main(int argc, char** argv) {
 
     Game game;
     HudRenderer hud;
+    
+    // Load map once before game loop
+    MapData map;
+    MapLoader::generateDefaultArena(map);
+    auto mapGeometry = MapLoader::extractGeometry(map);
+    
     bool running = true;
 
     Uint64 prev = SDL_GetPerformanceCounter();
@@ -81,8 +88,8 @@ int main(int argc, char** argv) {
         lines.insert(lines.end(), tracers.begin(), tracers.end());
         r.updateLines(lines);
 
-        // Triangles: enemies + sparks
-        std::vector<Vertex> tris;
+        // Triangles: map + enemies + sparks
+        std::vector<Vertex> tris = mapGeometry;
         tris.insert(tris.end(), enemies.begin(), enemies.end());
         tris.insert(tris.end(), sparks.begin(), sparks.end());
         r.updateTriangles(tris);
