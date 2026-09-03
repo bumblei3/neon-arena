@@ -2,6 +2,7 @@
 // Main: bootstrap, game loop, input
 #include "renderer.h"
 #include "game.h"
+#include "hud.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -14,6 +15,7 @@ int main(int argc, char** argv) {
     r.init();
 
     Game game;
+    HudRenderer hud;
     bool running = true;
 
     Uint64 prev = SDL_GetPerformanceCounter();
@@ -74,6 +76,10 @@ int main(int argc, char** argv) {
         tris.insert(tris.end(), enemies.begin(), enemies.end());
         tris.insert(tris.end(), sparks.begin(), sparks.end());
         r.updateTriangles(tris);
+
+        // HUD
+        hud.buildHud(game.hp, game.score, game.wave, Renderer::WIDTH, Renderer::HEIGHT);
+        r.updateHud(hud.getVertices());
 
         // Update uniform buffer
         UniformBufferObject ubo{};

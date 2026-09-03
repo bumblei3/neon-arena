@@ -27,6 +27,12 @@ struct Vertex {
     float color[3];
 };
 
+struct HudVertex {
+    float pos[2];
+    float uv[2];
+    float color[3];
+};
+
 struct UniformBufferObject {
     float view[16];
     float proj[16];
@@ -54,6 +60,7 @@ public:
     VkPipeline brightPipeline = VK_NULL_HANDLE;
     VkPipeline blurPipeline = VK_NULL_HANDLE;
     VkPipeline compositePipeline = VK_NULL_HANDLE;
+    VkPipeline hudPipeline = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> framebuffers;
     VkCommandPool commandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> commandBuffers;
@@ -68,21 +75,25 @@ public:
     VkDeviceMemory triangleBufferMemory = VK_NULL_HANDLE;
     VkBuffer lineBuffer = VK_NULL_HANDLE;
     VkDeviceMemory lineBufferMemory = VK_NULL_HANDLE;
+    VkBuffer hudBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory hudBufferMemory = VK_NULL_HANDLE;
     VkBuffer uniformBuffer = VK_NULL_HANDLE;
     VkDeviceMemory uniformBufferMemory = VK_NULL_HANDLE;
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
     std::vector<VkDescriptorSet> descriptorSets;
 
+    // HUD resources
+    VkPipelineLayout hudPipelineLayout = VK_NULL_HANDLE;
+
     // Bloom resources
     VkImage bloomImage1 = VK_NULL_HANDLE;
     VkDeviceMemory bloomMemory1 = VK_NULL_HANDLE;
     VkImageView bloomView1 = VK_NULL_HANDLE;
-    VkImage bloomImage3 = VK_NULL_HANDLE;
-    VkDeviceMemory bloomMemory3 = VK_NULL_HANDLE;
-    VkImageView bloomView3 = VK_NULL_HANDLE;
+    VkImage bloomImage2 = VK_NULL_HANDLE;
+    VkDeviceMemory bloomMemory2 = VK_NULL_HANDLE;
+    VkImageView bloomView2 = VK_NULL_HANDLE;
     VkFramebuffer bloomFramebuffer1 = VK_NULL_HANDLE;
     VkFramebuffer bloomFramebuffer2 = VK_NULL_HANDLE;
-    VkFramebuffer compositeFramebuffer = VK_NULL_HANDLE;
     VkRenderPass bloomRenderPass = VK_NULL_HANDLE;
     VkDescriptorSetLayout bloomDescriptorSetLayout = VK_NULL_HANDLE;
     VkPipelineLayout bloomPipelineLayout = VK_NULL_HANDLE;
@@ -92,14 +103,20 @@ public:
     VkDescriptorSet compositeDescriptorSet = VK_NULL_HANDLE;
     VkSampler textureSampler = VK_NULL_HANDLE;
 
+    uint32_t triangleVerts_ = 0;
+    uint32_t lineVerts_ = 0;
+    uint32_t hudVerts_ = 0;
+
     static const int WIDTH = 1280;
     static const int HEIGHT = 720;
-    static const VkDeviceSize MAX_VERTICES = 1024 * 1024; // 1M vertices max
+    static const VkDeviceSize MAX_VERTICES = 1024 * 1024;
+    static const VkDeviceSize MAX_HUD_VERTICES = 65536;
 
     void init();
     void cleanup();
     void updateTriangles(const std::vector<Vertex>& verts);
     void updateLines(const std::vector<Vertex>& verts);
+    void updateHud(const std::vector<HudVertex>& verts);
     void updateUniform(const UniformBufferObject& ubo);
     void drawFrame();
 
@@ -119,16 +136,16 @@ private:
     void createSyncObjects();
     void createTriangleBuffer();
     void createLineBuffer();
+    void createHudBuffer();
     void createUniformBuffer();
     void createDescriptorPool();
-    void createBloomResources();
-    void createBloomPipelines();
-    void createBloomDescriptorSets();
     void createSampler();
     void createBloomImages();
     void createBloomRenderPass();
     void createBloomFramebuffers();
-    void drawBloom(VkCommandBuffer cmd);
+    void createBloomPipelines();
+    void createBloomDescriptorSets();
+    void createBloomResources();
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& memory);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
