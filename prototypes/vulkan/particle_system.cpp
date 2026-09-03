@@ -7,16 +7,6 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cstdio>
-#include <vulkan/vulkan.h>
-
-#define VK_CHECK(call)                                                          \
-    do {                                                                        \
-        VkResult _r = (call);                                                   \
-        if (_r != VK_SUCCESS) {                                                 \
-            fprintf(stderr, "Vulkan error %d at %s:%d\n", _r, __FILE__, __LINE__); \
-            std::exit(1);                                                       \
-        }                                                                       \
-    } while (0)
 
 void ParticleSystem::init(VkDevice dev, VkPhysicalDevice phys) {
     device = dev;
@@ -39,7 +29,11 @@ void ParticleSystem::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     ci.size = size;
     ci.usage = usage;
     ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    VK_CHECK(vkCreateBuffer(device, &ci, nullptr, &buffer));
+    VkResult r = vkCreateBuffer(device, &ci, nullptr, &buffer);
+    if (r != VK_SUCCESS) {
+        fprintf(stderr, "vkCreateBuffer failed: %d\n", r);
+        std::exit(1);
+    }
 
     VkMemoryRequirements memReq;
     vkGetBufferMemoryRequirements(device, buffer, &memReq);
@@ -48,7 +42,11 @@ void ParticleSystem::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     ai.allocationSize = memReq.size;
     ai.memoryTypeIndex = findMemoryType(memReq.memoryTypeBits, properties);
-    VK_CHECK(vkAllocateMemory(device, &ai, nullptr, &memory));
+    r = vkAllocateMemory(device, &ai, nullptr, &memory);
+    if (r != VK_SUCCESS) {
+        fprintf(stderr, "vkAllocateMemory failed: %d\n", r);
+        std::exit(1);
+    }
     vkBindBufferMemory(device, buffer, memory, 0);
 }
 
