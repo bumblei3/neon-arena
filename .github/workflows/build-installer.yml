@@ -1,0 +1,64 @@
+name: build-installer
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-installer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Inno Setup (Wine)
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine64 wine32 innoextract
+          # Download Inno Setup
+          wget -q https://jrsoftware.org/download.php/is.exe -O /tmp/is.exe
+          # Install Inno Setup via Wine
+          wine /tmp/is.exe /VERYSILENT /NORESTART /SUPPRESSMSGBOXES
+          echo "Inno Setup installed"
+
+      - name: Download Engine Artifacts
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: engine-quake3e.yml
+          workflow_conclusion: success
+          branch: main
+          name: engine-windows
+          path: installer/engine
+
+      - name: Copy Mod Files
+        run: |
+          cp dist/neonarena.pk3 installer/engine/
+          cp dist/neonarena-qvm.pk3 installer/engine/
+          cp dist/neon-look.pk3 installer/engine/
+
+      - name: Build Installer
+        run: |
+          wine "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer/neonarena.iss
+          ls -la installer/Output/
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: neonarena-installer
+          path: installer/Output/*.exe
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: installer/Output/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
