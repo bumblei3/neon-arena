@@ -188,4 +188,4 @@ bei State-Change invalidiert.
 | v0.37 | Perk-System, AERIAL ASSAULT |
 | v0.40 | BERSERKER (Boss #6) |
 | v0.41 | TELEPORTER (Boss #7) |
-| v0.42 | Upgrade-Kaps erhöht, Boss-HP wellenabhängig |
+| v0.43 | Steigende Upgrade-Kosten (1→2 ab Level 4), 60 Tests |
