@@ -53,14 +53,19 @@ public:
     VkFormat swapchainFormat;
     VkExtent2D swapchainExtent;
     VkRenderPass renderPass = VK_NULL_HANDLE;
+    VkRenderPass bloomRenderPass = VK_NULL_HANDLE;
+    VkRenderPass compositeRenderPass = VK_NULL_HANDLE;
     VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
+    VkDescriptorSetLayout bloomDescriptorSetLayout = VK_NULL_HANDLE;
     VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+    VkPipelineLayout bloomPipelineLayout = VK_NULL_HANDLE;
+    VkPipelineLayout hudPipelineLayout = VK_NULL_HANDLE;
     VkPipeline trianglePipeline = VK_NULL_HANDLE;
     VkPipeline linePipeline = VK_NULL_HANDLE;
+    VkPipeline hudPipeline = VK_NULL_HANDLE;
     VkPipeline brightPipeline = VK_NULL_HANDLE;
     VkPipeline blurPipeline = VK_NULL_HANDLE;
     VkPipeline compositePipeline = VK_NULL_HANDLE;
-    VkPipeline hudPipeline = VK_NULL_HANDLE;
     std::vector<VkFramebuffer> framebuffers;
     VkCommandPool commandPool = VK_NULL_HANDLE;
     std::vector<VkCommandBuffer> commandBuffers;
@@ -82,25 +87,24 @@ public:
     VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    // HUD resources
-    VkPipelineLayout hudPipelineLayout = VK_NULL_HANDLE;
-
     // Bloom resources
-    VkImage bloomImage1 = VK_NULL_HANDLE;
+    VkImage bloomImage1 = VK_NULL_HANDLE;  // Scene
     VkDeviceMemory bloomMemory1 = VK_NULL_HANDLE;
     VkImageView bloomView1 = VK_NULL_HANDLE;
-    VkImage bloomImage2 = VK_NULL_HANDLE;
+    VkImage bloomImage2 = VK_NULL_HANDLE;  // Bright result
     VkDeviceMemory bloomMemory2 = VK_NULL_HANDLE;
     VkImageView bloomView2 = VK_NULL_HANDLE;
+    VkImage bloomImage3 = VK_NULL_HANDLE;  // Blur H result
+    VkDeviceMemory bloomMemory3 = VK_NULL_HANDLE;
+    VkImageView bloomView3 = VK_NULL_HANDLE;
     VkFramebuffer bloomFramebuffer1 = VK_NULL_HANDLE;
     VkFramebuffer bloomFramebuffer2 = VK_NULL_HANDLE;
-    VkRenderPass bloomRenderPass = VK_NULL_HANDLE;
-    VkDescriptorSetLayout bloomDescriptorSetLayout = VK_NULL_HANDLE;
-    VkPipelineLayout bloomPipelineLayout = VK_NULL_HANDLE;
+    VkFramebuffer bloomFramebuffer3 = VK_NULL_HANDLE;
     VkDescriptorPool bloomDescriptorPool = VK_NULL_HANDLE;
-    VkDescriptorSet bloomDescriptorSet1 = VK_NULL_HANDLE;
-    VkDescriptorSet bloomDescriptorSet2 = VK_NULL_HANDLE;
-    VkDescriptorSet compositeDescriptorSet = VK_NULL_HANDLE;
+    VkDescriptorSet bloomDescriptorSet1 = VK_NULL_HANDLE;  // Bright: reads scene
+    VkDescriptorSet bloomDescriptorSet2 = VK_NULL_HANDLE;  // Blur H: reads bright
+    VkDescriptorSet bloomDescriptorSet3 = VK_NULL_HANDLE;  // Blur V: reads blur H
+    VkDescriptorSet compositeDescriptorSet = VK_NULL_HANDLE;  // Composite: reads scene + blur V
     VkSampler textureSampler = VK_NULL_HANDLE;
 
     uint32_t triangleVerts_ = 0;
@@ -127,7 +131,7 @@ private:
     void createDevice();
     void createSwapchain();
     void createImageViews();
-    void createRenderPass();
+    void createRenderPasses();
     void createDescriptorSetLayout();
     void createPipelines();
     void createFramebuffers();
@@ -141,11 +145,8 @@ private:
     void createDescriptorPool();
     void createSampler();
     void createBloomImages();
-    void createBloomRenderPass();
     void createBloomFramebuffers();
-    void createBloomPipelines();
     void createBloomDescriptorSets();
-    void createBloomResources();
 
     void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& memory);
     uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
