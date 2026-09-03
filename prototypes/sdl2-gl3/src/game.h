@@ -8,6 +8,16 @@
 #include <vector>
 #include <cmath>
 #include <cstdio>
+#include <string>
+
+// Game states
+enum class GameState {
+    MENU,
+    PLAYING,
+    PAUSED,
+    GAME_OVER,
+    WAVE_COMPLETE
+};
 
 // Global sound pointers (set in main.cpp)
 extern Mix_Chunk* g_sndShoot;
@@ -85,6 +95,14 @@ private:
     void nextWave();
     void gameOverScreen();
 
+    // Menu system
+    void updateMenu(float dt);
+    void renderMenu();
+    void renderPauseMenu();
+    void renderGameOver();
+    void handleMenuInput(SDL_Event& event);
+    void resetGame();
+
     // Camera
     void handleMouse();
 
@@ -95,6 +113,12 @@ private:
     // Renderer
     Renderer* renderer_ = nullptr;
     SDL_Window* window_ = nullptr;
+
+    // State
+    GameState state = GameState::MENU;
+    int menuSelection = 0;
+    std::vector<std::string> menuItems = {"Start Game", "Options", "Quit"};
+    float stateTimer = 0;
 
     // Game state
     Entity player;

@@ -75,4 +75,15 @@ struct Mat4 {
         result(2, 2) = s.z;
         return result;
     }
+
+    static Mat4 ortho(float left, float right, float bottom, float top, float near, float far) {
+        Mat4 result(true);
+        result(0, 0) = 2.0f / (right - left);
+        result(1, 1) = 2.0f / (top - bottom);
+        result(2, 2) = -2.0f / (far - near);
+        result(0, 3) = -(right + left) / (right - left);
+        result(1, 3) = -(top + bottom) / (top - bottom);
+        result(2, 3) = -(far + near) / (far - near);
+        return result;
+    }
 };

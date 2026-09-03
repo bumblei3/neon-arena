@@ -112,12 +112,30 @@ void Game::handleInput(float dt) {
             running = false;
         } else if (event.type == SDL_KEYDOWN) {
             keys[event.key.keysym.scancode] = true;
-            if (event.key.keysym.sym == SDLK_ESCAPE) {
-                running = false;
+
+            // State-specific input
+            if (state == GameState::MENU) {
+                handleMenuInput(event);
+            } else if (state == GameState::PAUSED) {
+                if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    state = GameState::PLAYING;
+                }
+            } else if (state == GameState::PLAYING) {
+                if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    state = GameState::PAUSED;
+                }
+                if (event.key.keysym.sym == SDLK_SPACE && waveComplete) {
+                    nextWave();
+                }
+            } else if (state == GameState::GAME_OVER) {
+                if (event.key.keysym.sym == SDLK_SPACE) {
+                    resetGame();
+                    state = GameState::PLAYING;
+                } else if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    state = GameState::MENU;
+                }
             }
-            if (event.key.keysym.sym == SDLK_SPACE && waveComplete) {
-                nextWave();
-            }
+
         } else if (event.type == SDL_KEYUP) {
             keys[event.key.keysym.scancode] = false;
         } else if (event.type == SDL_MOUSEMOTION) {
@@ -135,20 +153,57 @@ void Game::handleInput(float dt) {
     }
 }
 
-void Game::update(float dt) {
-    if (gameOver) {
-        // Wait for restart
-        if (keys[SDL_SCANCODE_SPACE]) {
-            // Reset game
-            gameOver = false;
-            wave = 0;
-            score = 0;
-            kills = 0;
-            player.health = maxHealth;
-            player.alive = true;
-            waveComplete = true;
-            waveBreak = 0;
+void Game::handleMenuInput(SDL_Event& event) {
+    if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w) {
+        menuSelection--;
+        if (menuSelection < 0) menuSelection = (int)menuItems.size() - 1;
+    } else if (event.key.keysym.sym == SDLK_DOWN || event.key.keysym.sym == SDLK_s) {
+        menuSelection++;
+        if (menuSelection >= (int)menuItems.size()) menuSelection = 0;
+    } else if (event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_SPACE) {
+        if (menuSelection == 0) {
+            // Start Game
+            resetGame();
+            state = GameState::PLAYING;
+        } else if (menuSelection == 1) {
+            // Options (placeholder)
+        } else if (menuSelection == 2) {
+            // Quit
+            running = false;
         }
+    }
+}
+
+void Game::resetGame() {
+    gameOver = false;
+    wave = 0;
+    score = 0;
+    kills = 0;
+    player.health = maxHealth;
+    player.alive = true;
+    player.pos = Vec3(0, 0, 0);
+    waveComplete = true;
+    waveBreak = 0;
+    projectiles.clear();
+    particles.clear();
+}
+
+void Game::update(float dt) {
+    if (state == GameState::MENU) {
+        updateMenu(dt);
+        return;
+    }
+
+    if (state == GameState::PAUSED) {
+        return;
+    }
+
+    if (state == GameState::GAME_OVER) {
+        return;
+    }
+
+    if (gameOver) {
+        state = GameState::GAME_OVER;
         return;
     }
 
@@ -361,6 +416,22 @@ void Game::nextWave() {
 }
 
 void Game::render() {
+    // Render based on game state
+    if (state == GameState::MENU) {
+        renderMenu();
+        return;
+    }
+
+    if (state == GameState::PAUSED) {
+        renderPauseMenu();
+        return;
+    }
+
+    if (state == GameState::GAME_OVER) {
+        renderGameOver();
+        return;
+    }
+
     // Set up camera
     Vec3 forward(
         sinf(player.yaw) * cosf(player.pitch),

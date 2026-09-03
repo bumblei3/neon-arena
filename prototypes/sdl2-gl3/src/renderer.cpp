@@ -565,15 +565,33 @@ void Renderer::drawTriangles(const Vertex* verts, int count, const Vec3& color) 
 }
 
 void Renderer::drawQuad(const Vertex* verts) {
-    Mat4 model(true);
-    hudShader->use();
-    hudShader->setMat4("model", model.ptr());
+    // Use a simple overlay rendering
+    // Create temporary VAO with pos + color for HUD overlay
+    unsigned int qVAO, qVBO;
+    glGenVertexArrays(1, &qVAO);
+    glGenBuffers(1, &qVBO);
+    glBindVertexArray(qVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, qVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * 4, verts, GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
 
-    glBindVertexArray(VAOQuad);
-    glBindBuffer(GL_ARRAY_BUFFER, VBOQuad);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * 4, verts);
+    // Use line shader with triangle fan
+    lineShader->use();
+    Mat4 model(true);
+    Mat4 proj = Mat4::ortho(-1, 1, -1, 1, -1, 1);
+    Mat4 view(true);
+    lineShader->setMat4("proj", proj.ptr());
+    lineShader->setMat4("view", view.ptr());
+    lineShader->setMat4("model", model.ptr());
+
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
     glBindVertexArray(0);
+    glDeleteVertexArrays(1, &qVAO);
+    glDeleteBuffers(1, &qVBO);
 }
 
 void Renderer::drawParticles(const Particle* particles, int count) {

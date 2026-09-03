@@ -24,6 +24,7 @@ add_executable(neon-arena
     src/game.cpp
     src/texture.cpp
     src/sound.cpp
+    src/menu.cpp
 )
 
 target_include_directories(neon-arena PRIVATE src)
