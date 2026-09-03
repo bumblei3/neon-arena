@@ -670,58 +670,23 @@ void Game::renderHUD() {
     };
     renderer_->drawLineLoop(fill, 4, hpColor);
 
-    // Wave indicator (top center)
-    // Using simple lines to draw "W" for wave
-    Vec3 waveColor(0.0f, 0.8f, 1.0f);
-    float wSize = 0.04f;
-    float wX = -0.08f;
-    float wY = 0.85f;
-
-    // Simple wave number representation (just a marker for now)
-    Vertex waveMark[] = {
-        Vertex(Vec3(wX - wSize, wY - wSize, 0), waveColor),
-        Vertex(Vec3(wX + wSize, wY - wSize, 0), waveColor),
-        Vertex(Vec3(wX + wSize, wY + wSize, 0), waveColor),
-        Vertex(Vec3(wX - wSize, wY + wSize, 0), waveColor),
-    };
-    renderer_->drawLineLoop(waveMark, 4, waveColor);
-
-    // Score indicator (top right)
-    Vec3 scoreColor(1.0f, 0.8f, 0.0f);
-    float sX = 0.7f;
-    float sY = 0.85f;
-    Vertex scoreMark[] = {
-        Vertex(Vec3(sX - wSize, sY - wSize, 0), scoreColor),
-        Vertex(Vec3(sX + wSize, sY - wSize, 0), scoreColor),
-        Vertex(Vec3(sX + wSize, sY + wSize, 0), scoreColor),
-        Vertex(Vec3(sX - wSize, sY + wSize, 0), scoreColor),
-    };
-    renderer_->drawLineLoop(scoreMark, 4, scoreColor);
+    // Score, Wave, Kills (using text)
+    text_.drawText(renderer_, "SCORE: " + std::to_string(score), -0.95f, 0.9f, 1.0f, Vec3(1.0f, 0.8f, 0.0f));
+    text_.drawText(renderer_, "WAVE: " + std::to_string(wave), -0.95f, 0.83f, 1.0f, Vec3(0.0f, 0.8f, 1.0f));
+    text_.drawText(renderer_, "KILLS: " + std::to_string(kills), -0.95f, 0.76f, 1.0f, Vec3(0.8f, 0.3f, 0.3f));
 
     // Wave complete message area
     if (waveComplete && !gameOver) {
         Vec3 msgColor(0.0f, 1.0f, 0.5f);
-        float mY = 0.0f;
-        Vertex msg[] = {
-            Vertex(Vec3(-0.3f, mY - 0.05f, 0), msgColor),
-            Vertex(Vec3(0.3f, mY - 0.05f, 0), msgColor),
-            Vertex(Vec3(0.3f, mY + 0.05f, 0), msgColor),
-            Vertex(Vec3(-0.3f, mY + 0.05f, 0), msgColor),
-        };
-        renderer_->drawLineLoop(msg, 4, msgColor);
+        text_.drawTextCentered(renderer_, "WAVE CLEARED!", 0.05f, 1.5f, msgColor);
+        text_.drawTextCentered(renderer_, "SPACE: NEXT WAVE", -0.05f, 0.8f, Vec3(0.5f, 0.5f, 0.5f));
     }
 
     // Game over message area
     if (gameOver) {
         Vec3 goColor(1.0f, 0.2f, 0.2f);
-        float mY = 0.0f;
-        Vertex go[] = {
-            Vertex(Vec3(-0.4f, mY - 0.08f, 0), goColor),
-            Vertex(Vec3(0.4f, mY - 0.08f, 0), goColor),
-            Vertex(Vec3(0.4f, mY + 0.08f, 0), goColor),
-            Vertex(Vec3(-0.4f, mY + 0.08f, 0), goColor),
-        };
-        renderer_->drawLineLoop(go, 4, goColor);
+        text_.drawTextCentered(renderer_, "GAME OVER", 0.05f, 1.8f, goColor);
+        text_.drawTextCentered(renderer_, "SPACE: RETRY", -0.05f, 0.8f, Vec3(0.5f, 0.5f, 0.5f));
     }
 }
 

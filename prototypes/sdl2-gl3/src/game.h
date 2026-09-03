@@ -5,6 +5,7 @@
 #include "renderer.h"
 #include "math.h"
 #include "particle.h"
+#include "text.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -119,6 +120,9 @@ private:
     int menuSelection = 0;
     std::vector<std::string> menuItems = {"Start Game", "Options", "Quit"};
     float stateTimer = 0;
+
+    // Text
+    TextRenderer text_;
 
     // Game state
     Entity player;
