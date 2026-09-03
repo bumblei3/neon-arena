@@ -2,6 +2,8 @@
 // Shared types
 #pragma once
 
+#include <cmath>
+
 struct Vec3 {
     float x, y, z;
     Vec3() : x(0), y(0), z(0) {}
