@@ -5,6 +5,7 @@
 #include "types.h"
 #include <vector>
 #include <cstdint>
+#include <vulkan/vulkan.h>
 
 struct Particle {
     float pos[3];
