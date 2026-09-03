@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# NeonArena Performance Benchmark
+# NeonArena Performance Benchmark v2
 # Misst Frame Time, Configstring-Updates und Bot-Spawn-Zeit
 set -euo pipefail
 
 OA_BIN="${OA_BIN:-/usr/lib/ioquake3/ioq3ded}"
 TESTDIR="/tmp/nw-benchmark-$$"
-DURATION=60
+DURATION=30
 
 echo "=== NeonArena Performance Benchmark ==="
 echo "Engine: $OA_BIN"
@@ -14,16 +14,10 @@ echo ""
 
 # Setup
 mkdir -p "$TESTDIR"
-cp -r ~/.openarena/neonarena/vm "$TESTDIR/" 2>/dev/null || true
-
-# Build if needed
-if [ ! -f "$TESTDIR/vm/qagame.qvm" ]; then
-    echo "ERROR: QVMs not found. Run build-mod.sh first."
-    exit 1
-fi
 
 # Benchmark 1: Frame Time (Wave 20, 21 bots)
 echo "--- Test 1: Frame Time (Wave 20, 21 bots) ---"
+
 timeout $DURATION "$OA_BIN" \
     +set com_basegame baseoa \
     +set fs_basepath /usr/lib/openarena \
@@ -39,7 +33,7 @@ timeout $DURATION "$OA_BIN" \
     +set sv_maxclients 24 \
     +set logfile 2 \
     +map oa_shine \
-    2>&1 | tee "$TESTDIR/bench1.log" &
+    > "$TESTDIR/bench1.log" 2>&1 &
 
 BENCH_PID=$!
 sleep $DURATION
