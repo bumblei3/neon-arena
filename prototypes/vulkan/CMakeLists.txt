@@ -8,6 +8,12 @@ find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
 
 add_executable(neon-arena main.cpp game.cpp renderer.cpp hud.cpp)
+add_executable(compute_demo compute_demo.cpp)
+
+target_link_libraries(compute_demo PRIVATE
+    SDL2::SDL2
+    Vulkan::Vulkan
+)
 
 target_link_libraries(neon-arena PRIVATE
     SDL2::SDL2
@@ -26,6 +32,7 @@ set(SHADERS
     ${SHADER_DIR}/brightpass.frag
     ${SHADER_DIR}/blur.frag
     ${SHADER_DIR}/composite.frag
+    ${SHADER_DIR}/particle.comp
 )
 
 foreach(SHADER ${SHADERS})
