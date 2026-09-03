@@ -116,8 +116,14 @@ void Renderer::createDevice() {
     ci.ppEnabledExtensionNames = &ext;
     VK_CHECK(vkCreateDevice(physicalDevice, &ci, nullptr, &device));
 
-    vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
-    vkGetDeviceQueue(device, presentFamily, 0, &presentQueue);
+    // If graphics and present family are the same, use one queue
+    if (graphicsFamily == presentFamily) {
+        vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
+        presentQueue = graphicsQueue;
+    } else {
+        vkGetDeviceQueue(device, graphicsFamily, 0, &graphicsQueue);
+        vkGetDeviceQueue(device, presentFamily, 0, &presentQueue);
+    }
 }
 
 void Renderer::createSwapchain() {
@@ -375,10 +381,7 @@ void Renderer::createPipelines() {
     pci.pInputAssemblyState = &iaPoint;
     VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pci, nullptr, &particlePipeline));
 
-    vkDestroyShaderModule(device, vertModule, nullptr);
-    vkDestroyShaderModule(device, fragModule, nullptr);
-
-    // HUD pipeline
+    // --- HUD pipeline (2D, no UBO) ---
     VkPipelineVertexInputStateCreateInfo hudVi{};
     hudVi.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     VkVertexInputBindingDescription hudBinding{};
@@ -422,6 +425,10 @@ void Renderer::createPipelines() {
     hudPci.layout = hudPipelineLayout;
     hudPci.renderPass = renderPass;
     VK_CHECK(vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &hudPci, nullptr, &hudPipeline));
+
+    // Now destroy shader modules (pipelines no longer reference them)
+    vkDestroyShaderModule(device, vertModule, nullptr);
+    vkDestroyShaderModule(device, fragModule, nullptr);
 
     // Bloom pipelines
     VkPipelineVertexInputStateCreateInfo nullVi{};

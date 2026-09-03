@@ -25,9 +25,22 @@ int main(int argc, char** argv) {
     Game game;
     HudRenderer hud;
     
-    // Load map from JSON file
+    // Load map from JSON file (try multiple paths)
     MapData map;
-    if (!MapLoader::loadFromJSON("maps/neon_arena_v2.json", map)) {
+    const char* mapPaths[] = {
+        "maps/neon_arena_v2.json",
+        "../maps/neon_arena_v2.json",
+        "../../maps/neon_arena_v2.json",
+        "/home/tobber/neon-arena/prototypes/vulkan/maps/neon_arena_v2.json"
+    };
+    bool mapLoaded = false;
+    for (const char* path : mapPaths) {
+        if (MapLoader::loadFromJSON(path, map)) {
+            mapLoaded = true;
+            break;
+        }
+    }
+    if (!mapLoaded) {
         printf("Failed to load map, using default arena\n");
         MapLoader::generateDefaultArena(map);
     }
