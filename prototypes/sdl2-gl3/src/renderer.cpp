@@ -160,10 +160,50 @@ static const char* compositeFragSrc = R"(
     uniform sampler2D sceneTexture;
     uniform sampler2D bloomTexture;
     uniform float bloomIntensity;
+    uniform float time;
+    uniform vec2 resolution;
+
+    // Chromatic aberration sample
+    vec3 sampleCA(sampler2D tex, vec2 uv, float offset) {
+        float r = texture(tex, uv + vec2(offset, 0.0)).r;
+        float g = texture(tex, uv).g;
+        float b = texture(tex, uv - vec2(offset, 0.0)).b;
+        return vec3(r, g, b);
+    }
+
     void main() {
-        vec3 scene = texture(sceneTexture, vTexCoord).rgb;
-        vec3 bloom = texture(bloomTexture, vTexCoord).rgb;
-        FragColor = vec4(scene + bloom * bloomIntensity, 1.0);
+        vec2 uv = vTexCoord;
+        vec2 center = uv - 0.5;
+        float dist = length(center);
+
+        // Chromatic aberration (stronger at edges)
+        float caStrength = 0.003 + dist * 0.008;
+        vec3 color = sampleCA(sceneTexture, uv, caStrength);
+
+        // Bloom
+        vec3 bloom = texture(bloomTexture, uv).rgb;
+        color += bloom * bloomIntensity;
+
+        // Vignette
+        float vignette = 1.0 - dist * 0.8;
+        vignette = clamp(vignette, 0.0, 1.0);
+        color *= vignette;
+
+        // Scanlines (subtle)
+        float scanline = sin(uv.y * resolution.y * 1.5) * 0.03;
+        color -= scanline;
+
+        // Film grain (subtle noise)
+        float grain = fract(sin(dot(uv + time, vec2(12.9898, 78.233))) * 43758.5453);
+        color += (grain - 0.5) * 0.02;
+
+        // Tone mapping (simple Reinhard)
+        color = color / (color + vec3(1.0));
+
+        // Gamma correction
+        color = pow(color, vec3(1.0 / 2.2));
+
+        FragColor = vec4(color, 1.0);
     }
 )";
 
@@ -397,6 +437,8 @@ void Renderer::endFrame() {
     glBindTexture(GL_TEXTURE_2D, blurTexture[!horizontal]);
     glUniform1i(glGetUniformLocation(compositeShader->id, "bloomTexture"), 1);
     glUniform1f(glGetUniformLocation(compositeShader->id, "bloomIntensity"), 0.8f);
+    glUniform1f(glGetUniformLocation(compositeShader->id, "time"), SDL_GetTicks() / 1000.0f);
+    glUniform2f(glGetUniformLocation(compositeShader->id, "resolution"), (float)width_, (float)height_);
     float qv[] = { -1, -1, 1, -1, 1, 1, -1, 1 };
     unsigned int qVAO, qVBO;
     glGenVertexArrays(1, &qVAO);
