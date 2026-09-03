@@ -16,6 +16,7 @@ add_executable(neon-arena
     src/shader.cpp
     src/renderer.cpp
     src/game.cpp
+    src/texture.cpp
 )
 
 target_include_directories(neon-arena PRIVATE src)

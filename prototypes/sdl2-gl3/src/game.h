@@ -3,6 +3,7 @@
 #include <SDL.h>
 #include "renderer.h"
 #include "math.h"
+#include "particle.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -29,6 +30,7 @@ struct Projectile {
     Projectile(Vec3 p, Vec3 d, bool player)
         : pos(p), dir(d.normalized()), speed(50.0f), life(2.0f), fromPlayer(player) {}
 };
+
 
 class Game {
 public:
@@ -60,6 +62,9 @@ private:
     void updatePlayer(float dt);
     void updateBots(float dt);
     void updateProjectiles(float dt);
+    void updateParticles(float dt);
+    void spawnExplosion(Vec3 pos, Vec3 color, int count);
+    void renderParticles();
     void checkCollisions();
     void renderArena();
     void renderBots();
@@ -84,6 +89,7 @@ private:
     Entity player;
     std::vector<Entity> bots;
     std::vector<Projectile> projectiles;
+    std::vector<Particle> particles;
     int wave = 0;
     int score = 0;
     int kills = 0;

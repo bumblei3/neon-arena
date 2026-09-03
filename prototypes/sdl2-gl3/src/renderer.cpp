@@ -7,13 +7,14 @@
 static const char* lineVertSrc = R"(
     #version 330 core
     layout(location = 0) in vec3 aPos;
-    layout(location = 1) in vec3 aColor;
+    layout(location = 2) in vec3 aColor;
     uniform mat4 proj;
     uniform mat4 view;
     uniform mat4 model;
     out vec3 vColor;
     void main() {
         gl_Position = proj * view * model * vec4(aPos, 1.0);
+        gl_PointSize = 8.0;
         vColor = aColor;
     }
 )";
@@ -23,7 +24,50 @@ static const char* lineFragSrc = R"(
     in vec3 vColor;
     out vec4 FragColor;
     void main() {
-        FragColor = vec4(vColor, 1.0);
+        // Circular point with soft edge
+        vec2 coord = gl_PointCoord - vec2(0.5);
+        float dist = length(coord);
+        if (dist > 0.5) discard;
+        float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
+        FragColor = vec4(vColor, alpha);
+    }
+)";
+
+static const char* triangleVertSrc = R"(
+    #version 330 core
+    layout(location = 0) in vec3 aPos;
+    layout(location = 1) in vec3 aNormal;
+    layout(location = 2) in vec3 aColor;
+    uniform mat4 proj;
+    uniform mat4 view;
+    uniform mat4 model;
+    out vec3 vColor;
+    out vec3 vNormal;
+    out vec3 vWorldPos;
+    void main() {
+        vec4 worldPos = model * vec4(aPos, 1.0);
+        gl_Position = proj * view * worldPos;
+        vColor = aColor;
+        vNormal = mat3(model) * aNormal;
+        vWorldPos = worldPos.xyz;
+    }
+)";
+
+static const char* triangleFragSrc = R"(
+    #version 330 core
+    in vec3 vColor;
+    in vec3 vNormal;
+    in vec3 vWorldPos;
+    out vec4 FragColor;
+    uniform vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
+    uniform vec3 lightColor = vec3(1.0, 0.95, 0.8);
+    uniform vec3 ambientColor = vec3(0.15, 0.15, 0.2);
+    void main() {
+        vec3 normal = normalize(vNormal);
+        float diff = max(dot(normal, lightDir), 0.0);
+        vec3 diffuse = diff * lightColor;
+        vec3 result = (ambientColor + diffuse) * vColor;
+        FragColor = vec4(result, 1.0);
     }
 )";
 
@@ -137,7 +181,7 @@ bool Renderer::init(SDL_Window* window, int w, int h) {
     }
 
     triangleShader = new Shader();
-    if (!triangleShader->load(lineVertSrc, lineFragSrc)) {
+    if (!triangleShader->load(triangleVertSrc, triangleFragSrc)) {
         fprintf(stderr, "Failed to load triangle shader\n");
         return false;
     }
@@ -203,7 +247,9 @@ void Renderer::setupVBOs() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
     glBindVertexArray(0);
 
     // Quad VAO
@@ -215,7 +261,9 @@ void Renderer::setupVBOs() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
     glBindVertexArray(0);
 }
 
@@ -400,6 +448,40 @@ void Renderer::drawQuad(const Vertex* verts) {
     glBindBuffer(GL_ARRAY_BUFFER, VBOQuad);
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * 4, verts);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glBindVertexArray(0);
+}
+
+void Renderer::drawParticles(const Particle* particles, int count) {
+    if (count == 0) return;
+
+    // Batched rendering: 1 buffer upload + 1 draw call for ALL particles
+    // Each particle = 1 vertex rendered as a point sprite
+    int maxCount = count;
+    if (maxCount > 2048) maxCount = 2048;
+
+    std::vector<Vertex> verts(maxCount);
+    for (int i = 0; i < maxCount; i++) {
+        const Particle& p = particles[i];
+        verts[i] = Vertex(p.pos, p.color);
+    }
+
+    // Use point shader with gl_PointSize
+    lineShader->use();
+    Mat4 model(true);
+    lineShader->setMat4("proj", projection.ptr());
+    lineShader->setMat4("view", view.ptr());
+    lineShader->setMat4("model", model.ptr());
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glEnable(GL_POINT_SPRITE);
+
+    glBindVertexArray(VAOVertex);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOVertex);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * maxCount, verts.data());
+    glDrawArrays(GL_POINTS, 0, maxCount);
+
+    glDisable(GL_PROGRAM_POINT_SIZE);
+    glDisable(GL_POINT_SPRITE);
     glBindVertexArray(0);
 }
 

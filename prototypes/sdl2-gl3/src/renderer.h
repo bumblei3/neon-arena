@@ -5,11 +5,13 @@
 #include <vector>
 #include "shader.h"
 #include "math.h"
+#include "particle.h"
 
 struct Vertex {
     Vec3 pos;
+    Vec3 normal;
     Vec3 color;
-    Vertex(Vec3 p = {}, Vec3 c = {}) : pos(p), color(c) {}
+    Vertex(Vec3 p = {}, Vec3 n = {}, Vec3 c = {}) : pos(p), normal(n), color(c) {}
 };
 
 class Renderer {
@@ -25,6 +27,7 @@ public:
     void drawLineLoop(const Vertex* verts, int count, const Vec3& color);
     void drawTriangles(const Vertex* verts, int count, const Vec3& color);
     void drawQuad(const Vertex* verts);
+    void drawParticles(const Particle* particles, int count);
 
     void clear(float r, float g, float b, float a = 1.0f);
 

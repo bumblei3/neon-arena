@@ -163,6 +163,7 @@ void Game::update(float dt) {
     updatePlayer(dt);
     updateBots(dt);
     updateProjectiles(dt);
+    updateParticles(dt);
     checkCollisions();
 
     // Check wave complete
@@ -275,6 +276,31 @@ void Game::updateProjectiles(float dt) {
     );
 }
 
+void Game::updateParticles(float dt) {
+    for (auto& p : particles) {
+        p.pos = p.pos + p.vel * dt;
+        p.vel.y -= 9.8f * dt; // gravity
+        p.life -= dt;
+    }
+    particles.erase(
+        std::remove_if(particles.begin(), particles.end(),
+            [](const Particle& p) { return p.life <= 0.0f; }),
+        particles.end());
+}
+
+void Game::spawnExplosion(Vec3 pos, Vec3 color, int count) {
+    for (int i = 0; i < count; i++) {
+        Vec3 vel(
+            (rand() % 100 - 50) / 50.0f * 5.0f,
+            (rand() % 100) / 100.0f * 8.0f,
+            (rand() % 100 - 50) / 50.0f * 5.0f
+        );
+        float life = 0.5f + (rand() % 100) / 200.0f;
+        float size = 0.1f + (rand() % 100) / 500.0f;
+        particles.push_back(Particle(pos, vel, color, life, size));
+    }
+}
+
 void Game::checkCollisions() {
     // Check projectile hits
     for (auto it = projectiles.begin(); it != projectiles.end(); ) {
@@ -290,6 +316,8 @@ void Game::checkCollisions() {
                         bot.alive = false;
                         kills++;
                         score += 10;
+                        // Spawn explosion at bot position
+                        spawnExplosion(bot.pos, Vec3(0.0f, 0.8f, 1.0f), 20);
                     }
                     hit = true;
                     break;
@@ -351,6 +379,7 @@ void Game::render() {
     renderArena();
     renderBots();
     renderProjectiles();
+    renderParticles();
 
     renderer_->endFrame();
 
@@ -358,6 +387,11 @@ void Game::render() {
     renderHUD();
 
     SDL_GL_SwapWindow(window_);
+}
+
+void Game::renderParticles() {
+    if (particles.empty()) return;
+    renderer_->drawParticles(particles.data(), static_cast<int>(particles.size()));
 }
 
 void Game::renderArena() {
