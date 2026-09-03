@@ -93,6 +93,9 @@ int main(int argc, char** argv) {
             float color[3] = {0.2f, 1.0f, 1.0f};
             particles.emit(5, pos, color, 0.5f, 5.0f);
         }
+
+        // Update particle buffer in renderer
+        r.updateParticles(particles.getVertices(), particles.getActiveCount());
         UniformBufferObject ubo{};
         game.getViewMatrix(ubo.view);
         game.getProjMatrix(ubo.proj, (float)Renderer::WIDTH / (float)Renderer::HEIGHT);

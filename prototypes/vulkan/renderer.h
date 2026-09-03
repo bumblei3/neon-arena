@@ -63,6 +63,7 @@ public:
     VkPipeline trianglePipeline = VK_NULL_HANDLE;
     VkPipeline linePipeline = VK_NULL_HANDLE;
     VkPipeline hudPipeline = VK_NULL_HANDLE;
+    VkPipeline particlePipeline = VK_NULL_HANDLE;
     VkPipeline brightPipeline = VK_NULL_HANDLE;
     VkPipeline blurPipeline = VK_NULL_HANDLE;
     VkPipeline compositePipeline = VK_NULL_HANDLE;
@@ -110,17 +111,24 @@ public:
     uint32_t triangleVerts_ = 0;
     uint32_t lineVerts_ = 0;
     uint32_t hudVerts_ = 0;
+    uint32_t particleVerts_ = 0;
+
+    // Particle resources
+    VkBuffer particleBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory particleBufferMemory = VK_NULL_HANDLE;
 
     static const int WIDTH = 1280;
     static const int HEIGHT = 720;
     static const VkDeviceSize MAX_VERTICES = 1024 * 1024;
     static const VkDeviceSize MAX_HUD_VERTICES = 65536;
+    static const uint32_t MAX_PARTICLES = 4096;
 
     void init();
     void cleanup();
     void updateTriangles(const std::vector<Vertex>& verts);
     void updateLines(const std::vector<Vertex>& verts);
     void updateHud(const std::vector<HudVertex>& verts);
+    void updateParticles(const std::vector<Vertex>& verts, uint32_t count);
     void updateUniform(const UniformBufferObject& ubo);
     void drawFrame();
 
@@ -141,6 +149,7 @@ private:
     void createTriangleBuffer();
     void createLineBuffer();
     void createHudBuffer();
+    void createParticleBuffer();
     void createUniformBuffer();
     void createDescriptorPool();
     void createSampler();
