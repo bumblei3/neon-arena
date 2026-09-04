@@ -49,7 +49,7 @@ PlaytestSimulator::SimulationResult PlaytestSimulator::run(int numWaves, int sta
         for (int i = 0; i < botsToSpawn; i++) {
             SimBot bot;
             float angle = (float)i / botsToSpawn * 6.28318f;
-            float radius = 30.0f;
+            float radius = 50.0f;
             bot.posX = cosf(angle) * radius;
             bot.posZ = sinf(angle) * radius;
             bot.alive = true;
