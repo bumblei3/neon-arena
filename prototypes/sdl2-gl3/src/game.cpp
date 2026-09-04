@@ -392,6 +392,25 @@ void Game::checkCollisions() {
                             int type = rand() % 3;
                             spawnPowerUp(*this, bot.pos, type);
                         }
+
+                        // Splitter: spawn mini-bots on death
+                        if (bot.splitters > 0) {
+                            for (int s = 0; s < bot.splitters; s++) {
+                                Entity mini;
+                                float sAngle = (float)s / bot.splitters * 6.28318f;
+                                mini.pos = bot.pos + Vec3(cosf(sAngle) * 2.0f, 0.0f, sinf(sAngle) * 2.0f);
+                                mini.yaw = 0;
+                                mini.pitch = 0;
+                                mini.alive = true;
+                                mini.type = 1;
+                                mini.botType = 0;
+                                mini.health = 30.0f + wave * 3;
+                                mini.moveSpeed = bot.moveSpeed * 1.3f;
+                                mini.splitters = bot.splitters - 1;
+                                bots.push_back(mini);
+                            }
+                            printf("Splitter! %d mini-bots spawned\n", bot.splitters);
+                        }
                     }
                     hit = true;
                     break;

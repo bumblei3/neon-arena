@@ -48,8 +48,9 @@ struct Entity {
     bool isBoss = false;
     float bossPhase = 0;  // For boss attack patterns
     float vx, vy, vz;
+    int splitters = 0;    // Number of mini-bots to spawn on death
 
-    Entity() : pos(0,0,0), yaw(0), pitch(0), health(100), alive(false), type(0), botType(0), attackCooldown(0), moveSpeed(3.0f), vx(0), vy(0), vz(0) {}
+    Entity() : pos(0,0,0), yaw(0), pitch(0), health(100), alive(false), type(0), botType(0), attackCooldown(0), moveSpeed(3.0f), vx(0), vy(0), vz(0), splitters(0) {}
 };
 
 enum class WeaponType {

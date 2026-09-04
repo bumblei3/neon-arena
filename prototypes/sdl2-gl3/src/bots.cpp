@@ -5,6 +5,22 @@
 #include <cstdio>
 #include <cstdlib>
 
+// Apply modifiers to a bot (defined here because it needs Entity)
+static void applyModifiers(Entity& bot, EnemyModifier modifiers) {
+    if (hasModifier(modifiers, EnemyModifier::SPEED_BOOST)) {
+        bot.moveSpeed *= 1.2f;
+    }
+    if (hasModifier(modifiers, EnemyModifier::SHIELD)) {
+        bot.health += 50.0f;  // Extra health as shield
+    }
+    if (hasModifier(modifiers, EnemyModifier::REGENERATION)) {
+        bot.vy = 1.0f;  // Regen flag
+    }
+    if (hasModifier(modifiers, EnemyModifier::SPLITTER)) {
+        bot.splitters = 2;  // Spawn 2 mini-bots on death
+    }
+}
+
 void spawnWave(Game& game) {
     game.wave++;
     game.bots.clear();
