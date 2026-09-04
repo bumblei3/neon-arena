@@ -44,9 +44,16 @@ public:
     int getWidth() const { return width_; }
     int getHeight() const { return height_; }
 
+    // Post-processing setters
+    void setHitFlash(float intensity) { hitFlashIntensity = intensity; }
+    void setGameOverVignette(float amount) { gameOverVignette = amount; }
+    void setChromaticAberration(float amount) { chromaticAberrationAmount = amount; }
+    void setBloomThreshold(float t) { bloomThreshold = t; }
+    void setBloomIntensity(float i) { bloomIntensity = i; }
+    void setupBloom();
+
 private:
     void setupVBOs();
-    void setupBloom();
     void setupFullscreenQuad();
     void drawFullscreenQuad();
 
@@ -81,6 +88,16 @@ private:
     unsigned int fboTexture = 0;
     unsigned int brightFbo = 0;
     unsigned int brightTexture = 0;
-    unsigned int blurFbo[2] = {0, 0};
-    unsigned int blurTexture[2] = {0, 0};
+    unsigned int blurFbo[3] = {0, 0, 0};      // 3 blur stages
+    unsigned int blurTexture[3] = {0, 0, 0};  // small, medium, large
+    unsigned int bloomResultFbo = 0;
+    unsigned int bloomResultTexture = 0;
+
+public:
+    // Post-processing parameters (public for game logic access)
+    float hitFlashIntensity = 0.0f;
+    float gameOverVignette = 0.0f;
+    float chromaticAberrationAmount = 0.0f;
+    float bloomThreshold = 0.6f;
+    float bloomIntensity = 0.8f;
 };

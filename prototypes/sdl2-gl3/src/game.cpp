@@ -424,6 +424,33 @@ void Game::update(float dt) {
     // Decay HUD timers
     if (hitFeedbackTimer > 0.0f) { hitFeedbackTimer -= dt; if (hitFeedbackTimer < 0.0f) hitFeedbackTimer = 0.0f; }
     if (waveAnnounceTimer > 0.0f) { waveAnnounceTimer -= dt; if (waveAnnounceTimer < 0.0f) waveAnnounceTimer = 0.0f; }
+    
+    // Decay post-processing effects
+    if (renderer_) {
+        // Hit flash decay
+        float hitFlash = renderer_->hitFlashIntensity;
+        if (hitFlash > 0.0f) {
+            hitFlash -= dt * 3.0f;
+            if (hitFlash < 0.0f) hitFlash = 0.0f;
+            renderer_->setHitFlash(hitFlash);
+        }
+        
+        // Chromatic aberration decay
+        float ca = renderer_->chromaticAberrationAmount;
+        if (ca > 0.0f) {
+            ca -= dt * 4.0f;
+            if (ca < 0.0f) ca = 0.0f;
+            renderer_->setChromaticAberration(ca);
+        }
+        
+        // Game over vignette
+        if (gameOver) {
+            float gov = renderer_->gameOverVignette;
+            gov += dt * 0.5f;
+            if (gov > 1.0f) gov = 1.0f;
+            renderer_->setGameOverVignette(gov);
+        }
+    }
 
     // Check wave complete
     bool anyAlive = false;
@@ -568,6 +595,12 @@ void Game::checkCollisions() {
                 player.health -= it->damage;
                 shakeAmount = 3.0f;  // Strong shake when player hit
                 hit = true;
+                
+                // Trigger post-processing effects
+                if (renderer_) {
+                    renderer_->setHitFlash(0.6f);
+                    renderer_->setChromaticAberration(2.0f);
+                }
             }
         }
 
