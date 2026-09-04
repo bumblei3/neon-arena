@@ -20,11 +20,11 @@ void BalancingDB::initWeapons() {
 void BalancingDB::initBots() {
     bots = {
     // Name,     BaseHP, HP/Wave, Spd,  Range, DPS,  CD,   Weight
-        {"Melee",    50.0f,  5.0f,  3.5f,  2.0f, 10.0f, 1.0f, 0.35f},
-        {"Shooter",  40.0f,  4.0f,  2.5f, 15.0f,  8.0f, 1.5f, 0.25f},
-        {"Tank",    200.0f, 15.0f,  1.5f,  2.5f, 15.0f, 1.0f, 0.15f},
-        {"Flanker",  30.0f,  3.0f,  5.0f,  2.0f,  8.0f, 0.8f, 0.20f},
-        {"Boss",    500.0f, 40.0f,  2.0f, 20.0f, 20.0f, 1.0f, 0.05f},
+        {"Melee",    70.0f,  7.0f,  3.5f,  2.0f, 12.0f, 1.0f, 0.35f},
+        {"Shooter",  55.0f,  6.0f,  2.5f, 15.0f, 10.0f, 1.5f, 0.25f},
+        {"Tank",    280.0f, 20.0f,  1.5f,  2.5f, 18.0f, 1.0f, 0.15f},
+        {"Flanker",  40.0f,  4.0f,  5.0f,  2.0f, 10.0f, 0.8f, 0.20f},
+        {"Boss",    750.0f, 55.0f,  2.0f, 20.0f, 25.0f, 1.0f, 0.05f},
     };
 }
 
