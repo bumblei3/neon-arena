@@ -1,0 +1,50 @@
+#version 450
+
+layout(local_size_x = 256, local_size_y = 1, local_size_z = 1) in;
+
+struct Particle {
+    vec3 pos;
+    vec3 vel;
+    float life;
+    float size;
+    vec3 color;
+};
+
+layout(std430, binding = 0) buffer ParticleBuffer {
+    Particle particles[];
+};
+
+layout(push_constant) uniform Params {
+    float dt;
+    uint count;
+    vec3 gravity;
+} params;
+
+uint gid = gl_GlobalInvocationID.x;
+
+void main() {
+    if (gid >= params.count) return;
+    
+    Particle p = particles[gid];
+    if (p.life <= 0.0) return;
+    
+    // Update velocity
+    p.vel += params.gravity * params.dt;
+    
+    // Update position
+    p.pos += p.vel * params.dt;
+    
+    // Floor collision
+    if (p.pos.y < 0.05) {
+        p.pos.y = 0.05;
+        p.vel.y *= -0.4;
+        p.vel.x *= 0.8;
+        p.vel.z *= 0.8;
+    }
+    
+    // Decay
+    p.life -= params.dt;
+    p.size *= 0.98;
+    
+    particles[gid] = p;
+}
