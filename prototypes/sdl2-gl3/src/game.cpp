@@ -270,6 +270,17 @@ void Game::update(float dt) {
     updateKillFeed(dt, *this);
     updateDamageNumbers(dt, *this);
     checkCollisions();
+    
+    // Update camera shake
+    if (shakeAmount > 0.0f) {
+        shakeOffset.x = (rand() % 100 / 100.0f - 0.5f) * shakeAmount;
+        shakeOffset.z = (rand() % 100 / 100.0f - 0.5f) * shakeAmount;
+        shakeAmount -= shakeDecay * dt;
+        if (shakeAmount < 0.0f) {
+            shakeAmount = 0.0f;
+            shakeOffset = Vec3(0,0,0);
+        }
+    }
 
     // Check wave complete
     bool anyAlive = false;
@@ -387,6 +398,8 @@ void Game::checkCollisions() {
                         }
                         addDamageNumber(*this, bot.pos, 50);
                         spawnExplosion(*this, bot.pos, Vec3(0.0f, 0.8f, 1.0f), 20);
+                        // Trigger camera shake on kill
+                        shakeAmount = 2.0f + bot.botType * 1.0f;  // More shake for bosses
                         int dropChance = rand() % 100;
                         if (dropChance < 30) {
                             int type = rand() % 3;
@@ -419,6 +432,7 @@ void Game::checkCollisions() {
         } else {
             if (distance(it->pos, player.pos) < 1.0f) {
                 player.health -= it->damage;
+                shakeAmount = 3.0f;  // Strong shake when player hit
                 hit = true;
             }
         }
@@ -506,7 +520,7 @@ void Game::render() {
         -sinf(player.pitch),
         -cosf(player.yaw) * cosf(player.pitch)
     );
-    Vec3 eye = player.pos;
+    Vec3 eye = player.pos + shakeOffset;
     Vec3 center = eye + forward;
     Vec3 up(0, 1, 0);
 

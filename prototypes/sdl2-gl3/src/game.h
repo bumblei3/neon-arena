@@ -232,6 +232,11 @@ private:
     // Text
     TextRenderer text_;
 
+    // Camera shake
+    float shakeAmount = 0.0f;
+    float shakeDecay = 5.0f;
+    Vec3 shakeOffset;
+    
     // Game state
     Entity player;
     std::vector<Entity> bots;
