@@ -1,5 +1,6 @@
 // bots.cpp - Bot logic implementation for neon arena prototype
 #include "game.h"
+#include "wave_config.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -7,14 +8,15 @@
 void spawnWave(Game& game) {
     game.wave++;
     game.bots.clear();
+    
+    WaveConfig config = generateWaveConfig(game.wave);
 
-    // Boss wave every 5 waves
-    if (game.wave % 5 == 0) {
-        // Boss wave - 1 strong boss + a few minions
-        int botCount = 1 + game.wave / 5;  // Boss + minions
-        for (int i = 0; i < botCount; i++) {
+    if (config.isBossWave) {
+        // Boss wave - 1 strong boss + minions
+        int totalCount = config.bossCount + config.minionCount;
+        for (int i = 0; i < totalCount; i++) {
             Entity bot;
-            float angle = (float)i / botCount * 6.28318f;
+            float angle = (float)i / totalCount * 6.28318f;
             float radius = game.arenaSize * 0.6f;
             bot.pos = Vec3(
                 cosf(angle) * radius,
@@ -30,21 +32,23 @@ void spawnWave(Game& game) {
                 // Boss
                 bot.botType = 4;
                 bot.isBoss = true;
-                bot.health = 500.0f + game.wave * 50;
+                bot.health = (500.0f + game.wave * 50) * config.healthMultiplier;
                 bot.moveSpeed = 2.0f;
                 bot.attackCooldown = 0;
             } else {
                 // Minions
                 bot.botType = 0;
-                bot.health = 50.0f + game.wave * 5;
+                bot.health = (50.0f + game.wave * 5) * config.healthMultiplier;
                 bot.moveSpeed = 4.0f;
+                applyModifiers(bot, config.modifiers);
             }
             game.bots.push_back(bot);
         }
-        printf("BOSS WAVE %d: Boss + %d minions!\n", game.wave, botCount - 1);
+        printf("BOSS WAVE %d: Boss + %d minions! (modifiers: 0x%x)\n", 
+               game.wave, config.minionCount, static_cast<int>(config.modifiers));
     } else {
         // Normal wave
-        int botCount = game.wave + 1;
+        int botCount = config.baseBotCount;
         for (int i = 0; i < botCount; i++) {
             Entity bot;
             float angle = (float)i / botCount * 6.28318f;
@@ -59,26 +63,29 @@ void spawnWave(Game& game) {
             bot.alive = true;
             bot.type = 1;
 
+            // Bot type distribution based on wave
             if (game.wave >= 3 && i == 0) {
-                bot.botType = 2;
-                bot.health = 200.0f + game.wave * 20;
+                bot.botType = 2;  // Tank
+                bot.health = (200.0f + game.wave * 20) * config.healthMultiplier;
                 bot.moveSpeed = 1.5f;
             } else if (game.wave >= 2 && i == botCount - 1) {
-                bot.botType = 3;
-                bot.health = 50.0f + game.wave * 5;
+                bot.botType = 3;  // Fast
+                bot.health = (50.0f + game.wave * 5) * config.healthMultiplier;
                 bot.moveSpeed = 6.0f;
             } else if (game.wave >= 4 && i % 3 == 1) {
-                bot.botType = 1;
-                bot.health = 80.0f + game.wave * 8;
+                bot.botType = 1;  // Shooter
+                bot.health = (80.0f + game.wave * 8) * config.healthMultiplier;
                 bot.moveSpeed = 2.5f;
             } else {
-                bot.botType = 0;
-                bot.health = 100.0f + game.wave * 10;
+                bot.botType = 0;  // Melee
+                bot.health = (100.0f + game.wave * 10) * config.healthMultiplier;
                 bot.moveSpeed = 3.0f;
             }
+            applyModifiers(bot, config.modifiers);
             game.bots.push_back(bot);
         }
-        printf("Wave %d: %d bots spawned\n", game.wave, botCount);
+        printf("Wave %d: %d bots spawned (modifiers: 0x%x)\n", 
+               game.wave, botCount, static_cast<int>(config.modifiers));
     }
     game.waveComplete = false;
 }
@@ -86,6 +93,11 @@ void spawnWave(Game& game) {
 void updateBots(Game& game, float dt) {
     for (auto& bot : game.bots) {
         if (!bot.alive) continue;
+
+        // Regeneration modifier
+        if (bot.vy > 0.5f) {
+            bot.health += 1.0f * dt;  // +1 HP/sec
+        }
 
         // Move towards player
         Vec3 toPlayer = Vec3(
@@ -184,45 +196,35 @@ void renderSolidBots(Game& game) {
         float pulse = 1.0f + sinf(game.gameTime * 4.0f + bot.pos.x * 0.5f) * 0.15f;
         float s = 0.8f * pulse;
         float sizeMult = 1.0f;
-        if (bot.botType == 4) sizeMult = 2.5f;  // Boss ist größer
+        if (bot.botType == 4) sizeMult = 2.5f;
         s *= sizeMult;
 
         float healthPct = bot.health / (100.0f + game.wave * 10);
         if (healthPct > 1.0f) healthPct = 1.0f;
         if (healthPct < 0.0f) healthPct = 0.0f;
 
-        // Verschiedene Farben für verschiedene Bot-Typen
+        // Color based on bot type and modifiers
         Vec3 botColor;
         switch (bot.botType) {
-            case 0: // Melee - grün/cyan
-                botColor = Vec3((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f);
-                break;
-            case 1: // Shooter - orange/gelb
-                botColor = Vec3(1.0f, 0.5f + healthPct * 0.5f, (1.0f - healthPct) * 0.3f);
-                break;
-            case 2: // Tank - lila/magenta
-                botColor = Vec3(0.6f + healthPct * 0.4f, (1.0f - healthPct) * 0.3f, 0.8f);
-                break;
-            case 3: // Fast - rot/pink
-                botColor = Vec3(1.0f, (1.0f - healthPct) * 0.5f, (1.0f - healthPct) * 0.3f);
-                break;
-            case 4: // Boss - gold/rot
-                botColor = Vec3(1.0f, 0.3f + healthPct * 0.4f, 0.0f);
-                break;
-            default:
-                botColor = Vec3((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f);
-                break;
+            case 0: botColor = Vec3((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f); break;
+            case 1: botColor = Vec3(1.0f, 0.5f + healthPct * 0.5f, (1.0f - healthPct) * 0.3f); break;
+            case 2: botColor = Vec3(0.6f + healthPct * 0.4f, (1.0f - healthPct) * 0.3f, 0.8f); break;
+            case 3: botColor = Vec3(1.0f, (1.0f - healthPct) * 0.5f, (1.0f - healthPct) * 0.3f); break;
+            case 4: botColor = Vec3(1.0f, 0.3f + healthPct * 0.4f, 0.0f); break;
+            default: botColor = Vec3((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f); break;
         }
+        
+        // Tint for modifiers (blue if shielded, green if regen, orange if splitter)
+        if (bot.vy > 0.5f) botColor = botColor * 0.7f + Vec3(0.0f, 0.3f, 0.0f);  // Regen tint
+        if (bot.vz > 0.5f) botColor = botColor * 0.7f + Vec3(0.3f, 0.1f, 0.0f);  // Splitter tint
 
         float rotOffset = game.gameTime * 1.5f + bot.pos.x * 0.3f;
         float cosR = cosf(rotOffset);
         float sinR = sinf(rotOffset);
 
-        // Icosahedron-ähnliche Form (12 Ecken, 20 Dreiecke)
-        float phi = 1.6180339887f;  // Golden ratio
+        float phi = 1.6180339887f;
         float h = s * phi;
 
-        // Obere Pyramide
         Vec3 top(bot.pos.x, bot.pos.y + h, bot.pos.z);
         Vec3 mid1(bot.pos.x - s * cosR, bot.pos.y, bot.pos.z - s * sinR);
         Vec3 mid2(bot.pos.x + s * sinR, bot.pos.y, bot.pos.z - s * cosR);
@@ -230,7 +232,6 @@ void renderSolidBots(Game& game) {
         Vec3 mid4(bot.pos.x - s * sinR, bot.pos.y, bot.pos.z + s * cosR);
         Vec3 bottom(bot.pos.x, bot.pos.y - h * 0.6f, bot.pos.z);
 
-        // Obere Dreiecke (4)
         Vertex tri1[] = { Vertex(top, Vec3(0,1,0), botColor), Vertex(mid1, Vec3(-1,0.5f,-1), botColor), Vertex(mid2, Vec3(1,0.5f,-1), botColor) };
         game.renderer_->drawTriangles(tri1, 3, botColor);
         Vertex tri2[] = { Vertex(top, Vec3(0,1,0), botColor), Vertex(mid2, Vec3(1,0.5f,-1), botColor), Vertex(mid3, Vec3(1,0.5f,1), botColor) };
@@ -240,7 +241,6 @@ void renderSolidBots(Game& game) {
         Vertex tri4[] = { Vertex(top, Vec3(0,1,0), botColor), Vertex(mid4, Vec3(-1,0.5f,1), botColor), Vertex(mid1, Vec3(-1,0.5f,-1), botColor) };
         game.renderer_->drawTriangles(tri4, 3, botColor);
 
-        // Untere Dreiecke (4)
         Vertex tri5[] = { Vertex(bottom, Vec3(0,-1,0), botColor), Vertex(mid1, Vec3(-1,-0.5f,-1), botColor), Vertex(mid2, Vec3(1,-0.5f,-1), botColor) };
         game.renderer_->drawTriangles(tri5, 3, botColor);
         Vertex tri6[] = { Vertex(bottom, Vec3(0,-1,0), botColor), Vertex(mid2, Vec3(1,-0.5f,-1), botColor), Vertex(mid3, Vec3(1,-0.5f,1), botColor) };
@@ -253,20 +253,16 @@ void renderSolidBots(Game& game) {
 }
 
 void renderBots(Game& game) {
-    // Render solid bots first (with lighting)
     renderSolidBots(game);
 
     for (auto& bot : game.bots) {
         if (!bot.alive) continue;
 
-        // Draw wireframe overlay for glow effect
-        // Pulsating size based on game time
         float pulse = 1.0f + sinf(game.gameTime * 4.0f + bot.pos.x * 0.5f) * 0.15f;
         float sizeMult = 1.0f;
         if (bot.botType == 4) sizeMult = 2.5f;
-        float s = 0.8f * pulse * sizeMult;  // Size with pulse
+        float s = 0.8f * pulse * sizeMult;
 
-        // Color based on health (green-cyan when healthy, red when damaged)
         float healthPct = bot.health / (100.0f + game.wave * 10);
         Vec3 botColor(
             (1.0f - healthPct) * 0.8f,
@@ -274,12 +270,10 @@ void renderBots(Game& game) {
             healthPct * 0.5f
         );
 
-        // Rotation offset based on game time
         float rotOffset = game.gameTime * 1.5f + bot.pos.x * 0.3f;
         float cosR = cosf(rotOffset);
         float sinR = sinf(rotOffset);
 
-        // Top pyramid (rotated)
         Vertex top[] = {
             Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
             Vertex(Vec3(bot.pos.x - s * cosR, bot.pos.y, bot.pos.z - s * sinR), botColor),
@@ -308,7 +302,6 @@ void renderBots(Game& game) {
         };
         game.renderer_->drawLineLoop(top4, 3, botColor);
 
-        // Bottom pyramid (rotated opposite direction)
         float rotOffset2 = -rotOffset * 0.7f;
         float cosR2 = cosf(rotOffset2);
         float sinR2 = sinf(rotOffset2);
@@ -343,18 +336,16 @@ void renderBots(Game& game) {
 
         // Health bar above bot
         Vec3 hpColor(1.0f - healthPct, healthPct, 0.0f);
-        if (bot.botType == 4) hpColor = Vec3(1.0f, 0.8f, 0.0f);  // Boss HP is gold
+        if (bot.botType == 4) hpColor = Vec3(1.0f, 0.8f, 0.0f);
         float hbWidth = 1.5f * sizeMult;
         float hbY = bot.pos.y + 2.5f * sizeMult;
 
-        // Background
         Vertex bg[] = {
             Vertex(Vec3(bot.pos.x - hbWidth * 0.5f, hbY, bot.pos.z), Vec3(0.2f, 0.2f, 0.2f)),
             Vertex(Vec3(bot.pos.x + hbWidth * 0.5f, hbY, bot.pos.z), Vec3(0.2f, 0.2f, 0.2f)),
         };
         game.renderer_->drawLineLoop(bg, 2, Vec3(0.2f, 0.2f, 0.2f));
 
-        // Fill
         Vertex hp[] = {
             Vertex(Vec3(bot.pos.x - hbWidth * 0.5f * healthPct, hbY, bot.pos.z), hpColor),
             Vertex(Vec3(bot.pos.x + hbWidth * 0.5f * healthPct, hbY, bot.pos.z), hpColor),

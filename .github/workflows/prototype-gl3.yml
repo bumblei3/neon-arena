@@ -1,0 +1,44 @@
+name: Prototype SDL2-GL3
+
+on:
+  push:
+    paths:
+      - 'prototypes/sdl2-gl3/**'
+      - '.github/workflows/prototype-gl3.yml'
+  pull_request:
+    paths:
+      - 'prototypes/sdl2-gl3/**'
+      - '.github/workflows/prototype-gl3.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          cmake \
+          g++ \
+          libgl1-mesa-dev \
+          libglew-dev \
+          libsdl2-dev \
+          libsdl2-mixer-dev
+    
+    - name: Configure
+      run: |
+        cd prototypes/sdl2-gl3
+        cmake .
+    
+    - name: Build
+      run: |
+        cd prototypes/sdl2-gl3
+        make -j$(nproc)
+    
+    - name: Run tests
+      run: |
+        cd prototypes/sdl2-gl3
+        bash tests/run_tests.sh

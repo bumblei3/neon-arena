@@ -27,6 +27,7 @@ add_executable(neon-arena
     src/menu.cpp
     src/text.cpp
     src/weapons.cpp
+    src/wave_config.h
     src/bots.cpp
     src/score.cpp
     src/powerups.cpp
