@@ -34,6 +34,10 @@ bool Game::init(SDL_Window* window) {
         return false;
     }
 
+    // Initialize particle system
+    particleSystem = new ParticleSystem();
+    particleSystem->init();
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
     loadHighScore(*this);
     setupArena();
@@ -56,6 +60,10 @@ void Game::shutdown() {
         delete spatialHash;
         spatialHash = nullptr;
         g_spatialHash = nullptr;
+    }
+    if (particleSystem) {
+        delete particleSystem;
+        particleSystem = nullptr;
     }
     
     if (renderer_) {
@@ -307,6 +315,7 @@ void Game::update(float dt) {
     updateBots(*this, dt);
     updateProjectiles(dt);
     updateParticles(dt);
+    if (particleSystem) particleSystem->update(dt);
     updateWeapons(dt, *this);
     updatePowerUps(dt, *this);
     updateScore(dt, *this);

@@ -10,6 +10,7 @@
 #include "spatial_hash.h"
 #include "savegame.h"
 #include "music_generator.h"
+#include "particle_ecs.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -237,6 +238,9 @@ private:
 
     // Spatial hash for collision detection
     SpatialHash* spatialHash = nullptr;
+
+    // Particle system
+    ParticleSystem* particleSystem = nullptr;
 
     // Camera shake
     float shakeAmount = 0.0f;

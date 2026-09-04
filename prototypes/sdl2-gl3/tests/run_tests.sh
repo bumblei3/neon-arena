@@ -86,5 +86,14 @@ echo ""
 echo "=== Running Integration Tests ==="
 ./test_integration
 
+# --- 8. Particle ECS Tests ---
+echo ""
+echo "=== Building Particle ECS Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_particle_ecs test_particle_ecs.cpp ../src/particle_ecs.cpp
+
+echo ""
+echo "=== Running Particle ECS Tests ==="
+./test_particle_ecs
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_particle_ecs

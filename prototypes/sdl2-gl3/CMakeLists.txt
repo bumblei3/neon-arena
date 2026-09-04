@@ -27,6 +27,7 @@ add_executable(neon-arena
     src/spatial_hash.cpp
     src/savegame.cpp
     src/music_generator.cpp
+    src/particle_ecs.cpp
     src/menu.cpp
     src/text.cpp
     src/weapons.cpp
@@ -39,6 +40,7 @@ add_executable(neon-arena
 )
 
 target_include_directories(neon-arena PRIVATE src)
+target_link_options(neon-arena PRIVATE "LINKER:-no-pie")
 target_link_libraries(neon-arena PRIVATE
     OpenGL::GL
     SDL2::SDL2
