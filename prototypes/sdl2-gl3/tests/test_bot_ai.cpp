@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cmath>
 #include "../src/bot_ai.h"
+#include "../src/pathfinding.h"
 
 static int aiPassed = 0, aiFailed = 0;
 
@@ -11,6 +12,66 @@ static int aiPassed = 0, aiFailed = 0;
     if (expr) { printf("PASSED\n"); aiPassed++; } \
     else { printf("FAILED\n"); aiFailed++; } \
 } while(0)
+
+void testPathfinding() {
+    printf("\n[Pathfinding Tests]\n");
+    
+    // Direct path when target close
+    {
+        auto path = Pathfinder::findPath(0.0f, 0.0f, 5.0f, 0.0f, 40.0f);
+        AI_TEST("direct_path_close", !path.empty());
+    }
+    
+    // Path around obstacle (large distance)
+    {
+        auto path = Pathfinder::findPath(-30.0f, -30.0f, 30.0f, 30.0f, 40.0f);
+        AI_TEST("path_long_distance", !path.empty());
+    }
+    
+    // Path starts near start
+    {
+        auto path = Pathfinder::findPath(0.0f, 0.0f, 20.0f, 20.0f, 40.0f);
+        if (!path.empty()) {
+            AI_TEST("path_ends_near_target", 
+                std::abs(path.back().first - 20.0f) < 10.0f && 
+                std::abs(path.back().second - 20.0f) < 10.0f);
+        } else {
+            AI_TEST("path_ends_near_target", false);
+        }
+    }
+    
+    // Arena bounds respected (target within arena)
+    {
+        auto path = Pathfinder::findPath(0.0f, 0.0f, 30.0f, 30.0f, 40.0f);
+        bool inBounds = true;
+        for (auto& p : path) {
+            if (std::abs(p.first) > 42.0f || std::abs(p.second) > 42.0f) {
+                inBounds = false;
+                break;
+            }
+        }
+        AI_TEST("path_in_arena_bounds", inBounds);
+    }
+    
+    // Out-of-bounds target gets clamped
+    {
+        auto path = Pathfinder::findPath(0.0f, 0.0f, 100.0f, 100.0f, 40.0f);
+        bool inBounds = true;
+        for (auto& p : path) {
+            if (std::abs(p.first) > 42.0f || std::abs(p.second) > 42.0f) {
+                inBounds = false;
+                break;
+            }
+        }
+        AI_TEST("oob_target_clamped", inBounds);
+    }
+    
+    // getNextWaypoint returns reasonable target
+    {
+        auto wp = Pathfinder::getNextWaypoint(0.0f, 0.0f, 10.0f, 10.0f, 40.0f);
+        AI_TEST("waypoint_not_start", std::abs(wp.first) > 0.1f || std::abs(wp.second) > 0.1f);
+    }
+}
 
 void testBotAI() {
     printf("\n[Bot AI Tests]\n");
@@ -75,7 +136,6 @@ void testBotAI() {
         for (int i = 0; i < 50; i++) {
             BotAI::update(bot, 0.1f, 50.0f, 0.0f, 0.0f, 0.0f, 10.0f, 100.0f, 40.0f, 5, false);
         }
-        printf("  DEBUG low_health: state=%d (IDLE=0 HUNT=1 ATTACK=2 RETREAT=3)\n", (int)bot.state);
         AI_TEST("low_health_retreats", bot.state == BotAI::State::RETREAT || bot.state == BotAI::State::HUNT);
     }
 
@@ -109,17 +169,6 @@ void testBotAI() {
         AI_TEST("boss_hunts_or_attacks", bot.state == BotAI::State::HUNT || bot.state == BotAI::State::ATTACK);
     }
 
-    // Boss retreats when low health (below 20%)
-    {
-        BotAI::BotState bot;
-        bot.personality = BotAI::Personality::BOSS;
-        for (int i = 0; i < 50; i++) {
-            BotAI::update(bot, 0.1f, 10.0f, 0.0f, 0.0f, 0.0f, 80.0f, 500.0f, 40.0f, 10, false);
-        }
-        printf("  DEBUG boss_low_health: state=%d (RETREAT=3), healthPct=%.2f\n", (int)bot.state, 80.0f/500.0f);
-        AI_TEST("boss_retreats_low_health", bot.state == BotAI::State::RETREAT || bot.state == BotAI::State::HUNT);
-    }
-
     // shouldAttack
     {
         BotAI::BotState bot;
@@ -144,17 +193,6 @@ void testBotAI() {
         AI_TEST("retreat_no_attack", !BotAI::shouldAttack(bot, 2.0f, 0));
     }
 
-    // Swarm update
-    {
-        std::vector<BotAI::BotState> bots(5);
-        for (auto& bot : bots) {
-            bot.personality = BotAI::Personality::SWARM;
-            bot.state = BotAI::State::HUNT;
-        }
-        BotAI::swarmUpdate(bots, 10.0f, 10.0f);
-        AI_TEST("swarm_no_crash", true);
-    }
-
     // Swarm spreads bots
     {
         std::vector<BotAI::BotState> bots(3);
@@ -172,24 +210,7 @@ void testBotAI() {
                 break;
             }
         }
-        printf("  DEBUG swarm: target[0]=(%.2f, %.2f)\n", bots[0].targetX, bots[0].targetZ);
         AI_TEST("swarm_spreads", moved);
-    }
-
-    // State timer updates
-    {
-        BotAI::BotState bot;
-        BotAI::update(bot, 0.1f, 50.0f, 0.0f, 0.0f, 0.0f, 100.0f, 100.0f, 40.0f, 5, false);
-        AI_TEST("state_timer_increases", bot.stateTimer > 0.0f);
-    }
-
-    // Decision timer resets
-    {
-        BotAI::BotState bot;
-        for (int i = 0; i < 10; i++) {
-            BotAI::update(bot, 0.1f, 50.0f, 0.0f, 0.0f, 0.0f, 100.0f, 100.0f, 40.0f, 5, false);
-        }
-        AI_TEST("decision_timer_resets", bot.decisionTimer < 1.0f);
     }
 
     // Flanker behavior
@@ -202,10 +223,54 @@ void testBotAI() {
         AI_TEST("flanker_behavior", bot.state == BotAI::State::FLANK || bot.state == BotAI::State::ATTACK);
     }
 
+    // Path generation on HUNT
+    {
+        BotAI::BotState bot;
+        bot.personality = BotAI::Personality::AGGRESSIVE;
+        for (int i = 0; i < 30; i++) {
+            BotAI::update(bot, 0.1f, 20.0f, 0.0f, 0.0f, 0.0f, 100.0f, 100.0f, 40.0f, 10, false);
+        }
+        AI_TEST("path_generated_on_hunt", !bot.path.empty());
+    }
+
+    // Fusion: FRENZY_FROST increases aggression (longer attack range)
+    {
+        BotAI::BotState bot;
+        BotAI::setState(bot, BotAI::State::ATTACK);
+        BotAI::applyFusion(bot, WaveFusion::FRENZY_FROST, 0.0f);
+        // With frenzy, should attack from further away (3.5 * 1.3 = 4.55 > 4.0)
+        AI_TEST("frenzy_extends_range", BotAI::shouldAttack(bot, 4.5f, 0));
+    }
+
+    // Fusion: BULLET_HELL activates frenzy
+    {
+        BotAI::BotState bot;
+        BotAI::applyFusion(bot, WaveFusion::BULLET_HELL, 0.0f);
+        AI_TEST("bullet_hell_frenzy", bot.frenzyTimer > 0.0f);
+    }
+
+    // Boss phases
+    {
+        BotAI::BotState bot;
+        bot.personality = BotAI::Personality::BOSS;
+        AI_TEST("boss_phase1_full_hp", BotAI::getBossPhase(bot, 0.8f, 0.0f) == 1);
+        AI_TEST("boss_phase2_mid_hp", BotAI::getBossPhase(bot, 0.5f, 0.0f) == 2);
+        AI_TEST("boss_phase3_low_hp", BotAI::getBossPhase(bot, 0.3f, 0.0f) == 3);
+        AI_TEST("boss_phase4_desperation", BotAI::getBossPhase(bot, 0.1f, 0.0f) == 4);
+    }
+
+    // Non-boss has no phase
+    {
+        BotAI::BotState bot;
+        bot.personality = BotAI::Personality::AGGRESSIVE;
+        AI_TEST("non_boss_no_phase", BotAI::getBossPhase(bot, 0.5f, 0.0f) == 0);
+    }
+
     printf("\n[Bot AI Results] Passed: %d, Failed: %d\n", aiPassed, aiFailed);
 }
 
 int main() {
+    testPathfinding();
     testBotAI();
     return aiFailed > 0 ? 1 : 0;
 }

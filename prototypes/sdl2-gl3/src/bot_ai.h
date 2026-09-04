@@ -3,6 +3,7 @@
 #include <vector>
 #include <cmath>
 #include <cstdlib>
+#include "wave_config.h"
 
 class BotAI {
 public:
@@ -36,6 +37,14 @@ public:
         float aggression = 1.0f;         // 0.0 = passive, 1.0 = aggressive
         float lastDamageTaken = 0.0f;
         float lastDamageDealt = 0.0f;
+        
+        // Pathfinding
+        std::vector<std::pair<float, float>> path;
+        float pathUpdateTimer = 0.0f;
+        
+        // Frenzy state (from fusion)
+        float frenzyTimer = 0.0f;
+        float originalFireRate = 1.0f;
     };
 
     static void update(BotState& bot, float dt, float playerX, float playerZ,
@@ -53,4 +62,10 @@ public:
     static bool shouldAttack(const BotState& bot, float distToPlayer, int botType);
 
     static void setState(BotState& bot, State newState);
+    
+    // Apply fusion modifiers to bot behavior
+    static void applyFusion(BotState& bot, WaveFusion fusion, float dt);
+    
+    // Boss multi-phase behavior
+    static int getBossPhase(const BotState& bot, float healthPct, float bossPhase);
 };

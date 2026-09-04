@@ -132,8 +132,8 @@ void updateBots(Game& game, float dt) {
     // Swarm coordination (only if enough bots)
     if (botStates.size() >= 3) {
         std::vector<BotAI::BotState> botStatesValues;
-    for (auto* ptr : botStates) botStatesValues.push_back(*ptr);
-    BotAI::swarmUpdate(botStatesValues, game.player.pos.x, game.player.pos.z);
+        for (auto* ptr : botStates) botStatesValues.push_back(*ptr);
+        BotAI::swarmUpdate(botStatesValues, game.player.pos.x, game.player.pos.z);
     }
 
     bool playerIsMoving = (std::abs(game.player.vx) > 0.1f || std::abs(game.player.vz) > 0.1f);
@@ -146,6 +146,9 @@ void updateBots(Game& game, float dt) {
             bot.health += 1.0f * dt;
         }
 
+        // Apply fusion effects to bot AI
+        BotAI::applyFusion(bot.aiState, game.currentFusion, dt);
+
         // Update AI state machine
         BotAI::update(bot.aiState, dt,
                       game.player.pos.x, game.player.pos.z,
@@ -153,9 +156,26 @@ void updateBots(Game& game, float dt) {
                       bot.health, 100.0f + game.wave * 10,
                       game.arenaSize, game.wave, playerIsMoving);
 
-        // Move based on AI target
-        float dx = bot.aiState.targetX - bot.pos.x;
-        float dz = bot.aiState.targetZ - bot.pos.z;
+        // Pathfinding: use waypoint if path is available
+        float targetX = bot.aiState.targetX;
+        float targetZ = bot.aiState.targetZ;
+        
+        if (!bot.aiState.path.empty()) {
+            // Follow path waypoints
+            auto& wp = bot.aiState.path[0];
+            float wdx = wp.first - bot.pos.x;
+            float wdz = wp.second - bot.pos.z;
+            float wdist = std::sqrt(wdx * wdx + wdz * wdz);
+            if (wdist < 2.0f && bot.aiState.path.size() > 1) {
+                bot.aiState.path.erase(bot.aiState.path.begin());
+            }
+            targetX = bot.aiState.path.empty() ? targetX : bot.aiState.path[0].first;
+            targetZ = bot.aiState.path.empty() ? targetZ : bot.aiState.path[0].second;
+        }
+
+        // Move towards target
+        float dx = targetX - bot.pos.x;
+        float dz = targetZ - bot.pos.z;
         float dist = std::sqrt(dx * dx + dz * dz);
 
         if (dist > 0.5f) {
@@ -189,9 +209,12 @@ void updateBots(Game& game, float dt) {
         // Bot attacks based on AI decision
         bot.attackCooldown -= dt;
         if (BotAI::shouldAttack(bot.aiState, dist, bot.botType) && bot.attackCooldown <= 0.0f) {
+            // Frenzy modifier: faster fire rate
+            float fireRateMult = (bot.aiState.frenzyTimer > 0.0f) ? 0.6f : 1.0f;
+            
             if (bot.botType == 0 || bot.botType == 2 || bot.botType == 3) {
                 game.player.health -= 10.0f;
-                bot.attackCooldown = 1.0f;
+                bot.attackCooldown = 1.0f * fireRateMult;
             }
             if (bot.botType == 1) {
                 Vec3 toPlayerDir = Vec3(
@@ -201,29 +224,51 @@ void updateBots(Game& game, float dt) {
                 ).normalized();
                 Vec3 muzzlePos = bot.pos + Vec3(0, 1.0f, 0);
                 game.projectiles.push_back(Projectile(muzzlePos, toPlayerDir, false, WeaponType::RAILGUN, 15.0f));
-                bot.attackCooldown = 2.0f;
+                bot.attackCooldown = 2.0f * fireRateMult;
             }
             if (bot.botType == 4) {
-                bot.bossPhase += 1.0f;
-                if (bot.bossPhase > 3.0f) bot.bossPhase = 0.0f;
-
-                if (bot.bossPhase < 1.0f) {
+                // Boss multi-phase behavior
+                int phase = BotAI::getBossPhase(bot.aiState, bot.health / (500.0f + game.wave * 50), bot.bossPhase);
+                
+                if (phase == 1) {
+                    // Spread shot
                     for (int i = 0; i < 5; i++) {
                         float angle = (i - 2) * 0.3f;
                         Vec3 dir = Vec3(sinf(angle), 0, -cosf(angle));
                         Vec3 muzzlePos = bot.pos + Vec3(0, 2.0f, 0);
                         game.projectiles.push_back(Projectile(muzzlePos, dir, false, WeaponType::RAILGUN, 20.0f));
                     }
-                    bot.attackCooldown = 3.0f;
-                } else {
+                    bot.attackCooldown = 3.0f * fireRateMult;
+                } else if (phase == 2) {
+                    // Aimed double shot
                     Vec3 toPlayerDir = Vec3(
                         game.player.pos.x - bot.pos.x,
                         0,
                         game.player.pos.z - bot.pos.z
                     ).normalized();
                     Vec3 muzzlePos = bot.pos + Vec3(0, 2.0f, 0);
-                    game.projectiles.push_back(Projectile(muzzlePos, toPlayerDir, false, WeaponType::RAILGUN, 30.0f));
-                    bot.attackCooldown = 2.0f;
+                    game.projectiles.push_back(Projectile(muzzlePos, toPlayerDir, false, WeaponType::RAILGUN, 25.0f));
+                    game.projectiles.push_back(Projectile(muzzlePos + Vec3(1,0,0), toPlayerDir, false, WeaponType::RAILGUN, 25.0f));
+                    bot.attackCooldown = 2.5f * fireRateMult;
+                } else if (phase == 3) {
+                    // Frenzy: rapid aimed shots
+                    Vec3 toPlayerDir = Vec3(
+                        game.player.pos.x - bot.pos.x,
+                        0,
+                        game.player.pos.z - bot.pos.z
+                    ).normalized();
+                    Vec3 muzzlePos = bot.pos + Vec3(0, 2.0f, 0);
+                    game.projectiles.push_back(Projectile(muzzlePos, toPlayerDir, false, WeaponType::RAILGUN, 20.0f));
+                    bot.attackCooldown = 1.5f * fireRateMult;
+                } else {
+                    // Desperation: rain of projectiles
+                    for (int i = 0; i < 8; i++) {
+                        float angle = (float)i / 8 * 6.28318f;
+                        Vec3 dir = Vec3(sinf(angle), 0, -cosf(angle));
+                        Vec3 muzzlePos = bot.pos + Vec3(0, 2.0f, 0);
+                        game.projectiles.push_back(Projectile(muzzlePos, dir, false, WeaponType::RAILGUN, 30.0f));
+                    }
+                    bot.attackCooldown = 2.0f * fireRateMult;
                 }
             }
         }
