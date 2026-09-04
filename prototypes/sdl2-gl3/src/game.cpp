@@ -52,6 +52,12 @@ bool Game::init(SDL_Window* window) {
 }
 
 void Game::shutdown() {
+    if (spatialHash) {
+        delete spatialHash;
+        spatialHash = nullptr;
+        g_spatialHash = nullptr;
+    }
+    
     if (renderer_) {
         renderer_->shutdown();
         delete renderer_;
@@ -269,6 +275,15 @@ void Game::update(float dt) {
     updateSpecials(dt, *this);
     updateKillFeed(dt, *this);
     updateDamageNumbers(dt, *this);
+    
+    // Rebuild spatial hash for collision detection
+    spatialHash->clear();
+    for (int i = 0; i < (int)bots.size(); i++) {
+        if (bots[i].alive) {
+            spatialHash->insert(i, bots[i].pos.x, bots[i].pos.z);
+        }
+    }
+    
     checkCollisions();
     
     // Update camera shake

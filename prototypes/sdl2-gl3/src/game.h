@@ -7,6 +7,7 @@
 #include "particle.h"
 #include "text.h"
 #include "audio_manager.h"
+#include "spatial_hash.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -180,6 +181,7 @@ public:
     friend void renderHUD(Game& game);
     friend void renderMinimap(Game& game);
     friend void renderUpgradeMenu(Game& game);
+    friend class SpatialHash;
     friend void handleUpgradeInput(Game& game, SDL_Event& event);
     friend void applyUpgrade(Game& game, int selection);
     friend void resetUpgrades(Game& game);
@@ -226,6 +228,9 @@ private:
 
     // Text
     TextRenderer text_;
+
+    // Spatial hash for collision detection
+    SpatialHash* spatialHash = nullptr;
 
     // Camera shake
     float shakeAmount = 0.0f;
