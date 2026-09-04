@@ -49,8 +49,10 @@ int main(int argc, char** argv) {
     }
     auto mapGeometry = MapLoader::extractGeometry(map);
     
-    bool running = true;
+    // Load highscore
+    game.loadHighScore();
 
+    bool running = true;
     Uint64 prev = SDL_GetPerformanceCounter();
     while (running) {
         Uint64 now = SDL_GetPerformanceCounter();
@@ -70,6 +72,41 @@ int main(int argc, char** argv) {
                 if (ev.key.keysym.sym == SDLK_s) game.keyS = true;
                 if (ev.key.keysym.sym == SDLK_d) game.keyD = true;
                 if (ev.key.keysym.sym == SDLK_SPACE) game.keySpace = true;
+                // Weapon switching
+                if (ev.key.keysym.sym == SDLK_1) game.currentWeapon = WeaponType::RAILGUN;
+                if (ev.key.keysym.sym == SDLK_2) game.currentWeapon = WeaponType::LIGHTNING;
+                if (ev.key.keysym.sym == SDLK_3) game.currentWeapon = WeaponType::PLASMA;
+                if (ev.key.keysym.sym == SDLK_q) {
+                    if (game.currentWeapon == WeaponType::RAILGUN) {
+                        game.currentWeapon = WeaponType::LIGHTNING;
+                    } else if (game.currentWeapon == WeaponType::LIGHTNING) {
+                        game.currentWeapon = WeaponType::PLASMA;
+                    } else {
+                        game.currentWeapon = WeaponType::RAILGUN;
+                    }
+                }
+                // Specials
+                if (ev.key.keysym.sym == SDLK_e) game.activateNuclearBlast();
+                if (ev.key.keysym.sym == SDLK_r) game.activateTimeSlow();
+                if (ev.key.keysym.sym == SDLK_f) game.activateShield();
+                // Upgrade menu
+                if (game.showUpgradeMenu) {
+                    if (ev.key.keysym.sym == SDLK_UP) {
+                        game.upgradeSelection--;
+                        if (game.upgradeSelection < 0) game.upgradeSelection = 3;
+                    }
+                    if (ev.key.keysym.sym == SDLK_DOWN) {
+                        game.upgradeSelection++;
+                        if (game.upgradeSelection > 3) game.upgradeSelection = 0;
+                    }
+                    if (ev.key.keysym.sym == SDLK_RETURN) {
+                        game.applyUpgrade(game.upgradeSelection);
+                    }
+                    if (ev.key.keysym.sym == SDLK_TAB) {
+                        game.showUpgradeMenu = false;
+                        game.wave++;
+                    }
+                }
                 break;
             case SDL_KEYUP:
                 if (ev.key.keysym.sym == SDLK_w) game.keyW = false;
@@ -86,7 +123,11 @@ int main(int argc, char** argv) {
                 break;
             case SDL_MOUSEBUTTONDOWN:
                 if (ev.button.button == SDL_BUTTON_LEFT) {
-                    game.shoot();
+                    game.shootRailgun();
+                    audio.playShoot();
+                }
+                if (ev.button.button == SDL_BUTTON_RIGHT) {
+                    game.shootLightning();
                     audio.playShoot();
                 }
                 break;
@@ -100,27 +141,42 @@ int main(int argc, char** argv) {
         auto enemies = game.getEnemyGeometry();
         auto tracers = game.getTracerGeometry();
         auto sparks = game.getSparkGeometry();
+        auto lightning = game.getLightningGeometry();
+        auto powerUps = game.getPowerUpGeometry();
+        auto hudGeom = game.getHUDGeometry();
+        auto minimap = game.getMinimapGeometry();
+        auto killFeed = game.getKillFeedGeometry();
+        auto damageNumbers = game.getDamageNumbersGeometry();
 
-        // Lines: arena grid + tracers
+        // Lines: arena grid + tracers + lightning + power-ups
         std::vector<Vertex> lines;
         lines.insert(lines.end(), arena.begin(), arena.end());
         lines.insert(lines.end(), tracers.begin(), tracers.end());
+        lines.insert(lines.end(), lightning.begin(), lightning.end());
+        lines.insert(lines.end(), powerUps.begin(), powerUps.end());
+        lines.insert(lines.end(), hudGeom.begin(), hudGeom.end());
+        lines.insert(lines.end(), minimap.begin(), minimap.end());
+        lines.insert(lines.end(), killFeed.begin(), killFeed.end());
         r.updateLines(lines);
 
-        // Triangles: map + enemies + sparks
+        // Triangles: map + enemies + sparks + damage numbers
         std::vector<Vertex> tris = mapGeometry;
         tris.insert(tris.end(), enemies.begin(), enemies.end());
         tris.insert(tris.end(), sparks.begin(), sparks.end());
+        tris.insert(tris.end(), damageNumbers.begin(), damageNumbers.end());
         r.updateTriangles(tris);
 
-        // HUD
+        // HUD text
+        char hudText[256];
+        snprintf(hudText, sizeof(hudText), "WAVE %d  SCORE %d  HIGH %d  HP %d/%d", 
+                 game.wave, game.score, game.highScore, game.hp, game.maxHp);
         hud.buildHud(game.hp, game.score, game.wave, Renderer::WIDTH, Renderer::HEIGHT);
         r.updateHud(hud.getVertices());
 
         // Update particles
         particles.update(dt);
         
-        // Emit particles on shoot (simplified: emit at player position)
+        // Emit particles on shoot
         if (game.keySpace) {
             float pos[3] = {game.px, 1.5f, game.pz};
             float color[3] = {0.2f, 1.0f, 1.0f};
