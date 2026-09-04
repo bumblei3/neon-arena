@@ -77,5 +77,14 @@ echo "=== Running Music Tests ==="
 echo ""
 echo "=== ALL TESTS PASSED ==="
 
+# --- 7. Integration Tests (Module-Level) ---
+echo ""
+echo "=== Building Integration Tests ==="
+g++ -std=c++17 -O2 -o test_integration test_integration.cpp
+
+echo ""
+echo "=== Running Integration Tests ==="
+./test_integration
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration
