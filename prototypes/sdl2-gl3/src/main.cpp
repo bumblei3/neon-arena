@@ -1,66 +1,14 @@
 // main.cpp - SDL2 + OpenGL 3.3+ Core Profile Prototype
 #include <SDL.h>
 #include <GL/glew.h>
-#include <SDL_mixer.h>
 #include <cstdio>
-#include <cmath>
 #include "game.h"
+#include "audio.h"
 
-// Procedural sound generation
-Mix_Chunk* generateSound(int type) {
-    // type: 0=shoot, 1=explosion, 2=wave, 3=gameover
-    int sampleRate = 44100;
-    int duration;
-    if (type == 0) duration = 1500;      // 1.5s shoot
-    else if (type == 1) duration = 3000; // 3s explosion
-    else if (type == 2) duration = 4000; // 4s wave
-    else duration = 5000;                // 5s game over
+// Global audio system
+AudioSystem* g_audio = nullptr;
 
-    int numSamples = sampleRate * duration / 1000;
-    short* samples = new short[numSamples];
-
-    for (int i = 0; i < numSamples; i++) {
-        float t = (float)i / sampleRate;
-        float amplitude = 0.0f;
-
-        if (type == 0) {
-            // Shoot: descending sine with noise
-            float freq = 800.0f - t * 2000.0f;
-            amplitude = sinf(2.0f * M_PI * freq * t);
-            amplitude *= (1.0f - (float)i / numSamples); // fade out
-            // Add some noise for "swoosh"
-            amplitude += ((rand() % 100) / 100.0f - 0.5f) * 0.3f;
-        } else if (type == 1) {
-            // Explosion: white noise with low rumble
-            amplitude = ((rand() % 200) / 100.0f - 1.0f);
-            amplitude *= (1.0f - (float)i / numSamples); // fade out
-            // Add low rumble
-            amplitude += sinf(2.0f * M_PI * 60.0f * t) * 0.5f;
-        } else if (type == 2) {
-            // Wave complete: rising chime
-            float freq = 400.0f + t * 600.0f;
-            amplitude = sinf(2.0f * M_PI * freq * t) * 0.3f;
-            amplitude += sinf(2.0f * M_PI * freq * 1.5f * t) * 0.2f;
-            amplitude *= (1.0f - (float)i / numSamples);
-        } else {
-            // Game over: descending tone
-            float freq = 300.0f - t * 40.0f;
-            amplitude = sinf(2.0f * M_PI * freq * t) * 0.4f;
-            amplitude *= (1.0f - (float)i / numSamples);
-        }
-
-        samples[i] = (short)(amplitude * 32767 * 0.5f);
-    }
-
-    Mix_Chunk* chunk = new Mix_Chunk();
-    chunk->allocated = 1;
-    chunk->abuf = (Uint8*)samples;
-    chunk->alen = numSamples * sizeof(short);
-    chunk->volume = 64;
-    return chunk;
-}
-
-// Global sound pointers (for game.cpp)
+// Legacy sound pointers (for backward compatibility)
 Mix_Chunk* g_sndShoot = nullptr;
 Mix_Chunk* g_sndExplosion = nullptr;
 Mix_Chunk* g_sndWave = nullptr;
@@ -131,42 +79,21 @@ int main(int argc, char* argv[]) {
     // Enable multisampling
     glEnable(GL_MULTISAMPLE);
 
-    // Initialize SDL_Mixer
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-        fprintf(stderr, "SDL_Mixer init failed: %s\n", Mix_GetError());
+    // Initialize Audio System
+    g_audio = new AudioSystem();
+    if (!g_audio->init()) {
+        fprintf(stderr, "Audio system init failed\n");
         SDL_GL_DeleteContext(ctx);
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
     }
-    Mix_AllocateChannels(16);
-
-    // Generate procedural sounds
-    printf("Generating procedural sounds...\n");
-    Mix_Chunk* sndShoot = generateSound(0);
-    Mix_Chunk* sndExplosion = generateSound(1);
-    Mix_Chunk* sndWave = generateSound(2);
-    Mix_Chunk* sndGameOver = generateSound(3);
-    printf("Sounds generated.\n");
-
-    // Set global sounds for game
-    g_sndShoot = sndShoot;
-    g_sndExplosion = sndExplosion;
-    g_sndWave = sndWave;
-    g_sndGameOver = sndGameOver;
 
     // Create game
     Game game;
     if (!game.init(window)) {
         fprintf(stderr, "Failed to initialize game\n");
-        delete[] sndShoot->abuf;
-        delete sndShoot;
-        delete[] sndExplosion->abuf;
-        delete sndExplosion;
-        delete[] sndWave->abuf;
-        delete sndWave;
-        delete[] sndGameOver->abuf;
-        delete sndGameOver;
+        delete g_audio;
         SDL_GL_DeleteContext(ctx);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -186,15 +113,7 @@ int main(int argc, char* argv[]) {
 
     // Cleanup
     game.shutdown();
-    delete[] sndShoot->abuf;
-    delete sndShoot;
-    delete[] sndExplosion->abuf;
-    delete sndExplosion;
-    delete[] sndWave->abuf;
-    delete sndWave;
-    delete[] sndGameOver->abuf;
-    delete sndGameOver;
-    Mix_CloseAudio();
+    delete g_audio;
     SDL_GL_DeleteContext(ctx);
     SDL_DestroyWindow(window);
     SDL_Quit();

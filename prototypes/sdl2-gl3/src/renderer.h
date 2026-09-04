@@ -30,6 +30,7 @@ public:
     void drawTriangles(const Vertex* verts, int count, const Vec3& color);
     void drawQuad(const Vertex* verts);
     void drawParticles(const Particle* particles, int count);
+    void drawParticlesInstanced(const Particle* particles, int count);
 
     void drawGround(float time);
 
@@ -45,6 +46,8 @@ public:
 private:
     void setupVBOs();
     void setupBloom();
+    void setupFullscreenQuad();
+    void drawFullscreenQuad();
 
     int width_, height_;
     Mat4 projection;
@@ -54,6 +57,14 @@ private:
     // VBOs
     unsigned int VAOVertex = 0, VBOVertex = 0;
     unsigned int VAOQuad = 0, VBOQuad = 0;
+
+    // Persistent fullscreen quad VAO/VBO (for post-processing)
+    unsigned int fsQuadVAO = 0, fsQuadVBO = 0;
+
+    // Instanced rendering
+    unsigned int instanceVBO = 0;
+    unsigned int particleVAO = 0;
+    unsigned int particleVBO = 0;
 
     // Shaders
     Shader* lineShader = nullptr;

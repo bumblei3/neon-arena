@@ -1,5 +1,11 @@
 // game.cpp - Game logic implementation with wave survival gameplay
 #include "game.h"
+#include "weapons.h"
+#include "bots.h"
+#include "score.h"
+#include "powerups.h"
+#include "specials.h"
+#include "hud.h"
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
@@ -23,16 +29,21 @@ bool Game::init(SDL_Window* window) {
         return false;
     }
 
+    if (!text_.init()) {
+        fprintf(stderr, "Failed to initialize text renderer\n");
+        return false;
+    }
+
+    SDL_SetRelativeMouseMode(SDL_TRUE);
+    loadHighScore(*this);
     setupArena();
 
-    // Initial player state
     player.pos = Vec3(0, playerHeight, 0);
     player.health = maxHealth;
     player.alive = true;
     player.yaw = 0;
     player.pitch = 0;
 
-    // Start wave 1
     wave = 0;
     waveComplete = true;
     waveBreak = 0;
@@ -53,33 +64,6 @@ void Game::setupArena() {
     projectiles.clear();
 }
 
-void Game::spawnWave() {
-    wave++;
-    int botCount = wave + 1;  // Wave N spawns N+1 bots
-    bots.clear();
-
-    for (int i = 0; i < botCount; i++) {
-        Entity bot;
-        // Spawn bots at random positions around the arena edge
-        float angle = (float)i / botCount * 6.28318f;
-        float radius = arenaSize * 0.7f;
-        bot.pos = Vec3(
-            cosf(angle) * radius,
-            0.5f,
-            sinf(angle) * radius
-        );
-        bot.yaw = 0;
-        bot.pitch = 0;
-        bot.health = 100.0f + wave * 10;  // Bots get tougher
-        bot.alive = true;
-        bot.type = 1;
-        bots.push_back(bot);
-    }
-
-    waveComplete = false;
-    printf("Wave %d: %d bots spawned\n", wave, botCount);
-}
-
 void Game::run() {
     Uint32 lastTime = SDL_GetTicks();
 
@@ -88,14 +72,12 @@ void Game::run() {
         float dt = (now - lastTime) / 1000.0f;
         lastTime = now;
 
-        // Cap dt
         if (dt > 0.1f) dt = 0.1f;
 
         handleInput(dt);
         update(dt);
         render();
 
-        // FPS limit
         Uint32 frameTime = SDL_GetTicks() - now;
         if (frameTime < 16) {
             SDL_Delay(16 - frameTime);
@@ -113,26 +95,82 @@ void Game::handleInput(float dt) {
         } else if (event.type == SDL_KEYDOWN) {
             keys[event.key.keysym.scancode] = true;
 
-            // State-specific input
             if (state == GameState::MENU) {
                 handleMenuInput(event);
             } else if (state == GameState::PAUSED) {
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     state = GameState::PLAYING;
+                    SDL_SetRelativeMouseMode(SDL_TRUE);
                 }
             } else if (state == GameState::PLAYING) {
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     state = GameState::PAUSED;
+                    SDL_SetRelativeMouseMode(SDL_FALSE);
                 }
-                if (event.key.keysym.sym == SDLK_SPACE && waveComplete) {
+                if (showUpgradeMenu) {
+                    handleUpgradeInput(*this, event);
+                } else if (event.key.keysym.sym == SDLK_SPACE && waveComplete) {
                     nextWave();
+                }
+                if (event.key.keysym.sym == SDLK_1) {
+                    currentWeapon = WeaponType::RAILGUN;
+                }
+                if (event.key.keysym.sym == SDLK_2) {
+                    currentWeapon = WeaponType::LIGHTNING_GUN;
+                }
+                if (event.key.keysym.sym == SDLK_3) {
+                    currentWeapon = WeaponType::PLASMA_RIFLE;
+                }
+                if (event.key.keysym.sym == SDLK_e) {
+                    activateNuclearBlast(*this);
+                }
+                if (event.key.keysym.sym == SDLK_r) {
+                    activateTimeSlow(*this);
+                }
+                if (event.key.keysym.sym == SDLK_f) {
+                    activateShield(*this);
+                }
+                if (event.key.keysym.sym == SDLK_q) {
+                    if (currentWeapon == WeaponType::RAILGUN) {
+                        currentWeapon = WeaponType::LIGHTNING_GUN;
+                    } else if (currentWeapon == WeaponType::LIGHTNING_GUN) {
+                        currentWeapon = WeaponType::PLASMA_RIFLE;
+                    } else {
+                        currentWeapon = WeaponType::RAILGUN;
+                    }
+                }
+            } else if (state == GameState::OPTIONS) {
+                if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    state = GameState::MENU;
+                }
+                if (event.key.keysym.sym == SDLK_LEFT) {
+                    if (menuSelection == 0) {
+                        mouseSensitivity -= 0.0005f;
+                        if (mouseSensitivity < 0.0005f) mouseSensitivity = 0.0005f;
+                    }
+                }
+                if (event.key.keysym.sym == SDLK_RIGHT) {
+                    if (menuSelection == 0) {
+                        mouseSensitivity += 0.0005f;
+                        if (mouseSensitivity > 0.005f) mouseSensitivity = 0.005f;
+                    }
+                }
+                if (event.key.keysym.sym == SDLK_UP) {
+                    menuSelection--;
+                    if (menuSelection < 0) menuSelection = 2;
+                }
+                if (event.key.keysym.sym == SDLK_DOWN) {
+                    menuSelection++;
+                    if (menuSelection > 2) menuSelection = 0;
                 }
             } else if (state == GameState::GAME_OVER) {
                 if (event.key.keysym.sym == SDLK_SPACE) {
                     resetGame();
                     state = GameState::PLAYING;
+                    SDL_SetRelativeMouseMode(SDL_TRUE);
                 } else if (event.key.keysym.sym == SDLK_ESCAPE) {
                     state = GameState::MENU;
+                    SDL_SetRelativeMouseMode(SDL_FALSE);
                 }
             }
 
@@ -145,9 +183,15 @@ void Game::handleInput(float dt) {
             if (event.button.button == SDL_BUTTON_LEFT) {
                 shootRequested = true;
             }
+            if (event.button.button == SDL_BUTTON_RIGHT) {
+                shootLightning = true;
+            }
         } else if (event.type == SDL_MOUSEBUTTONUP) {
             if (event.button.button == SDL_BUTTON_LEFT) {
                 shootRequested = false;
+            }
+            if (event.button.button == SDL_BUTTON_RIGHT) {
+                shootLightning = false;
             }
         }
     }
@@ -162,13 +206,12 @@ void Game::handleMenuInput(SDL_Event& event) {
         if (menuSelection >= (int)menuItems.size()) menuSelection = 0;
     } else if (event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_SPACE) {
         if (menuSelection == 0) {
-            // Start Game
             resetGame();
             state = GameState::PLAYING;
+            SDL_SetRelativeMouseMode(SDL_TRUE);
         } else if (menuSelection == 1) {
-            // Options (placeholder)
+            state = GameState::OPTIONS;
         } else if (menuSelection == 2) {
-            // Quit
             running = false;
         }
     }
@@ -186,6 +229,7 @@ void Game::resetGame() {
     waveBreak = 0;
     projectiles.clear();
     particles.clear();
+    resetUpgrades(*this);
 }
 
 void Game::update(float dt) {
@@ -216,9 +260,15 @@ void Game::update(float dt) {
     }
 
     updatePlayer(dt);
-    updateBots(dt);
+    updateBots(*this, dt);
     updateProjectiles(dt);
     updateParticles(dt);
+    updateWeapons(dt, *this);
+    updatePowerUps(dt, *this);
+    updateScore(dt, *this);
+    updateSpecials(dt, *this);
+    updateKillFeed(dt, *this);
+    updateDamageNumbers(dt, *this);
     checkCollisions();
 
     // Check wave complete
@@ -233,21 +283,27 @@ void Game::update(float dt) {
         waveComplete = true;
         waveBreak = 0;
         score += wave * 100;
-        printf("Wave %d cleared! Score: %d\n", wave, score);
+        upgradePoints += 1 + wave / 3;
+        showUpgradeMenu = true;
+        if (wave % 5 == 0) {
+            upgradePoints += 3;
+            printf("BOSS KILLED! Wave %d cleared! Score: %d\n", wave, score);
+        } else {
+            printf("Wave %d cleared! Score: %d\n", wave, score);
+        }
     }
 
     // Check player death
     if (player.health <= 0) {
         gameOver = true;
+        saveHighScore(*this);
         printf("Game Over! Waves survived: %d, Kills: %d\n", wave - 1, kills);
     }
 }
 
 void Game::updatePlayer(float dt) {
-    // Mouse look
     handleMouse();
 
-    // Movement
     float moveX = 0, moveZ = 0;
     if (keys[SDL_SCANCODE_W]) moveZ -= 1;
     if (keys[SDL_SCANCODE_S]) moveZ += 1;
@@ -260,65 +316,21 @@ void Game::updatePlayer(float dt) {
         player.pos.z += moveDir.z * playerSpeed * dt;
     }
 
-    // Keep player on ground
     player.pos.y = playerHeight;
 
-    // Arena bounds
     if (player.pos.x < -arenaSize) player.pos.x = -arenaSize;
     if (player.pos.x > arenaSize) player.pos.x = arenaSize;
     if (player.pos.z < -arenaSize) player.pos.z = -arenaSize;
     if (player.pos.z > arenaSize) player.pos.z = arenaSize;
 
-    // Shoot
-    if (shootRequested) {
-        shootRequested = false;
-        // Fire railgun shot
-        Vec3 forward(
-            sinf(player.yaw) * cosf(player.pitch),
-            -sinf(player.pitch),
-            -cosf(player.yaw) * cosf(player.pitch)
-        );
-        Vec3 muzzlePos = player.pos + forward * 0.5f;
-        projectiles.push_back(Projectile(muzzlePos, forward, true));
-        playSnd(g_sndShoot);
+    if (shootRequested && currentWeapon == WeaponType::RAILGUN) {
+        fireRailgun(*this);
     }
-}
-
-void Game::updateBots(float dt) {
-    for (auto& bot : bots) {
-        if (!bot.alive) continue;
-
-        // Move towards player
-        Vec3 toPlayer = Vec3(
-            player.pos.x - bot.pos.x,
-            0,
-            player.pos.z - bot.pos.z
-        );
-
-        float dist = toPlayer.length();
-        if (dist > 3.0f) {
-            toPlayer = toPlayer.normalized();
-            bot.pos.x += toPlayer.x * 3.0f * dt;
-            bot.pos.z += toPlayer.z * 3.0f * dt;
-        }
-
-        // Rotate towards player
-        bot.yaw = atan2f(toPlayer.x, -toPlayer.z);
-
-        // Hover animation (sinusoidal Y offset)
-        float hoverOffset = sinf(gameTime * 2.0f + bot.pos.x * 0.1f + bot.pos.z * 0.1f) * 0.3f;
-        bot.pos.y = hoverOffset;
-
-        // Keep bots in bounds
-        if (bot.pos.x < -arenaSize + 2) bot.pos.x = -arenaSize + 2;
-        if (bot.pos.x > arenaSize - 2) bot.pos.x = arenaSize - 2;
-        if (bot.pos.z < -arenaSize + 2) bot.pos.z = -arenaSize + 2;
-        if (bot.pos.z > arenaSize - 2) bot.pos.z = arenaSize - 2;
-
-        // Bot attacks player when close
-        if (dist < 5.0f) {
-            player.health -= 5.0f * dt;  // Damage over time when close
-        }
+    if (shootLightning && currentWeapon == WeaponType::LIGHTNING_GUN) {
+        fireLightning(*this);
+    }
+    if (shootRequested && currentWeapon == WeaponType::PLASMA_RIFLE) {
+        firePlasma(*this);
     }
 }
 
@@ -328,7 +340,6 @@ void Game::updateProjectiles(float dt) {
         proj.life -= dt;
     }
 
-    // Remove dead projectiles
     projectiles.erase(
         std::remove_if(projectiles.begin(), projectiles.end(),
             [](const Projectile& p) { return p.life <= 0; }),
@@ -339,7 +350,7 @@ void Game::updateProjectiles(float dt) {
 void Game::updateParticles(float dt) {
     for (auto& p : particles) {
         p.pos = p.pos + p.vel * dt;
-        p.vel.y -= 9.8f * dt; // gravity
+        p.vel.y -= 9.8f * dt;
         p.life -= dt;
     }
     particles.erase(
@@ -348,45 +359,47 @@ void Game::updateParticles(float dt) {
         particles.end());
 }
 
-void Game::spawnExplosion(Vec3 pos, Vec3 color, int count) {
-    for (int i = 0; i < count; i++) {
-        Vec3 vel(
-            (rand() % 100 - 50) / 50.0f * 5.0f,
-            (rand() % 100) / 100.0f * 8.0f,
-            (rand() % 100 - 50) / 50.0f * 5.0f
-        );
-        float life = 0.5f + (rand() % 100) / 200.0f;
-        float size = 0.1f + (rand() % 100) / 500.0f;
-        particles.push_back(Particle(pos, vel, color, life, size));
-    }
-}
-
 void Game::checkCollisions() {
+    // Check power-up collection
+    for (int i = (int)powerUps.size() - 1; i >= 0; i--) {
+        if (distance(player.pos, powerUps[i].pos) < 2.0f) {
+            collectPowerUp(*this, i);
+        }
+    }
     // Check projectile hits
     for (auto it = projectiles.begin(); it != projectiles.end(); ) {
         bool hit = false;
 
         if (it->fromPlayer) {
-            // Check bot hits
             for (auto& bot : bots) {
                 if (!bot.alive) continue;
                 if (distance(it->pos, bot.pos) < 1.5f) {
-                    bot.health -= 50;  // Railgun damage
+                    bot.health -= it->damage;
                     if (bot.health <= 0) {
                         bot.alive = false;
                         kills++;
-                        score += 10;
-                        // Spawn explosion at bot position
-                        spawnExplosion(bot.pos, Vec3(0.0f, 0.8f, 1.0f), 20);
+                        addScore(*this, 10);
+                        if (g_audio) g_audio->playKill();
+                        if (bot.botType == 4) {
+                            addKillFeed(*this, "BOSS KILLED!", Vec3(1.0f, 0.8f, 0.0f));
+                        } else {
+                            addKillFeed(*this, "KILL", Vec3(0.0f, 1.0f, 0.5f));
+                        }
+                        addDamageNumber(*this, bot.pos, 50);
+                        spawnExplosion(*this, bot.pos, Vec3(0.0f, 0.8f, 1.0f), 20);
+                        int dropChance = rand() % 100;
+                        if (dropChance < 30) {
+                            int type = rand() % 3;
+                            spawnPowerUp(*this, bot.pos, type);
+                        }
                     }
                     hit = true;
                     break;
                 }
             }
         } else {
-            // Check player hit
             if (distance(it->pos, player.pos) < 1.0f) {
-                player.health -= 20;
+                player.health -= it->damage;
                 hit = true;
             }
         }
@@ -412,13 +425,50 @@ void Game::handleMouse() {
 void Game::nextWave() {
     waveComplete = false;
     waveBreak = 0;
-    spawnWave();
+    spawnWave(*this);
 }
 
 void Game::render() {
-    // Render based on game state
     if (state == GameState::MENU) {
         renderMenu();
+        return;
+    }
+
+    if (state == GameState::OPTIONS) {
+        renderOptions();
+        return;
+    }
+
+    if (showUpgradeMenu && waveComplete) {
+        renderer_->beginFrame();
+        renderer_->clear(0.02f, 0.02f, 0.05f, 1.0f);
+
+        Vec3 forward(
+            sinf(player.yaw) * cosf(player.pitch),
+            -sinf(player.pitch),
+            -cosf(player.yaw) * cosf(player.pitch)
+        );
+        Vec3 eye = player.pos;
+        Vec3 center = eye + forward;
+        Vec3 up(0, 1, 0);
+
+        Mat4 view = Mat4::lookAt(eye, center, up);
+        float aspect = (float)renderer_->getWidth() / renderer_->getHeight();
+        Mat4 proj = Mat4::perspective(1.1f, aspect, 0.1f, 200.0f);
+
+        renderer_->setView(view);
+        renderer_->setProjection(proj);
+        renderer_->setViewPos(eye);
+
+        renderArena();
+        renderBots(*this);
+        renderProjectiles();
+        renderParticles();
+        renderLightning(*this);
+
+        renderer_->endFrame();
+
+        renderUpgradeMenu(*this);
         return;
     }
 
@@ -432,7 +482,6 @@ void Game::render() {
         return;
     }
 
-    // Set up camera
     Vec3 forward(
         sinf(player.yaw) * cosf(player.pitch),
         -sinf(player.pitch),
@@ -454,14 +503,15 @@ void Game::render() {
     renderer_->clear(0.02f, 0.02f, 0.05f, 1.0f);
 
     renderArena();
-    renderBots();
+    renderBots(*this);
     renderProjectiles();
     renderParticles();
+    renderLightning(*this);
+    renderPowerUps(*this);
 
     renderer_->endFrame();
 
-    // Render HUD on top
-    renderHUD();
+    renderHUD(*this);
 
     SDL_GL_SwapWindow(window_);
 }
@@ -472,13 +522,10 @@ void Game::renderParticles() {
 }
 
 void Game::renderArena() {
-    // Draw plasma ground
     renderer_->drawGround(gameTime);
 
-    // Draw arena walls (neon cyan)
     Vec3 wallColor(0.0f, 0.8f, 1.0f);
     float h = 3.0f;
-    // Four walls
     Vertex w1[] = {
         Vertex(Vec3(-arenaSize, 0, -arenaSize), wallColor),
         Vertex(Vec3(arenaSize, 0, -arenaSize), wallColor),
@@ -512,181 +559,16 @@ void Game::renderArena() {
     renderer_->drawLineLoop(w4, 4, wallColor);
 }
 
-void Game::renderBots() {
-    for (auto& bot : bots) {
-        if (!bot.alive) continue;
-
-        // Draw bot as a glowing diamond/octahedron shape
-        // Pulsating size based on game time
-        float pulse = 1.0f + sinf(gameTime * 4.0f + bot.pos.x * 0.5f) * 0.15f;
-        float s = 0.8f * pulse;  // Size with pulse
-
-        // Color based on health (green-cyan when healthy, red when damaged)
-        float healthPct = bot.health / (100.0f + wave * 10);
-        Vec3 botColor(
-            (1.0f - healthPct) * 0.8f,
-            healthPct * 1.0f,
-            healthPct * 0.5f
-        );
-
-        // Rotation offset based on game time
-        float rotOffset = gameTime * 1.5f + bot.pos.x * 0.3f;
-        float cosR = cosf(rotOffset);
-        float sinR = sinf(rotOffset);
-
-        // Top pyramid (rotated)
-        Vertex top[] = {
-            Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x - s * cosR, bot.pos.y, bot.pos.z - s * sinR), botColor),
-            Vertex(Vec3(bot.pos.x + s * sinR, bot.pos.y, bot.pos.z - s * cosR), botColor),
-        };
-        renderer_->drawLineLoop(top, 3, botColor);
-
-        Vertex top2[] = {
-            Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x + s * sinR, bot.pos.y, bot.pos.z - s * cosR), botColor),
-            Vertex(Vec3(bot.pos.x + s * cosR, bot.pos.y, bot.pos.z + s * sinR), botColor),
-        };
-        renderer_->drawLineLoop(top2, 3, botColor);
-
-        Vertex top3[] = {
-            Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x + s * cosR, bot.pos.y, bot.pos.z + s * sinR), botColor),
-            Vertex(Vec3(bot.pos.x - s * sinR, bot.pos.y, bot.pos.z + s * cosR), botColor),
-        };
-        renderer_->drawLineLoop(top3, 3, botColor);
-
-        Vertex top4[] = {
-            Vertex(Vec3(bot.pos.x, bot.pos.y + s * 2, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x - s * sinR, bot.pos.y, bot.pos.z + s * cosR), botColor),
-            Vertex(Vec3(bot.pos.x - s * cosR, bot.pos.y, bot.pos.z - s * sinR), botColor),
-        };
-        renderer_->drawLineLoop(top4, 3, botColor);
-
-        // Bottom pyramid (rotated opposite direction)
-        float rotOffset2 = -rotOffset * 0.7f;
-        float cosR2 = cosf(rotOffset2);
-        float sinR2 = sinf(rotOffset2);
-
-        Vertex bot1[] = {
-            Vertex(Vec3(bot.pos.x, bot.pos.y - s, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x - s * cosR2, bot.pos.y, bot.pos.z - s * sinR2), botColor),
-            Vertex(Vec3(bot.pos.x + s * sinR2, bot.pos.y, bot.pos.z - s * cosR2), botColor),
-        };
-        renderer_->drawLineLoop(bot1, 3, botColor);
-
-        Vertex bot2[] = {
-            Vertex(Vec3(bot.pos.x, bot.pos.y - s, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x + s * sinR2, bot.pos.y, bot.pos.z - s * cosR2), botColor),
-            Vertex(Vec3(bot.pos.x + s * cosR2, bot.pos.y, bot.pos.z + s * sinR2), botColor),
-        };
-        renderer_->drawLineLoop(bot2, 3, botColor);
-
-        Vertex bot3[] = {
-            Vertex(Vec3(bot.pos.x, bot.pos.y - s, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x + s * cosR2, bot.pos.y, bot.pos.z + s * sinR2), botColor),
-            Vertex(Vec3(bot.pos.x - s * sinR2, bot.pos.y, bot.pos.z + s * cosR2), botColor),
-        };
-        renderer_->drawLineLoop(bot3, 3, botColor);
-
-        Vertex bot4[] = {
-            Vertex(Vec3(bot.pos.x, bot.pos.y - s, bot.pos.z), botColor),
-            Vertex(Vec3(bot.pos.x - s * cosR2, bot.pos.y, bot.pos.z - s * sinR2), botColor),
-            Vertex(Vec3(bot.pos.x - s * sinR2, bot.pos.y, bot.pos.z + s * cosR2), botColor),
-        };
-        renderer_->drawLineLoop(bot4, 3, botColor);
-
-        // Health bar above bot
-        Vec3 hpColor(1.0f - healthPct, healthPct, 0.0f);
-        float hbWidth = 1.5f;
-        float hbY = bot.pos.y + 2.5f;
-
-        Vertex hp[] = {
-            Vertex(Vec3(bot.pos.x - hbWidth * 0.5f * healthPct, hbY, bot.pos.z), hpColor),
-            Vertex(Vec3(bot.pos.x + hbWidth * 0.5f * healthPct, hbY, bot.pos.z), hpColor),
-        };
-        renderer_->drawLineLoop(hp, 2, hpColor);
-    }
-}
-
 void Game::renderProjectiles() {
     for (auto& proj : projectiles) {
         Vec3 projColor = proj.fromPlayer ? Vec3(0.0f, 1.0f, 1.0f) : Vec3(1.0f, 0.3f, 0.0f);
         float s = 0.5f;
 
-        // Draw projectile as a glowing trail
         Vertex line[] = {
             Vertex(proj.pos - proj.dir * s * 2.0f, projColor * 0.3f),
             Vertex(proj.pos, projColor),
         };
         renderer_->drawLineLoop(line, 2, projColor);
-    }
-}
-
-void Game::renderHUD() {
-    // Simple HUD using OpenGL lines
-    // Crosshair
-    float cx = 0.0f, cy = 0.0f;
-    float chSize = 0.03f;
-    Vec3 chColor(0.0f, 1.0f, 0.8f);
-
-    // Horizontal line
-    Vertex chH[] = {
-        Vertex(Vec3(cx - chSize, cy, 0), chColor),
-        Vertex(Vec3(cx + chSize, cy, 0), chColor),
-    };
-    renderer_->drawLineLoop(chH, 2, chColor);
-
-    // Vertical line
-    Vertex chV[] = {
-        Vertex(Vec3(cx, cy - chSize, 0), chColor),
-        Vertex(Vec3(cx, cy + chSize, 0), chColor),
-    };
-    renderer_->drawLineLoop(chV, 2, chColor);
-
-    // Health bar (bottom left)
-    float hbWidth = 0.4f;
-    float hbHeight = 0.03f;
-    float hbX = -0.8f;
-    float hbY = -0.85f;
-    float healthPct = player.health / maxHealth;
-    Vec3 hpColor(1.0f - healthPct, healthPct, 0.0f);
-
-    // Background
-    Vertex bg[] = {
-        Vertex(Vec3(hbX, hbY, 0), Vec3(0.2f, 0.2f, 0.2f)),
-        Vertex(Vec3(hbX + hbWidth, hbY, 0), Vec3(0.2f, 0.2f, 0.2f)),
-        Vertex(Vec3(hbX + hbWidth, hbY + hbHeight, 0), Vec3(0.2f, 0.2f, 0.2f)),
-        Vertex(Vec3(hbX, hbY + hbHeight, 0), Vec3(0.2f, 0.2f, 0.2f)),
-    };
-    renderer_->drawLineLoop(bg, 4, Vec3(0.2f, 0.2f, 0.2f));
-
-    // Health fill
-    Vertex fill[] = {
-        Vertex(Vec3(hbX, hbY, 0), hpColor),
-        Vertex(Vec3(hbX + hbWidth * healthPct, hbY, 0), hpColor),
-        Vertex(Vec3(hbX + hbWidth * healthPct, hbY + hbHeight, 0), hpColor),
-        Vertex(Vec3(hbX, hbY + hbHeight, 0), hpColor),
-    };
-    renderer_->drawLineLoop(fill, 4, hpColor);
-
-    // Score, Wave, Kills (using text)
-    text_.drawText(renderer_, "SCORE: " + std::to_string(score), -0.95f, 0.9f, 1.0f, Vec3(1.0f, 0.8f, 0.0f));
-    text_.drawText(renderer_, "WAVE: " + std::to_string(wave), -0.95f, 0.83f, 1.0f, Vec3(0.0f, 0.8f, 1.0f));
-    text_.drawText(renderer_, "KILLS: " + std::to_string(kills), -0.95f, 0.76f, 1.0f, Vec3(0.8f, 0.3f, 0.3f));
-
-    // Wave complete message area
-    if (waveComplete && !gameOver) {
-        Vec3 msgColor(0.0f, 1.0f, 0.5f);
-        text_.drawTextCentered(renderer_, "WAVE CLEARED!", 0.05f, 1.5f, msgColor);
-        text_.drawTextCentered(renderer_, "SPACE: NEXT WAVE", -0.05f, 0.8f, Vec3(0.5f, 0.5f, 0.5f));
-    }
-
-    // Game over message area
-    if (gameOver) {
-        Vec3 goColor(1.0f, 0.2f, 0.2f);
-        text_.drawTextCentered(renderer_, "GAME OVER", 0.05f, 1.8f, goColor);
-        text_.drawTextCentered(renderer_, "SPACE: RETRY", -0.05f, 0.8f, Vec3(0.5f, 0.5f, 0.5f));
     }
 }
 

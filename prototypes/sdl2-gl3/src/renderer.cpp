@@ -237,28 +237,28 @@ static const char* compositeFragSrc = R"(
         float dist = length(center);
 
         // Chromatic aberration (stronger at edges)
-        float caStrength = 0.003 + dist * 0.008;
+        float caStrength = 0.004 + dist * 0.012;
         vec3 color = sampleCA(sceneTexture, uv, caStrength);
 
-        // Bloom
+        // Bloom (intensified)
         vec3 bloom = texture(bloomTexture, uv).rgb;
-        color += bloom * bloomIntensity;
+        color += bloom * bloomIntensity * 1.5;
 
-        // Vignette
-        float vignette = 1.0 - dist * 0.8;
+        // Vignette (stronger)
+        float vignette = 1.0 - dist * 1.2;
         vignette = clamp(vignette, 0.0, 1.0);
         color *= vignette;
 
         // Scanlines (subtle)
-        float scanline = sin(uv.y * resolution.y * 1.5) * 0.03;
+        float scanline = sin(uv.y * resolution.y * 1.5) * 0.04;
         color -= scanline;
 
         // Film grain (subtle noise)
         float grain = fract(sin(dot(uv + time, vec2(12.9898, 78.233))) * 43758.5453);
-        color += (grain - 0.5) * 0.02;
+        color += (grain - 0.5) * 0.025;
 
-        // Tone mapping (simple Reinhard)
-        color = color / (color + vec3(1.0));
+        // Tone mapping (ACES-like)
+        color = color * (2.51 * color + 0.03) / (color * (2.43 * color + 0.59) + 0.14);
 
         // Gamma correction
         color = pow(color, vec3(1.0 / 2.2));
@@ -330,6 +330,7 @@ bool Renderer::init(SDL_Window* window, int w, int h) {
 
     setupVBOs();
     setupBloom();
+    setupFullscreenQuad();
 
     return true;
 }
@@ -353,6 +354,33 @@ void Renderer::shutdown() {
     glDeleteTextures(1, &brightTexture);
     glDeleteFramebuffers(2, blurFbo);
     glDeleteTextures(2, blurTexture);
+
+    glDeleteVertexArrays(1, &fsQuadVAO);
+    glDeleteBuffers(1, &fsQuadVBO);
+}
+
+void Renderer::setupFullscreenQuad() {
+    // Persistent fullscreen quad for post-processing
+    float quadVerts[] = {
+        -1.0f, -1.0f,
+         1.0f, -1.0f,
+         1.0f,  1.0f,
+        -1.0f,  1.0f
+    };
+    glGenVertexArrays(1, &fsQuadVAO);
+    glGenBuffers(1, &fsQuadVBO);
+    glBindVertexArray(fsQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, fsQuadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), quadVerts, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glBindVertexArray(0);
+}
+
+void Renderer::drawFullscreenQuad() {
+    glBindVertexArray(fsQuadVAO);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glBindVertexArray(0);
 }
 
 void Renderer::setupVBOs() {
@@ -386,6 +414,14 @@ void Renderer::setupVBOs() {
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
     glEnableVertexAttribArray(3);
     glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, u));
+    glBindVertexArray(0);
+
+    // Particle Instanced VAO/VBO
+    glGenVertexArrays(1, &particleVAO);
+    glGenBuffers(1, &instanceVBO);
+    glBindVertexArray(particleVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    // Attributes werden in drawParticlesInstanced gesetzt
     glBindVertexArray(0);
 }
 
@@ -453,21 +489,7 @@ void Renderer::endFrame() {
     glBindTexture(GL_TEXTURE_2D, fboTexture);
     glUniform1i(glGetUniformLocation(brightPassShader->id, "screenTexture"), 0);
     glUniform1f(glGetUniformLocation(brightPassShader->id, "threshold"), 0.6f);
-    // Draw fullscreen quad
-    float quadVerts[] = {
-        -1, -1,  1, -1,  1, 1,  -1, 1
-    };
-    unsigned int quadVAO, quadVBO;
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), quadVerts, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glDeleteVertexArrays(1, &quadVAO);
-    glDeleteBuffers(1, &quadVBO);
+    drawFullscreenQuad();
 
     // Ping-pong blur
     bool horizontal = true;
@@ -480,18 +502,7 @@ void Renderer::endFrame() {
         glUniform1i(glGetUniformLocation(blurShader->id, "screenTexture"), 0);
         glUniform2f(glGetUniformLocation(blurShader->id, "direction"),
                     horizontal ? 1.0f : 0.0f, horizontal ? 0.0f : 1.0f);
-        float qv[] = { -1, -1, 1, -1, 1, 1, -1, 1 };
-        unsigned int qVAO, qVBO;
-        glGenVertexArrays(1, &qVAO);
-        glGenBuffers(1, &qVBO);
-        glBindVertexArray(qVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, qVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(qv), qv, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-        glDeleteVertexArrays(1, &qVAO);
-        glDeleteBuffers(1, &qVBO);
+        drawFullscreenQuad();
         horizontal = !horizontal;
     }
 
@@ -509,18 +520,11 @@ void Renderer::endFrame() {
     glUniform1f(glGetUniformLocation(compositeShader->id, "bloomIntensity"), 0.8f);
     glUniform1f(glGetUniformLocation(compositeShader->id, "time"), SDL_GetTicks() / 1000.0f);
     glUniform2f(glGetUniformLocation(compositeShader->id, "resolution"), (float)width_, (float)height_);
-    float qv[] = { -1, -1, 1, -1, 1, 1, -1, 1 };
-    unsigned int qVAO, qVBO;
-    glGenVertexArrays(1, &qVAO);
-    glGenBuffers(1, &qVBO);
-    glBindVertexArray(qVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, qVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(qv), qv, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    glDeleteVertexArrays(1, &qVAO);
-    glDeleteBuffers(1, &qVBO);
+    drawFullscreenQuad();
+
+    // Bind default framebuffer for subsequent 2D rendering
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, width_, height_);
 }
 
 void Renderer::drawLineLoop(const Vertex* verts, int count, const Vec3& color) {
@@ -597,8 +601,6 @@ void Renderer::drawQuad(const Vertex* verts) {
 void Renderer::drawParticles(const Particle* particles, int count) {
     if (count == 0) return;
 
-    // Batched rendering: 1 buffer upload + 1 draw call for ALL particles
-    // Each particle = 1 vertex rendered as a point sprite
     int maxCount = count;
     if (maxCount > 2048) maxCount = 2048;
 
@@ -608,7 +610,6 @@ void Renderer::drawParticles(const Particle* particles, int count) {
         verts[i] = Vertex(p.pos, p.color);
     }
 
-    // Use point shader with gl_PointSize
     lineShader->use();
     Mat4 model(true);
     lineShader->setMat4("proj", projection.ptr());
@@ -625,6 +626,61 @@ void Renderer::drawParticles(const Particle* particles, int count) {
 
     glDisable(GL_PROGRAM_POINT_SIZE);
     glDisable(GL_POINT_SPRITE);
+    glBindVertexArray(0);
+}
+
+void Renderer::drawParticlesInstanced(const Particle* particles, int count) {
+    if (count == 0) return;
+
+    int maxCount = count;
+    if (maxCount > 4096) maxCount = 4096;
+
+    // Instanced rendering: 1 Draw-Call für alle Partikel
+    struct InstanceData {
+        Vec3 pos;
+        Vec3 color;
+        float size;
+    };
+
+    std::vector<InstanceData> instances(maxCount);
+    for (int i = 0; i < maxCount; i++) {
+        instances[i].pos = particles[i].pos;
+        instances[i].color = particles[i].color;
+        instances[i].size = particles[i].size;
+    }
+
+    // Upload instance data
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData) * maxCount, instances.data(), GL_DYNAMIC_DRAW);
+
+    // Set up instanced attributes
+    glBindVertexArray(particleVAO);
+
+    // Position attribute
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)0);
+    glVertexAttribDivisor(0, 1);
+
+    // Color attribute
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, color));
+    glVertexAttribDivisor(1, 1);
+
+    // Size attribute
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, size));
+    glVertexAttribDivisor(2, 1);
+
+    // Draw instanced
+    lineShader->use();
+    Mat4 model(true);
+    lineShader->setMat4("proj", projection.ptr());
+    lineShader->setMat4("view", view.ptr());
+    lineShader->setMat4("model", model.ptr());
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glDrawArraysInstanced(GL_POINTS, 0, 1, maxCount);
+
     glBindVertexArray(0);
 }
 

@@ -6,6 +6,7 @@
 #include "math.h"
 #include "particle.h"
 #include "text.h"
+#include "audio.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -14,6 +15,7 @@
 // Game states
 enum class GameState {
     MENU,
+    OPTIONS,
     PLAYING,
     PAUSED,
     GAME_OVER,
@@ -26,6 +28,9 @@ extern Mix_Chunk* g_sndExplosion;
 extern Mix_Chunk* g_sndWave;
 extern Mix_Chunk* g_sndGameOver;
 
+// AudioSystem
+extern AudioSystem* g_audio;
+
 inline void playSnd(Mix_Chunk* snd) {
     if (snd) Mix_PlayChannel(-1, snd, 0);
 }
@@ -37,9 +42,20 @@ struct Entity {
     float health;
     bool alive;
     int type;  // 0 = player, 1 = bot
+    int botType;  // 0 = melee, 1 = shooter, 2 = tank, 3 = fast, 4 = boss
+    float attackCooldown = 0;
+    float moveSpeed = 3.0f;
+    bool isBoss = false;
+    float bossPhase = 0;  // For boss attack patterns
     float vx, vy, vz;
 
-    Entity() : pos(0,0,0), yaw(0), pitch(0), health(100), alive(false), type(0), vx(0), vy(0), vz(0) {}
+    Entity() : pos(0,0,0), yaw(0), pitch(0), health(100), alive(false), type(0), botType(0), attackCooldown(0), moveSpeed(3.0f), vx(0), vy(0), vz(0) {}
+};
+
+enum class WeaponType {
+    RAILGUN,
+    LIGHTNING_GUN,
+    PLASMA_RIFLE
 };
 
 struct Projectile {
@@ -48,11 +64,60 @@ struct Projectile {
     float speed;
     float life;
     bool fromPlayer;
+    WeaponType weapon;
+    float damage;
 
-    Projectile(Vec3 p, Vec3 d, bool player)
-        : pos(p), dir(d.normalized()), speed(50.0f), life(2.0f), fromPlayer(player) {}
+    Projectile(Vec3 p, Vec3 d, bool player, WeaponType w = WeaponType::RAILGUN, float dmg = 50.0f)
+        : pos(p), dir(d.normalized()), speed(50.0f), life(2.0f), fromPlayer(player), weapon(w), damage(dmg) {}
 };
 
+struct LightningArc {
+    Vec3 start;
+    Vec3 end;
+    Vec3 color;
+    float life;
+    float maxLife;
+    int segments;
+
+    LightningArc(Vec3 s, Vec3 e, Vec3 c, float l = 0.15f, int seg = 8)
+        : start(s), end(e), color(c), life(l), maxLife(l), segments(seg) {}
+};
+
+// Power-up types
+enum class PowerUpType {
+    HEALTH = 0,
+    SCORE = 1,
+    DAMAGE_BOOST = 2
+};
+
+struct PowerUp {
+    Vec3 pos;
+    int type;  // 0 = health, 1 = score bonus, 2 = damage boost
+    float life;
+    float rotation;
+};
+
+// Special ability types
+enum class SpecialType {
+    NUCLEAR_BLAST,
+    TIME_SLOW,
+    SHIELD
+};
+
+// Kill feed entry
+struct KillFeedEntry {
+    std::string text;
+    Vec3 color;
+    float life;
+};
+
+// Damage number popup
+struct DamageNumber {
+    Vec3 pos;
+    int damage;
+    float life;
+    float vy;
+};
 
 class Game {
 public:
@@ -78,20 +143,61 @@ public:
     bool isGameOver() const { return gameOver; }
     bool isWaveComplete() const { return waveComplete; }
 
+    // Friend declarations for module free functions
+    friend void switchWeapon(Game& game, WeaponType w);
+    friend void fireRailgun(Game& game);
+    friend void fireLightning(Game& game);
+    friend void firePlasma(Game& game);
+    friend void updateWeapons(float dt, Game& game);
+    friend void renderLightning(Game& game);
+    friend void findLightningTargets(Vec3 pos, Game& game, std::vector<Entity*>& targets);
+    
+    friend void spawnWave(Game& game);
+    friend void updateBots(Game& game, float dt);
+    friend void renderBots(Game& game);
+    friend void renderSolidBots(Game& game);
+    friend void spawnExplosion(Game& game, Vec3 pos, Vec3 color, int count);
+    
+    friend void updateScore(float dt, Game& game);
+    friend void addScore(Game& game, int points);
+    friend void saveHighScore(Game& game);
+    friend void loadHighScore(Game& game);
+    friend void addKillFeed(Game& game, const std::string& text, Vec3 color);
+    friend void updateKillFeed(float dt, Game& game);
+    friend void renderKillFeed(Game& game);
+    friend void addDamageNumber(Game& game, Vec3 pos, int damage);
+    friend void updateDamageNumbers(float dt, Game& game);
+    friend void renderDamageNumbers(Game& game);
+    
+    friend void spawnPowerUp(Game& game, Vec3 pos, int type);
+    friend void updatePowerUps(float dt, Game& game);
+    friend void renderPowerUps(Game& game);
+    friend void collectPowerUp(Game& game, int index);
+    
+    friend void activateNuclearBlast(Game& game);
+    friend void activateTimeSlow(Game& game);
+    friend void activateShield(Game& game);
+    friend void updateSpecials(float dt, Game& game);
+    friend void renderSpecialEffects(Game& game);
+    friend void renderSpecialsHUD(Game& game);
+    
+    friend void renderHUD(Game& game);
+    friend void renderMinimap(Game& game);
+    friend void renderUpgradeMenu(Game& game);
+    friend void handleUpgradeInput(Game& game, SDL_Event& event);
+    friend void applyUpgrade(Game& game, int selection);
+    friend void resetUpgrades(Game& game);
+
 private:
     void setupArena();
-    void spawnWave();
     void updatePlayer(float dt);
-    void updateBots(float dt);
     void updateProjectiles(float dt);
     void updateParticles(float dt);
-    void spawnExplosion(Vec3 pos, Vec3 color, int count);
     void renderParticles();
-    void checkCollisions();
     void renderArena();
-    void renderBots();
     void renderProjectiles();
-    void renderHUD();
+    void renderMinimap();
+    void checkCollisions();
     void updateCamera(float dt);
     void nextWave();
     void gameOverScreen();
@@ -99,6 +205,7 @@ private:
     // Menu system
     void updateMenu(float dt);
     void renderMenu();
+    void renderOptions();
     void renderPauseMenu();
     void renderGameOver();
     void handleMenuInput(SDL_Event& event);
@@ -118,7 +225,7 @@ private:
     // State
     GameState state = GameState::MENU;
     int menuSelection = 0;
-    std::vector<std::string> menuItems = {"Start Game", "Options", "Quit"};
+    std::vector<std::string> menuItems = {"Start Game", "Sensitivity", "Quit"};
     float stateTimer = 0;
 
     // Text
@@ -131,6 +238,7 @@ private:
     std::vector<Particle> particles;
     int wave = 0;
     int score = 0;
+    int highScore = 0;
     int kills = 0;
     float gameTime = 0;
     bool running = true;
@@ -139,10 +247,23 @@ private:
     float waveBreak = 0;
     float nextWaveDelay = 3.0f;
 
+    // Score system
+    int scoreMultiplier = 1;
+    float multiplierTimer = 0.0f;
+    const float multiplierDecay = 5.0f;
+    int comboCount = 0;
+
+    // Kill Feed
+    std::vector<KillFeedEntry> killFeed;
+
+    // Damage Numbers
+    std::vector<DamageNumber> damageNumbers;
+
     // Input
     bool keys[SDL_NUM_SCANCODES];
     float mouseX = 0, mouseY = 0;
     bool shootRequested = false;
+    bool shootLightning = false;
 
     // Config
     float playerSpeed = 10.0f;
@@ -150,4 +271,51 @@ private:
     float mouseSensitivity = 0.002f;
     float maxHealth = 100.0f;
     float arenaSize = 40.0f;
+
+    // Weapon system
+    WeaponType currentWeapon = WeaponType::RAILGUN;
+    float railgunCooldown = 0.0f;
+    float lightningCooldown = 0.0f;
+    const float railgunFireRate = 0.3f;
+    const float lightningFireRate = 0.05f;
+    float lightningRange = 15.0f;
+    const float lightningDamage = 25.0f;
+    const int lightningChainCount = 3;
+
+    // Plasma Rifle
+    float plasmaCooldown = 0.0f;
+    const float plasmaFireRate = 0.5f;
+    const float plasmaDamage = 80.0f;
+    const float plasmaRadius = 5.0f;
+    const float plasmaSpeed = 30.0f;
+
+    // Lightning arcs for rendering
+    std::vector<LightningArc> lightningArcs;
+
+    // Weapon upgrade levels
+    int railgunLevel = 1;
+    int lightningLevel = 1;
+
+    // Specials/Ultimates
+    float nuclearBlastCooldown = 0.0f;
+    const float nuclearBlastMaxCooldown = 30.0f;
+    float timeSlowCooldown = 0.0f;
+    const float timeSlowMaxCooldown = 20.0f;
+    float shieldCooldown = 0.0f;
+    const float shieldMaxCooldown = 15.0f;
+    float timeSlowTimer = 0.0f;
+    float shieldTimer = 0.0f;
+    bool hasShield = false;
+
+    // Power-ups
+    std::vector<PowerUp> powerUps;
+    float damageBoostTimer = 0.0f;
+
+    // Upgrade system
+    int upgradePoints = 0;
+    int healthLevel = 1;
+    int speedLevel = 1;
+    bool showUpgradeMenu = false;
+    int upgradeSelection = 0;
+    const int maxUpgradeLevel = 5;
 };
