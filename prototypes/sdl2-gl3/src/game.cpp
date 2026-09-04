@@ -38,6 +38,9 @@ bool Game::init(SDL_Window* window) {
     particleSystem = new ParticleSystem();
     particleSystem->init();
 
+    // Initialize overclock system
+    overclock = new OverclockManager();
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
     loadHighScore(*this);
     setupArena();
@@ -64,6 +67,10 @@ void Game::shutdown() {
     if (particleSystem) {
         delete particleSystem;
         particleSystem = nullptr;
+    }
+    if (overclock) {
+        delete overclock;
+        overclock = nullptr;
     }
     
     if (renderer_) {
@@ -279,6 +286,19 @@ void Game::resetGame() {
     projectiles.clear();
     particles.clear();
     resetUpgrades(*this);
+    if (overclock) overclock->reset();
+    // Reset bug effects
+    railgunFeedbackChance = 0.0f;
+    plasmaOverheatPenalty = 0.0f;
+    lightningBacklashChance = 0.0f;
+    shieldCrashChance = 0.0f;
+    splitterVirusLevel = 0;
+    splitterFriendlyFire = false;
+    scoreMultiplierFloat = 1.0f;
+    scoreDecayRate = 0.0f;
+    phaseGlitchChance = 0.0f;
+    phaseShiftKills = 0;
+    phaseShiftTimer = 0.0f;
     if (g_music) g_music->playScene(MusicScene::MENU);
 }
 
@@ -316,6 +336,16 @@ void Game::update(float dt) {
     updateProjectiles(dt);
     updateParticles(dt);
     if (particleSystem) particleSystem->update(dt);
+
+    // Update overclock
+    if (overclock) {
+        // Score decay
+        if (scoreDecayRate > 0.0f) {
+            score -= (int)(scoreDecayRate * dt * 60.0f); // per second basis
+        }
+        // Phase shift timer
+        if (phaseShiftTimer > 0.0f) phaseShiftTimer -= dt;
+    }
     updateWeapons(dt, *this);
     updatePowerUps(dt, *this);
     updateScore(dt, *this);

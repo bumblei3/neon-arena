@@ -28,6 +28,7 @@ add_executable(neon-arena
     src/savegame.cpp
     src/music_generator.cpp
     src/particle_ecs.cpp
+    src/overclock.cpp
     src/menu.cpp
     src/text.cpp
     src/weapons.cpp

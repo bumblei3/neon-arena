@@ -95,5 +95,14 @@ echo ""
 echo "=== Running Particle ECS Tests ==="
 ./test_particle_ecs
 
+# --- 9. Overclock Upgrade Tests ---
+echo ""
+echo "=== Building Overclock Tests ==="
+g++ -std=c++17 -O2 -o test_overclock test_overclock.cpp
+
+echo ""
+echo "=== Running Overclock Tests ==="
+./test_overclock
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_particle_ecs
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_particle_ecs test_overclock

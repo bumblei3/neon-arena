@@ -11,6 +11,7 @@
 #include "savegame.h"
 #include "music_generator.h"
 #include "particle_ecs.h"
+#include "overclock.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -188,6 +189,7 @@ public:
     friend void renderUpgradeMenu(Game& game);
     friend class SpatialHash;
     friend class SavegameManager;
+    friend class OverclockManager;
     friend void handleUpgradeInput(Game& game, SDL_Event& event);
     friend void applyUpgrade(Game& game, int selection);
     friend void resetUpgrades(Game& game);
@@ -300,11 +302,11 @@ private:
     const float lightningFireRate = 0.05f;
     float lightningRange = 15.0f;
     const float lightningDamage = 25.0f;
-    const int lightningChainCount = 3;
+    int lightningChainCount = 3;
 
     // Plasma Rifle
     float plasmaCooldown = 0.0f;
-    const float plasmaFireRate = 0.5f;
+    float plasmaFireRate = 0.5f;
     const float plasmaDamage = 80.0f;
     const float plasmaRadius = 5.0f;
     const float plasmaSpeed = 30.0f;
@@ -322,7 +324,7 @@ private:
     float timeSlowCooldown = 0.0f;
     const float timeSlowMaxCooldown = 20.0f;
     float shieldCooldown = 0.0f;
-    const float shieldMaxCooldown = 15.0f;
+    float shieldMaxCooldown = 15.0f;
     float timeSlowTimer = 0.0f;
     float shieldTimer = 0.0f;
     bool hasShield = false;
@@ -338,4 +340,18 @@ private:
     bool showUpgradeMenu = false;
     int upgradeSelection = 0;
     const int maxUpgradeLevel = 5;
+
+    // === Overclock Bug Effects ===
+    float railgunFeedbackChance = 0.0f;  // Self-damage on miss
+    float plasmaOverheatPenalty = 0.0f;  // Extra cooldown on overheat
+    float lightningBacklashChance = 0.0f; // Self-hit chance
+    float shieldCrashChance = 0.0f;      // Shield stun chance
+    int   splitterVirusLevel = 0;        // Mini-bots from bots
+    bool  splitterFriendlyFire = false;  // Mini-bots hit player
+    float scoreMultiplierFloat = 1.0f;   // Score gain multiplier
+    float scoreDecayRate = 0.0f;         // Score lost per second
+    float phaseGlitchChance = 0.0f;      // Fall through floor
+    int   phaseShiftKills = 0;           // Invuln kills count
+    float phaseShiftTimer = 0.0f;        // Invuln timer
+    OverclockManager* overclock = nullptr;
 };
