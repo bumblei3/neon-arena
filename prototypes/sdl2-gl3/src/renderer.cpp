@@ -629,6 +629,44 @@ void Renderer::drawParticles(const Particle* particles, int count) {
     glBindVertexArray(0);
 }
 
+void Renderer::drawParticlesECS(const float* data, int count) {
+    if (count == 0) return;
+
+    // ECS render buffer format: [x,y,z, r,g,b,a, size] per particle (8 floats)
+    // Use instanced rendering: 1 draw call for all particles
+
+    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 8 * count, data, GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(particleVAO);
+
+    // Position attribute (vec3)
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)0);
+    glVertexAttribDivisor(0, 1);
+
+    // Color attribute (vec4)
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 3));
+    glVertexAttribDivisor(1, 1);
+
+    // Size attribute (float)
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 7));
+    glVertexAttribDivisor(2, 1);
+
+    lineShader->use();
+    Mat4 model(true);
+    lineShader->setMat4("proj", projection.ptr());
+    lineShader->setMat4("view", view.ptr());
+    lineShader->setMat4("model", model.ptr());
+
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    glDrawArraysInstanced(GL_POINTS, 0, 1, count);
+
+    glBindVertexArray(0);
+}
+
 void Renderer::drawParticlesInstanced(const Particle* particles, int count) {
     if (count == 0) return;
 

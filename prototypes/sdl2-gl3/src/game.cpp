@@ -348,7 +348,6 @@ void Game::update(float dt) {
     updatePlayer(dt);
     updateBots(*this, dt);
     updateProjectiles(dt);
-    updateParticles(dt);
     if (particleSystem) particleSystem->update(dt);
 
     // Update overclock
@@ -504,18 +503,6 @@ void Game::updateProjectiles(float dt) {
     );
 }
 
-void Game::updateParticles(float dt) {
-    for (auto& p : particles) {
-        p.pos = p.pos + p.vel * dt;
-        p.vel.y -= 9.8f * dt;
-        p.life -= dt;
-    }
-    particles.erase(
-        std::remove_if(particles.begin(), particles.end(),
-            [](const Particle& p) { return p.life <= 0.0f; }),
-        particles.end());
-}
-
 void Game::checkCollisions() {
     // Check power-up collection
     for (int i = (int)powerUps.size() - 1; i >= 0; i--) {
@@ -608,6 +595,19 @@ void Game::nextWave() {
     spawnWave(*this);
     waveAnnounceTimer = 2.0f;
     if (echoSystem) echoSystem->startRecording();
+
+    // Detect wave fusion
+    WaveConfig config = generateWaveConfig(wave);
+    currentFusion = detectFusion(config.modifiers);
+    const FusionEffect* fusion = getFusionEffect(currentFusion);
+    if (currentFusion != WaveFusion::NONE) {
+        printf("⚡ FUSION: %s — %s\n", fusion->name, fusion->description);
+        fusionDisplayTimer = 3.0f;
+        if (fusion->arenaShrinkRate > 0) {
+            printf("⚠️ ARENA SHRINKING!\n");
+        }
+    }
+
     if (g_music && wave % 5 != 0) g_music->playScene(MusicScene::GAMEPLAY);
 }
 
@@ -702,8 +702,12 @@ void Game::render() {
 }
 
 void Game::renderParticles() {
-    if (particles.empty()) return;
-    renderer_->drawParticles(particles.data(), static_cast<int>(particles.size()));
+    if (!particleSystem) return;
+    int count;
+    const float* data = particleSystem->getRenderBuffer(count);
+    if (count > 0) {
+        renderer_->drawParticlesECS(data, count);
+    }
 }
 
 void Game::renderArena() {

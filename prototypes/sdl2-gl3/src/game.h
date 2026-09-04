@@ -11,6 +11,7 @@
 #include "savegame.h"
 #include "music_generator.h"
 #include "particle_ecs.h"
+#include "wave_config.h"
 #include "overclock.h"
 #include "echo.h"
 #include "bot_ai.h"
@@ -245,14 +246,14 @@ private:
     // Spatial hash for collision detection
     SpatialHash* spatialHash = nullptr;
 
-    // Particle system
+    // Particle system (ECS - no vector needed)
     ParticleSystem* particleSystem = nullptr;
 
     // Camera shake
     float shakeAmount = 0.0f;
     float shakeDecay = 5.0f;
     Vec3 shakeOffset;
-    
+
     // Game state
     Entity player;
     std::vector<Entity> bots;
@@ -357,6 +358,22 @@ private:
     float phaseGlitchChance = 0.0f;      // Fall through floor
     int   phaseShiftKills = 0;           // Invuln kills count
     float phaseShiftTimer = 0.0f;        // Invuln timer
+
+    // === Wave-Fusion System ===
+    WaveFusion currentFusion = WaveFusion::NONE;
+    float arenaShrinkTimer = 0.0f;       // Tracks arena shrink over time
+    float fusionDisplayTimer = 0.0f;     // How long to show fusion announcement
+
+    // === Rival Ghost System ===
+    struct RivalGhost {
+        bool active = false;
+        float posX = 0, posY = 0, posZ = 0;
+        float alpha = 1.0f;              // Visibility (fades in/out)
+        float heartbeatTimer = 0.0f;     // Pulsing effect
+        int rivalScore = 0;
+        int rivalWave = 0;
+    };
+    RivalGhost rivalGhost;
     OverclockManager* overclock = nullptr;
     EchoSystem* echoSystem = nullptr;
 };

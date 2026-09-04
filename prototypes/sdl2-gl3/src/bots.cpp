@@ -407,18 +407,47 @@ void renderBots(Game& game) {
 }
 
 void spawnExplosion(Game& game, Vec3 pos, Vec3 color, int count) {
-    for (int i = 0; i < count; i++) {
-        float angle = (float)i / count * 6.28318f;
-        float speed = 3.0f + (rand() % 100) / 100.0f * 5.0f;
-        Vec3 vel(sinf(angle) * speed, (rand() % 100) / 100.0f * 8.0f, cosf(angle) * speed);
-        float life = 0.5f + (rand() % 100) / 200.0f;
-        float size = 0.1f + (rand() % 100) / 500.0f;
-        game.particles.push_back(Particle(pos, vel, color, life, size));
-    }
-    for (int i = 0; i < count / 2; i++) {
-        Vec3 vel((rand() % 100 - 50) / 50.0f * 2.0f, (rand() % 100) / 100.0f * 3.0f, (rand() % 100 - 50) / 50.0f * 2.0f);
-        float life = 1.0f + (rand() % 100) / 100.0f;
-        float size = 0.2f + (rand() % 100) / 300.0f;
-        game.particles.push_back(Particle(pos, vel, Vec3(0.3f, 0.3f, 0.3f), life, size));
-    }
+    if (!game.particleSystem) return;
+
+    // Main explosion burst (sparks)
+    ParticleBurst burst;
+    burst.posX = pos.x;
+    burst.posY = pos.y;
+    burst.posZ = pos.z;
+    burst.dirX = 0.0f;
+    burst.dirY = 1.0f;
+    burst.dirZ = 0.0f;
+    burst.speed = 8.0f;
+    burst.spread = 1.0f;
+    burst.life = 0.75f;
+    burst.size = 0.2f;
+    burst.sizeEnd = 0.05f;
+    burst.r = color.x;
+    burst.g = color.y;
+    burst.b = color.z;
+    burst.a = 1.0f;
+    burst.count = count;
+    burst.type = ParticleType::SPARK;
+    game.particleSystem->spawnBurst(burst);
+
+    // Smoke secondary effect
+    ParticleBurst smoke;
+    smoke.posX = pos.x;
+    smoke.posY = pos.y;
+    smoke.posZ = pos.z;
+    smoke.dirX = 0.0f;
+    smoke.dirY = 1.0f;
+    smoke.dirZ = 0.0f;
+    smoke.speed = 3.0f;
+    smoke.spread = 1.0f;
+    smoke.life = 1.5f;
+    smoke.size = 0.3f;
+    smoke.sizeEnd = 0.1f;
+    smoke.r = 0.3f;
+    smoke.g = 0.3f;
+    smoke.b = 0.3f;
+    smoke.a = 1.0f;
+    smoke.count = count / 2;
+    smoke.type = ParticleType::SMOKE;
+    game.particleSystem->spawnBurst(smoke);
 }

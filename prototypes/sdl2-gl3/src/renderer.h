@@ -31,6 +31,7 @@ public:
     void drawQuad(const Vertex* verts);
     void drawParticles(const Particle* particles, int count);
     void drawParticlesInstanced(const Particle* particles, int count);
+    void drawParticlesECS(const float* data, int count);
 
     void drawGround(float time);
 
