@@ -39,6 +39,7 @@ add_executable(neon-arena
     src/coop.cpp
     src/balancing.cpp
     src/playtest.cpp
+    src/audio_polish.cpp
     src/score.cpp
     src/powerups.cpp
     src/specials.cpp
