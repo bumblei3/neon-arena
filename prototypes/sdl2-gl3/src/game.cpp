@@ -271,10 +271,12 @@ void Game::resetGame() {
     projectiles.clear();
     particles.clear();
     resetUpgrades(*this);
+    if (g_music) g_music->playScene(MusicScene::MENU);
 }
 
 void Game::update(float dt) {
     if (state == GameState::MENU) {
+        if (g_music) g_music->playScene(MusicScene::MENU);
         updateMenu(dt);
         return;
     }
@@ -289,6 +291,7 @@ void Game::update(float dt) {
 
     if (gameOver) {
         state = GameState::GAME_OVER;
+        if (g_music) g_music->playScene(MusicScene::GAME_OVER);
         return;
     }
 
@@ -516,6 +519,7 @@ void Game::nextWave() {
     waveBreak = 0;
     spawnWave(*this);
     waveAnnounceTimer = 2.0f;
+    if (g_music && wave % 5 != 0) g_music->playScene(MusicScene::GAMEPLAY);
 }
 
 void Game::render() {

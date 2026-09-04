@@ -4,6 +4,10 @@
 #include <cstdio>
 #include "game.h"
 #include "audio_manager.h"
+#include "music_generator.h"
+
+// Global music generator
+MusicGenerator* g_music = nullptr;
 
 int main(int argc, char* argv[]) {
     // Initialize SDL
@@ -80,6 +84,24 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Initialize Music Generator (procedural synthwave)
+    MusicGenerator music;
+    if (!music.init()) {
+        fprintf(stderr, "Music generator init failed\n");
+        SDL_GL_DeleteContext(ctx);
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
+    }
+    g_music = &music;
+
+    // Hook music generator into SDL2's audio system
+    Mix_HookMusic(MusicGenerator::mixCallback, nullptr);
+    music.setVolume(0.5f); // Start at 50% music volume
+
+    // Play menu music
+    music.playScene(MusicScene::MENU);
+
     // Create game
     Game game;
     if (!game.init(window)) {
@@ -102,6 +124,8 @@ int main(int argc, char* argv[]) {
     game.run();
 
     // Cleanup
+    music.stop();
+    Mix_HookMusic(nullptr, nullptr);
     game.shutdown();
     SDL_GL_DeleteContext(ctx);
     SDL_DestroyWindow(window);

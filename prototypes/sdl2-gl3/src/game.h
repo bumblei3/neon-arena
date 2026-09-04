@@ -9,6 +9,7 @@
 #include "audio_manager.h"
 #include "spatial_hash.h"
 #include "savegame.h"
+#include "music_generator.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -26,6 +27,7 @@ enum class GameState {
 
 // AudioManager
 extern AudioManager* g_audio;
+extern MusicGenerator* g_music;
 
 // Play sound through AudioManager
 inline void playSnd(int soundHandle) {

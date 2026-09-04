@@ -62,9 +62,20 @@ echo ""
 echo "=== Running Savegame Tests ==="
 ./test_savegame
 
+# --- 7. Music Generator Tests ---
+echo ""
+echo "=== Building Music Tests ==="
+SDL_CFLAGS=$(sdl2-config --cflags)
+SDL_LIBS=$(sdl2-config --libs)
+g++ -std=c++17 -O2 $SDL_CFLAGS -I../src -o test_music test_music.cpp ../src/music_generator.cpp $SDL_LIBS -lSDL2_mixer
+
+echo ""
+echo "=== Running Music Tests ==="
+./test_music
+
 # --- Summary ---
 echo ""
 echo "=== ALL TESTS PASSED ==="
 
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music

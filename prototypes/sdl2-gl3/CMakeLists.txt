@@ -26,6 +26,7 @@ add_executable(neon-arena
     src/audio_manager.cpp
     src/spatial_hash.cpp
     src/savegame.cpp
+    src/music_generator.cpp
     src/menu.cpp
     src/text.cpp
     src/weapons.cpp
