@@ -255,6 +255,10 @@ private:
 
     // Score system
     int scoreMultiplier = 1;
+    int lastKillTime = 0;       // For kill-streak tracking
+    int killStreak = 0;         // Current kill streak
+    float hitFeedbackTimer = 0; // Crosshair pulse on hit
+    float waveAnnounceTimer = 0; // Wave announcement display
     float multiplierTimer = 0.0f;
     const float multiplierDecay = 5.0f;
     int comboCount = 0;

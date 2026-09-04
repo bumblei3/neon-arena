@@ -72,10 +72,15 @@ void renderMinimap(Game& game) {
 
 void renderHUD(Game& game) {
     // Simple HUD using OpenGL lines
-    // Crosshair
+    // Dynamic crosshair - pulses on hit
     float cx = 0.0f, cy = 0.0f;
     float chSize = 0.03f;
+    float chPulse = (game.hitFeedbackTimer > 0.0f) ? 1.5f + sinf(game.hitFeedbackTimer * 20.0f) * 0.3f : 1.0f;
+    chSize *= chPulse;
     Vec3 chColor(0.0f, 1.0f, 0.8f);
+    if (game.hitFeedbackTimer > 0.0f) {
+        chColor = Vec3(1.0f, 0.3f, 0.0f);  // Flash red on hit
+    }
 
     // Horizontal line
     Vertex chH[] = {
@@ -123,16 +128,48 @@ void renderHUD(Game& game) {
     game.text_.drawText("KILLS: " + std::to_string(game.kills), -0.95f, 0.76f, 1.0f, Vec3(0.8f, 0.3f, 0.3f));
     game.text_.drawText("HIGH: " + std::to_string(game.highScore), -0.95f, 0.69f, 0.8f, Vec3(0.6f, 0.6f, 0.6f));
 
-    // Multiplier display
+    // Multiplier display with timer bar
     if (game.scoreMultiplier > 1) {
         Vec3 multColor(1.0f, 0.5f, 0.0f);
         std::string multStr = "x" + std::to_string(game.scoreMultiplier) + " COMBO!";
         game.text_.drawText(multStr, -0.95f, 0.62f, 1.2f, multColor);
+        
+        // Combo timer bar
+        float barWidth = 0.2f;
+        float barHeight = 0.01f;
+        float barX = -0.95f;
+        float barY = 0.58f;
+        float comboPct = game.multiplierTimer / game.multiplierDecay;
+        
+        Vertex barBg[] = {
+            Vertex(Vec3(barX, barY, 0), Vec3(0.1f, 0.1f, 0.1f)),
+            Vertex(Vec3(barX + barWidth, barY, 0), Vec3(0.1f, 0.1f, 0.1f)),
+            Vertex(Vec3(barX + barWidth, barY + barHeight, 0), Vec3(0.1f, 0.1f, 0.1f)),
+            Vertex(Vec3(barX, barY + barHeight, 0), Vec3(0.1f, 0.1f, 0.1f)),
+        };
+        game.renderer_->drawLineLoop(barBg, 4, Vec3(0.1f, 0.1f, 0.1f));
+        
+        if (comboPct > 0.0f) {
+            Vertex barFill[] = {
+                Vertex(Vec3(barX, barY, 0), multColor),
+                Vertex(Vec3(barX + barWidth * comboPct, barY, 0), multColor),
+                Vertex(Vec3(barX + barWidth * comboPct, barY + barHeight, 0), multColor),
+                Vertex(Vec3(barX, barY + barHeight, 0), multColor),
+            };
+            game.renderer_->drawLineLoop(barFill, 4, multColor);
+        }
     }
 
     // Damage boost indicator
     if (game.damageBoostTimer > 0.0f) {
         game.text_.drawText("DMG BOOST: " + std::to_string((int)game.damageBoostTimer) + "s", 0.5f, 0.9f, 0.8f, Vec3(1.0f, 0.3f, 0.0f));
+    }
+    
+    // Kill streak display
+    if (game.killStreak >= 3) {
+        Vec3 streakColor(1.0f, 0.8f, 0.0f);
+        std::string streakStr = std::to_string(game.killStreak) + " STREAK!";
+        game.text_.drawText(streakStr, 0.6f, 0.83f, 0.9f, streakColor);
     }
 
     // Weapon indicator
@@ -183,6 +220,17 @@ void renderHUD(Game& game) {
     }
     if (hasBoss) {
         game.text_.drawTextCentered("!!! BOSS !!!", 0.95f, 1.5f, Vec3(1.0f, 0.2f, 0.0f));
+    }
+
+    // Wave announcement
+    if (game.waveAnnounceTimer > 0.0f) {
+        float alpha = (game.waveAnnounceTimer > 1.0f) ? 1.0f : game.waveAnnounceTimer / 1.0f;
+        Vec3 announceColor = (game.wave % 5 == 0) ? Vec3(1.0f, 0.2f, 0.0f) : Vec3(0.0f, 1.0f, 0.5f);
+        announceColor = announceColor * alpha;
+        game.text_.drawTextCentered("WAVE " + std::to_string(game.wave), 0.0f, 2.0f, announceColor);
+        if (game.wave % 5 == 0) {
+            game.text_.drawTextCentered("BOSS INCOMING!", -0.15f, 1.5f, Vec3(1.0f, 0.5f, 0.0f) * alpha);
+        }
     }
 
     // Wave complete message area

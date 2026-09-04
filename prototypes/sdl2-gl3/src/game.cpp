@@ -228,6 +228,7 @@ void Game::resetGame() {
     wave = 0;
     score = 0;
     kills = 0;
+    killStreak = 0;
     player.health = maxHealth;
     player.alive = true;
     player.pos = Vec3(0, 0, 0);
@@ -297,6 +298,10 @@ void Game::update(float dt) {
         }
     }
 
+    // Decay HUD timers
+    if (hitFeedbackTimer > 0.0f) hitFeedbackTimer -= dt;
+    if (waveAnnounceTimer > 0.0f) waveAnnounceTimer -= dt;
+
     // Check wave complete
     bool anyAlive = false;
     for (auto& bot : bots) {
@@ -308,6 +313,7 @@ void Game::update(float dt) {
     if (!anyAlive && bots.size() > 0) {
         waveComplete = true;
         waveBreak = 0;
+        killStreak = 0;
         score += wave * 100;
         upgradePoints += 1 + wave / 3;
         showUpgradeMenu = true;
@@ -404,6 +410,7 @@ void Game::checkCollisions() {
                     if (bot.health <= 0) {
                         bot.alive = false;
                         kills++;
+                        killStreak++;
                         addScore(*this, 10);
                         if (g_audio) g_audio->playKill();
                         if (bot.botType == 4) {
@@ -474,6 +481,7 @@ void Game::nextWave() {
     waveComplete = false;
     waveBreak = 0;
     spawnWave(*this);
+    waveAnnounceTimer = 2.0f;
 }
 
 void Game::render() {
