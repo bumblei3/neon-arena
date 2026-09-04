@@ -51,9 +51,20 @@ echo ""
 echo "=== Running Audio Tests ==="
 ./test_audio
 
+# --- 6. Savegame Tests ---
+echo ""
+echo "=== Building Savegame Tests ==="
+SDL_CFLAGS=$(sdl2-config --cflags)
+SDL_LIBS=$(sdl2-config --libs)
+g++ -std=c++17 -O2 $SDL_CFLAGS -I../src -o test_savegame test_savegame.cpp ../src/savegame.cpp $SDL_LIBS
+
+echo ""
+echo "=== Running Savegame Tests ==="
+./test_savegame
+
 # --- Summary ---
 echo ""
 echo "=== ALL TESTS PASSED ==="
 
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame

@@ -8,6 +8,7 @@
 #include "text.h"
 #include "audio_manager.h"
 #include "spatial_hash.h"
+#include "savegame.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -64,6 +65,7 @@ struct Projectile {
     WeaponType weapon;
     float damage;
 
+    Projectile() : pos(0,0,0), dir(0,0,0), speed(50.0f), life(2.0f), fromPlayer(false), weapon(WeaponType::RAILGUN), damage(50.0f) {}
     Projectile(Vec3 p, Vec3 d, bool player, WeaponType w = WeaponType::RAILGUN, float dmg = 50.0f)
         : pos(p), dir(d.normalized()), speed(50.0f), life(2.0f), fromPlayer(player), weapon(w), damage(dmg) {}
 };
@@ -182,6 +184,7 @@ public:
     friend void renderMinimap(Game& game);
     friend void renderUpgradeMenu(Game& game);
     friend class SpatialHash;
+    friend class SavegameManager;
     friend void handleUpgradeInput(Game& game, SDL_Event& event);
     friend void applyUpgrade(Game& game, int selection);
     friend void resetUpgrades(Game& game);
@@ -207,6 +210,7 @@ private:
     void renderPauseMenu();
     void renderGameOver();
     void handleMenuInput(SDL_Event& event);
+    void updateMenuItems();
     void resetGame();
 
     // Camera
@@ -223,7 +227,7 @@ private:
     // State
     GameState state = GameState::MENU;
     int menuSelection = 0;
-    std::vector<std::string> menuItems = {"Start Game", "Sensitivity", "Quit"};
+    std::vector<std::string> menuItems;
     float stateTimer = 0;
 
     // Text

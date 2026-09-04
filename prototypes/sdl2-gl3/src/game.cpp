@@ -203,6 +203,20 @@ void Game::handleInput(float dt) {
     }
 }
 
+void Game::updateMenuItems() {
+    menuItems.clear();
+    if (SavegameManager::exists()) {
+        menuItems.push_back("Continue");
+        menuItems.push_back("New Game");
+        menuItems.push_back("Sensitivity");
+        menuItems.push_back("Quit");
+    } else {
+        menuItems.push_back("Start Game");
+        menuItems.push_back("Sensitivity");
+        menuItems.push_back("Quit");
+    }
+}
+
 void Game::handleMenuInput(SDL_Event& event) {
     if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w) {
         menuSelection--;
@@ -211,13 +225,33 @@ void Game::handleMenuInput(SDL_Event& event) {
         menuSelection++;
         if (menuSelection >= (int)menuItems.size()) menuSelection = 0;
     } else if (event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_SPACE) {
-        if (menuSelection == 0) {
+        bool hasSave = SavegameManager::exists();
+        // Menu: 0=Start/Continue, 1=New Game (if save exists), 2=Options, 3=Quit
+        int startIdx = 0;
+        int newGameIdx = hasSave ? 1 : -1;
+        int optionsIdx = hasSave ? 2 : 1;
+        int quitIdx = hasSave ? 3 : 2;
+        
+        if (menuSelection == startIdx) {
+            // Continue or New Game
+            if (hasSave) {
+                // Load savegame
+                if (SavegameManager::load(*this)) {
+                    state = GameState::PLAYING;
+                    SDL_SetRelativeMouseMode(SDL_TRUE);
+                }
+            } else {
+                resetGame();
+                state = GameState::PLAYING;
+                SDL_SetRelativeMouseMode(SDL_TRUE);
+            }
+        } else if (menuSelection == newGameIdx && newGameIdx >= 0) {
             resetGame();
             state = GameState::PLAYING;
             SDL_SetRelativeMouseMode(SDL_TRUE);
-        } else if (menuSelection == 1) {
+        } else if (menuSelection == optionsIdx) {
             state = GameState::OPTIONS;
-        } else if (menuSelection == 2) {
+        } else if (menuSelection == quitIdx) {
             running = false;
         }
     }
@@ -299,8 +333,8 @@ void Game::update(float dt) {
     }
 
     // Decay HUD timers
-    if (hitFeedbackTimer > 0.0f) hitFeedbackTimer -= dt;
-    if (waveAnnounceTimer > 0.0f) waveAnnounceTimer -= dt;
+    if (hitFeedbackTimer > 0.0f) { hitFeedbackTimer -= dt; if (hitFeedbackTimer < 0.0f) hitFeedbackTimer = 0.0f; }
+    if (waveAnnounceTimer > 0.0f) { waveAnnounceTimer -= dt; if (waveAnnounceTimer < 0.0f) waveAnnounceTimer = 0.0f; }
 
     // Check wave complete
     bool anyAlive = false;
@@ -535,6 +569,8 @@ void Game::render() {
 
     if (state == GameState::GAME_OVER) {
         renderGameOver();
+        // Auto-save on game over
+        SavegameManager::save(*this);
         return;
     }
 
