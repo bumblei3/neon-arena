@@ -2,9 +2,49 @@
 #include "game.h"
 #include "wave_config.h"
 #include "bot_ai.h"
+#include "balancing.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+
+static void getBalancedBotStats(int wave, int botType, float& outHealth, float& outMoveSpeed) {
+    const BalancingDB& db = BalancingDB::get();
+    auto* melee = db.getBot("Melee");
+    auto* shooter = db.getBot("Shooter");
+    auto* tank = db.getBot("Tank");
+    auto* flanker = db.getBot("Flanker");
+    auto* boss = db.getBot("Boss");
+    
+    float healthMult = 1.0f + wave * 0.1f;
+    float speedMult = 1.0f + wave * 0.02f;
+    
+    switch (botType) {
+        case 0: // Melee
+            outHealth = (melee->baseHealth + melee->healthPerWave * wave) * healthMult;
+            outMoveSpeed = melee->moveSpeed * speedMult;
+            break;
+        case 1: // Shooter
+            outHealth = (shooter->baseHealth + shooter->healthPerWave * wave) * healthMult;
+            outMoveSpeed = shooter->moveSpeed * speedMult;
+            break;
+        case 2: // Tank
+            outHealth = (tank->baseHealth + tank->healthPerWave * wave) * healthMult;
+            outMoveSpeed = tank->moveSpeed * speedMult;
+            break;
+        case 3: // Flanker
+            outHealth = (flanker->baseHealth + flanker->healthPerWave * wave) * healthMult;
+            outMoveSpeed = flanker->moveSpeed * speedMult;
+            break;
+        case 4: // Boss
+            outHealth = (boss->baseHealth + boss->healthPerWave * wave) * healthMult * 1.5f;
+            outMoveSpeed = boss->moveSpeed * speedMult;
+            break;
+        default:
+            outHealth = 50.0f;
+            outMoveSpeed = 3.0f;
+            break;
+    }
+}
 
 static void applyModifiers(Entity& bot, EnemyModifier modifiers) {
     if (hasModifier(modifiers, EnemyModifier::SPEED_BOOST)) {
@@ -67,14 +107,18 @@ void spawnWave(Game& game) {
             if (i == 0) {
                 bot.botType = 4;
                 bot.isBoss = true;
-                bot.health = (500.0f + game.wave * 50) * config.healthMultiplier;
-                bot.moveSpeed = 2.0f;
+                float health, speed;
+                getBalancedBotStats(game.wave, 4, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed;
                 bot.attackCooldown = 0;
                 bot.aiState.personality = BotAI::Personality::BOSS;
             } else {
                 bot.botType = 0;
-                bot.health = (50.0f + game.wave * 5) * config.healthMultiplier;
-                bot.moveSpeed = 4.0f;
+                float health, speed;
+                getBalancedBotStats(game.wave, 0, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed;
                 applyModifiers(bot, config.modifiers);
                 initBotAI(bot);
             }
@@ -96,20 +140,28 @@ void spawnWave(Game& game) {
 
             if (game.wave >= 3 && i == 0) {
                 bot.botType = 2;
-                bot.health = (200.0f + game.wave * 20) * config.healthMultiplier;
-                bot.moveSpeed = 1.5f;
+                float health, speed;
+                getBalancedBotStats(game.wave, 2, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed;
             } else if (game.wave >= 2 && i == botCount - 1) {
                 bot.botType = 3;
-                bot.health = (50.0f + game.wave * 5) * config.healthMultiplier;
-                bot.moveSpeed = 6.0f;
+                float health, speed;
+                getBalancedBotStats(game.wave, 3, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed;
             } else if (game.wave >= 4 && i % 3 == 1) {
                 bot.botType = 1;
-                bot.health = (80.0f + game.wave * 8) * config.healthMultiplier;
-                bot.moveSpeed = 2.5f;
+                float health, speed;
+                getBalancedBotStats(game.wave, 1, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed;
             } else {
                 bot.botType = 0;
-                bot.health = (100.0f + game.wave * 10) * config.healthMultiplier;
-                bot.moveSpeed = 3.0f;
+                float health, speed;
+                getBalancedBotStats(game.wave, 0, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed;
             }
             applyModifiers(bot, config.modifiers);
             initBotAI(bot);
@@ -228,7 +280,8 @@ void updateBots(Game& game, float dt) {
             }
             if (bot.botType == 4) {
                 // Boss multi-phase behavior
-                int phase = BotAI::getBossPhase(bot.aiState, bot.health / (500.0f + game.wave * 50), bot.bossPhase);
+                float bossMaxHealth = 750.0f + game.wave * 55.0f; // Approximation
+                int phase = BotAI::getBossPhase(bot.aiState, bot.health / bossMaxHealth, bot.bossPhase);
                 
                 if (phase == 1) {
                     // Spread shot
@@ -275,6 +328,20 @@ void updateBots(Game& game, float dt) {
     }
 }
 
+static void getBotMaxHealth(int wave, int botType, float& outMaxHealth) {
+    const BalancingDB& db = BalancingDB::get();
+    float healthMult = 1.0f + wave * 0.1f;
+    
+    switch (botType) {
+        case 0: outMaxHealth = (db.getBot("Melee")->baseHealth + db.getBot("Melee")->healthPerWave * wave) * healthMult; break;
+        case 1: outMaxHealth = (db.getBot("Shooter")->baseHealth + db.getBot("Shooter")->healthPerWave * wave) * healthMult; break;
+        case 2: outMaxHealth = (db.getBot("Tank")->baseHealth + db.getBot("Tank")->healthPerWave * wave) * healthMult; break;
+        case 3: outMaxHealth = (db.getBot("Flanker")->baseHealth + db.getBot("Flanker")->healthPerWave * wave) * healthMult; break;
+        case 4: outMaxHealth = (db.getBot("Boss")->baseHealth + db.getBot("Boss")->healthPerWave * wave) * healthMult * 1.5f; break;
+        default: outMaxHealth = 100.0f + wave * 10.0f;
+    }
+}
+
 void renderSolidBots(Game& game) {
     for (auto& bot : game.bots) {
         if (!bot.alive) continue;
@@ -285,7 +352,9 @@ void renderSolidBots(Game& game) {
         if (bot.botType == 4) sizeMult = 2.5f;
         s *= sizeMult;
 
-        float healthPct = bot.health / (100.0f + game.wave * 10);
+        float maxHealth;
+        getBotMaxHealth(game.wave, bot.botType, maxHealth);
+        float healthPct = bot.health / maxHealth;
         if (healthPct > 1.0f) healthPct = 1.0f;
         if (healthPct < 0.0f) healthPct = 0.0f;
 
@@ -346,7 +415,9 @@ void renderBots(Game& game) {
         if (bot.botType == 4) sizeMult = 2.5f;
         float s = 0.8f * pulse * sizeMult;
 
-        float healthPct = bot.health / (100.0f + game.wave * 10);
+        float maxHealth;
+        getBotMaxHealth(game.wave, bot.botType, maxHealth);
+        float healthPct = bot.health / maxHealth;
         Vec3 botColor((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f);
 
         float rotOffset = game.gameTime * 1.5f + bot.pos.x * 0.3f;
