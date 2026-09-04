@@ -13,6 +13,7 @@
 #include "particle_ecs.h"
 #include "overclock.h"
 #include "echo.h"
+#include "bot_ai.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -51,6 +52,7 @@ struct Entity {
     float bossPhase = 0;  // For boss attack patterns
     float vx, vy, vz;
     int splitters = 0;    // Number of mini-bots to spawn on death
+    BotAI::BotState aiState;  // AI state machine for this bot
 
     Entity() : pos(0,0,0), yaw(0), pitch(0), health(100), alive(false), type(0), botType(0), attackCooldown(0), moveSpeed(3.0f), vx(0), vy(0), vz(0), splitters(0) {}
 };

@@ -113,5 +113,14 @@ echo ""
 echo "=== Running Echo Tests ==="
 ./test_echo
 
+# --- 11. Bot AI Tests ---
+echo ""
+echo "=== Building Bot AI Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_bot_ai test_bot_ai.cpp ../src/bot_ai.cpp
+
+echo ""
+echo "=== Running Bot AI Tests ==="
+./test_bot_ai
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai

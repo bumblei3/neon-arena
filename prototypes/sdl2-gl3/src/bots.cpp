@@ -1,151 +1,183 @@
-// bots.cpp - Bot logic implementation for neon arena prototype
+// bots.cpp - Bot logic with State Machine AI
 #include "game.h"
 #include "wave_config.h"
+#include "bot_ai.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 
-// Apply modifiers to a bot (defined here because it needs Entity)
 static void applyModifiers(Entity& bot, EnemyModifier modifiers) {
     if (hasModifier(modifiers, EnemyModifier::SPEED_BOOST)) {
         bot.moveSpeed *= 1.2f;
     }
     if (hasModifier(modifiers, EnemyModifier::SHIELD)) {
-        bot.health += 50.0f;  // Extra health as shield
+        bot.health += 50.0f;
     }
     if (hasModifier(modifiers, EnemyModifier::REGENERATION)) {
-        bot.vy = 1.0f;  // Regen flag
+        bot.vy = 1.0f;
     }
     if (hasModifier(modifiers, EnemyModifier::SPLITTER)) {
-        bot.splitters = 2;  // Spawn 2 mini-bots on death
+        bot.splitters = 2;
     }
+}
+
+// Initialize AI state based on bot type
+static void initBotAI(Entity& bot) {
+    switch (bot.botType) {
+        case 0: // Melee
+            bot.aiState.personality = BotAI::Personality::AGGRESSIVE;
+            break;
+        case 1: // Shooter
+            bot.aiState.personality = BotAI::Personality::DEFENSIVE;
+            break;
+        case 2: // Tank
+            bot.aiState.personality = BotAI::Personality::SWARM;
+            break;
+        case 3: // Fast
+            bot.aiState.personality = BotAI::Personality::FLANKER;
+            break;
+        case 4: // Boss
+            bot.aiState.personality = BotAI::Personality::BOSS;
+            break;
+        default:
+            bot.aiState.personality = BotAI::Personality::AGGRESSIVE;
+            break;
+    }
+    bot.aiState.state = BotAI::State::IDLE;
 }
 
 void spawnWave(Game& game) {
     game.wave++;
     game.bots.clear();
-    
+
     WaveConfig config = generateWaveConfig(game.wave);
 
     if (config.isBossWave) {
-        // Boss wave - 1 strong boss + minions
         int totalCount = config.bossCount + config.minionCount;
         for (int i = 0; i < totalCount; i++) {
             Entity bot;
             float angle = (float)i / totalCount * 6.28318f;
             float radius = game.arenaSize * 0.6f;
-            bot.pos = Vec3(
-                cosf(angle) * radius,
-                0.5f,
-                sinf(angle) * radius
-            );
+            bot.pos = Vec3(cosf(angle) * radius, 0.5f, sinf(angle) * radius);
             bot.yaw = 0;
             bot.pitch = 0;
             bot.alive = true;
             bot.type = 1;
 
             if (i == 0) {
-                // Boss
                 bot.botType = 4;
                 bot.isBoss = true;
                 bot.health = (500.0f + game.wave * 50) * config.healthMultiplier;
                 bot.moveSpeed = 2.0f;
                 bot.attackCooldown = 0;
+                bot.aiState.personality = BotAI::Personality::BOSS;
             } else {
-                // Minions
                 bot.botType = 0;
                 bot.health = (50.0f + game.wave * 5) * config.healthMultiplier;
                 bot.moveSpeed = 4.0f;
                 applyModifiers(bot, config.modifiers);
+                initBotAI(bot);
             }
             game.bots.push_back(bot);
         }
-        printf("BOSS WAVE %d: Boss + %d minions! (modifiers: 0x%x)\n", 
+        printf("BOSS WAVE %d: Boss + %d minions! (modifiers: 0x%x)\n",
                game.wave, config.minionCount, static_cast<int>(config.modifiers));
     } else {
-        // Normal wave
         int botCount = config.baseBotCount;
         for (int i = 0; i < botCount; i++) {
             Entity bot;
             float angle = (float)i / botCount * 6.28318f;
             float radius = game.arenaSize * 0.7f;
-            bot.pos = Vec3(
-                cosf(angle) * radius,
-                0.5f,
-                sinf(angle) * radius
-            );
+            bot.pos = Vec3(cosf(angle) * radius, 0.5f, sinf(angle) * radius);
             bot.yaw = 0;
             bot.pitch = 0;
             bot.alive = true;
             bot.type = 1;
 
-            // Bot type distribution based on wave
             if (game.wave >= 3 && i == 0) {
-                bot.botType = 2;  // Tank
+                bot.botType = 2;
                 bot.health = (200.0f + game.wave * 20) * config.healthMultiplier;
                 bot.moveSpeed = 1.5f;
             } else if (game.wave >= 2 && i == botCount - 1) {
-                bot.botType = 3;  // Fast
+                bot.botType = 3;
                 bot.health = (50.0f + game.wave * 5) * config.healthMultiplier;
                 bot.moveSpeed = 6.0f;
             } else if (game.wave >= 4 && i % 3 == 1) {
-                bot.botType = 1;  // Shooter
+                bot.botType = 1;
                 bot.health = (80.0f + game.wave * 8) * config.healthMultiplier;
                 bot.moveSpeed = 2.5f;
             } else {
-                bot.botType = 0;  // Melee
+                bot.botType = 0;
                 bot.health = (100.0f + game.wave * 10) * config.healthMultiplier;
                 bot.moveSpeed = 3.0f;
             }
             applyModifiers(bot, config.modifiers);
+            initBotAI(bot);
             game.bots.push_back(bot);
         }
-        printf("Wave %d: %d bots spawned (modifiers: 0x%x)\n", 
+        printf("Wave %d: %d bots spawned (modifiers: 0x%x)\n",
                game.wave, botCount, static_cast<int>(config.modifiers));
     }
     game.waveComplete = false;
 }
 
 void updateBots(Game& game, float dt) {
+    // Collect bot states for swarm AI
+    std::vector<BotAI::BotState*> botStates;
+    for (auto& bot : game.bots) {
+        if (!bot.alive) continue;
+        botStates.push_back(&bot.aiState);
+    }
+
+    // Swarm coordination (only if enough bots)
+    if (botStates.size() >= 3) {
+        std::vector<BotAI::BotState> botStatesValues;
+    for (auto* ptr : botStates) botStatesValues.push_back(*ptr);
+    BotAI::swarmUpdate(botStatesValues, game.player.pos.x, game.player.pos.z);
+    }
+
+    bool playerIsMoving = (std::abs(game.player.vx) > 0.1f || std::abs(game.player.vz) > 0.1f);
+
     for (auto& bot : game.bots) {
         if (!bot.alive) continue;
 
         // Regeneration modifier
         if (bot.vy > 0.5f) {
-            bot.health += 1.0f * dt;  // +1 HP/sec
+            bot.health += 1.0f * dt;
         }
 
-        // Move towards player
-        Vec3 toPlayer = Vec3(
-            game.player.pos.x - bot.pos.x,
-            0,
-            game.player.pos.z - bot.pos.z
-        );
+        // Update AI state machine
+        BotAI::update(bot.aiState, dt,
+                      game.player.pos.x, game.player.pos.z,
+                      bot.pos.x, bot.pos.z,
+                      bot.health, 100.0f + game.wave * 10,
+                      game.arenaSize, game.wave, playerIsMoving);
 
-        float dist = toPlayer.length();
+        // Move based on AI target
+        float dx = bot.aiState.targetX - bot.pos.x;
+        float dz = bot.aiState.targetZ - bot.pos.z;
+        float dist = std::sqrt(dx * dx + dz * dz);
 
-        // Different behavior based on bot type
-        float preferredDist = 3.0f;
-        if (bot.botType == 1) preferredDist = 12.0f;
-        if (bot.botType == 3) preferredDist = 2.0f;
-        if (bot.botType == 4) preferredDist = 5.0f;  // Boss keeps medium distance
-
-        if (dist > preferredDist) {
-            toPlayer = toPlayer.normalized();
-            bot.pos.x += toPlayer.x * bot.moveSpeed * dt;
-            bot.pos.z += toPlayer.z * bot.moveSpeed * dt;
-        } else if (bot.botType == 1 && dist < preferredDist - 2.0f) {
-            toPlayer = toPlayer.normalized();
-            bot.pos.x -= toPlayer.x * bot.moveSpeed * 0.5f * dt;
-            bot.pos.z -= toPlayer.z * bot.moveSpeed * 0.5f * dt;
+        if (dist > 0.5f) {
+            float speed = bot.moveSpeed;
+            // Slow down when close to target
+            if (dist < 2.0f) speed *= 0.5f;
+            bot.pos.x += (dx / dist) * speed * dt;
+            bot.pos.z += (dz / dist) * speed * dt;
         }
 
-        // Rotate towards player
-        bot.yaw = atan2f(toPlayer.x, -toPlayer.z);
+        // Rotate towards movement direction or player
+        if (bot.aiState.state == BotAI::State::HUNT || bot.aiState.state == BotAI::State::ATTACK) {
+            float targetYaw = atan2f(game.player.pos.x - bot.pos.x, -(game.player.pos.z - bot.pos.z));
+            bot.yaw = targetYaw;
+        } else {
+            float moveYaw = atan2f(dx, -dz);
+            bot.yaw = moveYaw;
+        }
 
         // Hover animation
         float hoverOffset = sinf(game.gameTime * 2.0f + bot.pos.x * 0.1f + bot.pos.z * 0.1f) * 0.3f;
-        if (bot.botType == 4) hoverOffset *= 2.0f;  // Boss hovers more
+        if (bot.botType == 4) hoverOffset *= 2.0f;
         bot.pos.y = hoverOffset;
 
         // Keep bots in bounds
@@ -154,16 +186,14 @@ void updateBots(Game& game, float dt) {
         if (bot.pos.z < -game.arenaSize + 2) bot.pos.z = -game.arenaSize + 2;
         if (bot.pos.z > game.arenaSize - 2) bot.pos.z = game.arenaSize - 2;
 
-        // Bot attacks
+        // Bot attacks based on AI decision
         bot.attackCooldown -= dt;
-        if (bot.botType == 0 || bot.botType == 2 || bot.botType == 3) {
-            if (dist < 4.0f && bot.attackCooldown <= 0.0f) {
+        if (BotAI::shouldAttack(bot.aiState, dist, bot.botType) && bot.attackCooldown <= 0.0f) {
+            if (bot.botType == 0 || bot.botType == 2 || bot.botType == 3) {
                 game.player.health -= 10.0f;
                 bot.attackCooldown = 1.0f;
             }
-        }
-        if (bot.botType == 1) {
-            if (dist < 20.0f && bot.attackCooldown <= 0.0f) {
+            if (bot.botType == 1) {
                 Vec3 toPlayerDir = Vec3(
                     game.player.pos.x - bot.pos.x,
                     0,
@@ -173,15 +203,11 @@ void updateBots(Game& game, float dt) {
                 game.projectiles.push_back(Projectile(muzzlePos, toPlayerDir, false, WeaponType::RAILGUN, 15.0f));
                 bot.attackCooldown = 2.0f;
             }
-        }
-        if (bot.botType == 4) {
-            // Boss: multiple attack patterns
-            if (bot.attackCooldown <= 0.0f) {
+            if (bot.botType == 4) {
                 bot.bossPhase += 1.0f;
                 if (bot.bossPhase > 3.0f) bot.bossPhase = 0.0f;
 
                 if (bot.bossPhase < 1.0f) {
-                    // Spread shot - 5 projectiles in a fan
                     for (int i = 0; i < 5; i++) {
                         float angle = (i - 2) * 0.3f;
                         Vec3 dir = Vec3(sinf(angle), 0, -cosf(angle));
@@ -190,7 +216,6 @@ void updateBots(Game& game, float dt) {
                     }
                     bot.attackCooldown = 3.0f;
                 } else {
-                    // Aimed shot at player
                     Vec3 toPlayerDir = Vec3(
                         game.player.pos.x - bot.pos.x,
                         0,
@@ -219,7 +244,6 @@ void renderSolidBots(Game& game) {
         if (healthPct > 1.0f) healthPct = 1.0f;
         if (healthPct < 0.0f) healthPct = 0.0f;
 
-        // Color based on bot type and modifiers
         Vec3 botColor;
         switch (bot.botType) {
             case 0: botColor = Vec3((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f); break;
@@ -229,15 +253,13 @@ void renderSolidBots(Game& game) {
             case 4: botColor = Vec3(1.0f, 0.3f + healthPct * 0.4f, 0.0f); break;
             default: botColor = Vec3((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f); break;
         }
-        
-        // Tint for modifiers (blue if shielded, green if regen, orange if splitter)
-        if (bot.vy > 0.5f) botColor = botColor * 0.7f + Vec3(0.0f, 0.3f, 0.0f);  // Regen tint
-        if (bot.vz > 0.5f) botColor = botColor * 0.7f + Vec3(0.3f, 0.1f, 0.0f);  // Splitter tint
+
+        if (bot.vy > 0.5f) botColor = botColor * 0.7f + Vec3(0.0f, 0.3f, 0.0f);
+        if (bot.vz > 0.5f) botColor = botColor * 0.7f + Vec3(0.3f, 0.1f, 0.0f);
 
         float rotOffset = game.gameTime * 1.5f + bot.pos.x * 0.3f;
         float cosR = cosf(rotOffset);
         float sinR = sinf(rotOffset);
-
         float phi = 1.6180339887f;
         float h = s * phi;
 
@@ -280,11 +302,7 @@ void renderBots(Game& game) {
         float s = 0.8f * pulse * sizeMult;
 
         float healthPct = bot.health / (100.0f + game.wave * 10);
-        Vec3 botColor(
-            (1.0f - healthPct) * 0.8f,
-            healthPct * 1.0f,
-            healthPct * 0.5f
-        );
+        Vec3 botColor((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f);
 
         float rotOffset = game.gameTime * 1.5f + bot.pos.x * 0.3f;
         float cosR = cosf(rotOffset);
@@ -367,6 +385,24 @@ void renderBots(Game& game) {
             Vertex(Vec3(bot.pos.x + hbWidth * 0.5f * healthPct, hbY, bot.pos.z), hpColor),
         };
         game.renderer_->drawLineLoop(hp, 2, hpColor);
+
+        // AI state indicator (small colored dot above health bar)
+        Vec3 stateColor;
+        switch (bot.aiState.state) {
+            case BotAI::State::IDLE: stateColor = Vec3(0.5f, 0.5f, 0.5f); break;
+            case BotAI::State::HUNT: stateColor = Vec3(1.0f, 0.5f, 0.0f); break;
+            case BotAI::State::ATTACK: stateColor = Vec3(1.0f, 0.0f, 0.0f); break;
+            case BotAI::State::RETREAT: stateColor = Vec3(0.0f, 0.0f, 1.0f); break;
+            case BotAI::State::FLANK: stateColor = Vec3(1.0f, 0.0f, 1.0f); break;
+            case BotAI::State::STUNNED: stateColor = Vec3(1.0f, 1.0f, 0.0f); break;
+            default: stateColor = Vec3(0.5f, 0.5f, 0.5f); break;
+        }
+
+        Vertex stateDot[] = {
+            Vertex(Vec3(bot.pos.x - 0.1f, hbY + 0.3f, bot.pos.z), stateColor),
+            Vertex(Vec3(bot.pos.x + 0.1f, hbY + 0.3f, bot.pos.z), stateColor),
+        };
+        game.renderer_->drawLineLoop(stateDot, 2, stateColor);
     }
 }
 
@@ -374,22 +410,13 @@ void spawnExplosion(Game& game, Vec3 pos, Vec3 color, int count) {
     for (int i = 0; i < count; i++) {
         float angle = (float)i / count * 6.28318f;
         float speed = 3.0f + (rand() % 100) / 100.0f * 5.0f;
-        Vec3 vel(
-            sinf(angle) * speed,
-            (rand() % 100) / 100.0f * 8.0f,
-            cosf(angle) * speed
-        );
+        Vec3 vel(sinf(angle) * speed, (rand() % 100) / 100.0f * 8.0f, cosf(angle) * speed);
         float life = 0.5f + (rand() % 100) / 200.0f;
         float size = 0.1f + (rand() % 100) / 500.0f;
         game.particles.push_back(Particle(pos, vel, color, life, size));
     }
-    // Add some smoke particles
     for (int i = 0; i < count / 2; i++) {
-        Vec3 vel(
-            (rand() % 100 - 50) / 50.0f * 2.0f,
-            (rand() % 100) / 100.0f * 3.0f,
-            (rand() % 100 - 50) / 50.0f * 2.0f
-        );
+        Vec3 vel((rand() % 100 - 50) / 50.0f * 2.0f, (rand() % 100) / 100.0f * 3.0f, (rand() % 100 - 50) / 50.0f * 2.0f);
         float life = 1.0f + (rand() % 100) / 100.0f;
         float size = 0.2f + (rand() % 100) / 300.0f;
         game.particles.push_back(Particle(pos, vel, Vec3(0.3f, 0.3f, 0.3f), life, size));

@@ -30,6 +30,7 @@ add_executable(neon-arena
     src/particle_ecs.cpp
     src/overclock.cpp
     src/echo.cpp
+    src/bot_ai.cpp
     src/menu.cpp
     src/text.cpp
     src/weapons.cpp
