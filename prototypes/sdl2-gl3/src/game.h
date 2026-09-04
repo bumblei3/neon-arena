@@ -12,6 +12,7 @@
 #include "music_generator.h"
 #include "particle_ecs.h"
 #include "overclock.h"
+#include "echo.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -190,6 +191,7 @@ public:
     friend class SpatialHash;
     friend class SavegameManager;
     friend class OverclockManager;
+    friend class EchoSystem;
     friend void handleUpgradeInput(Game& game, SDL_Event& event);
     friend void applyUpgrade(Game& game, int selection);
     friend void resetUpgrades(Game& game);
@@ -354,4 +356,5 @@ private:
     int   phaseShiftKills = 0;           // Invuln kills count
     float phaseShiftTimer = 0.0f;        // Invuln timer
     OverclockManager* overclock = nullptr;
+    EchoSystem* echoSystem = nullptr;
 };

@@ -41,6 +41,10 @@ bool Game::init(SDL_Window* window) {
     // Initialize overclock system
     overclock = new OverclockManager();
 
+    // Initialize echo system
+    echoSystem = new EchoSystem();
+    echoSystem->init();
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
     loadHighScore(*this);
     setupArena();
@@ -71,6 +75,10 @@ void Game::shutdown() {
     if (overclock) {
         delete overclock;
         overclock = nullptr;
+    }
+    if (echoSystem) {
+        delete echoSystem;
+        echoSystem = nullptr;
     }
     
     if (renderer_) {
@@ -287,6 +295,7 @@ void Game::resetGame() {
     particles.clear();
     resetUpgrades(*this);
     if (overclock) overclock->reset();
+    if (echoSystem) echoSystem->reset();
     // Reset bug effects
     railgunFeedbackChance = 0.0f;
     plasmaOverheatPenalty = 0.0f;
@@ -320,6 +329,11 @@ void Game::update(float dt) {
     if (gameOver) {
         state = GameState::GAME_OVER;
         if (g_music) g_music->playScene(MusicScene::GAME_OVER);
+        // Echo: stop recording and play ghost
+        if (echoSystem) {
+            echoSystem->stopRecording();
+            echoSystem->play();
+        }
         return;
     }
 
@@ -345,6 +359,40 @@ void Game::update(float dt) {
         }
         // Phase shift timer
         if (phaseShiftTimer > 0.0f) phaseShiftTimer -= dt;
+
+        // Update echo system
+        if (echoSystem) {
+            echoSystem->update(dt);
+
+            // Record player state for echo
+            if (echoSystem->isRecording()) {
+                echoSystem->recordFrame(
+                    player.pos.x, player.pos.y, player.pos.z,
+                    player.vx, player.vy, player.vz,
+                    player.yaw, player.pitch, gameTime
+                );
+            }
+
+            // Check player boost (if player is near echo ghost)
+            echoSystem->checkPlayerBoost(player.pos.x, player.pos.y, player.pos.z, playerSpeed);
+
+            // Check bot collisions with echo
+            for (int i = 0; i < (int)bots.size(); i++) {
+                if (bots[i].alive) {
+                    echoSystem->checkBotCollision(
+                        bots[i].pos.x, bots[i].pos.y, bots[i].pos.z, i
+                    );
+                }
+            }
+
+            // Apply boost decay
+            if (echoSystem->isBoostActive()) {
+                // Boost is active - speed is already multiplied
+            } else if (playerSpeed > 10.0f && !echoSystem->isBoostActive()) {
+                // Boost expired - reset speed
+                playerSpeed = 10.0f;
+            }
+        }
     }
     updateWeapons(dt, *this);
     updatePowerUps(dt, *this);
@@ -390,6 +438,7 @@ void Game::update(float dt) {
         waveComplete = true;
         waveBreak = 0;
         killStreak = 0;
+        if (echoSystem) echoSystem->stopRecording();
         score += wave * 100;
         upgradePoints += 1 + wave / 3;
         showUpgradeMenu = true;
@@ -558,6 +607,7 @@ void Game::nextWave() {
     waveBreak = 0;
     spawnWave(*this);
     waveAnnounceTimer = 2.0f;
+    if (echoSystem) echoSystem->startRecording();
     if (g_music && wave % 5 != 0) g_music->playScene(MusicScene::GAMEPLAY);
 }
 

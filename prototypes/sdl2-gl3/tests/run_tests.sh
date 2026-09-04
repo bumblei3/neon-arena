@@ -104,5 +104,14 @@ echo ""
 echo "=== Running Overclock Tests ==="
 ./test_overclock
 
+# --- 10. Echo System Tests ---
+echo ""
+echo "=== Building Echo Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_echo test_echo.cpp ../src/echo.cpp
+
+echo ""
+echo "=== Running Echo Tests ==="
+./test_echo
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_particle_ecs test_overclock
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo
