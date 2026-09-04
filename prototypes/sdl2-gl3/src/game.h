@@ -15,6 +15,7 @@
 #include "overclock.h"
 #include "echo.h"
 #include "bot_ai.h"
+#include "coop.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -195,6 +196,7 @@ public:
     friend class SavegameManager;
     friend class OverclockManager;
     friend class EchoSystem;
+    friend class CoopManager;
     friend void handleUpgradeInput(Game& game, SDL_Event& event);
     friend void applyUpgrade(Game& game, int selection);
     friend void resetUpgrades(Game& game);
@@ -358,6 +360,20 @@ private:
     float phaseGlitchChance = 0.0f;      // Fall through floor
     int   phaseShiftKills = 0;           // Invuln kills count
     float phaseShiftTimer = 0.0f;        // Invuln timer
+
+    // === Coop System ===
+    bool coopActive = false;
+    Entity player2;                  // Second player entity
+    int player2Score = 0;
+    int player2Kills = 0;
+    float player2ShootCooldown = 0.0f;
+    bool player2Shoot = false;
+    float player2ShootTimer = 0.0f;
+    
+    // Camera for shared screen
+    Vec3 coopCameraEye;
+    Vec3 coopCameraTarget;
+    float coopCameraFov = 60.0f;
 
     // === Wave-Fusion System ===
     WaveFusion currentFusion = WaveFusion::NONE;

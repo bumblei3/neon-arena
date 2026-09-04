@@ -345,6 +345,12 @@ void Game::update(float dt) {
         return;
     }
 
+    // Update coop (player 2 input, revive system)
+    if (coopActive) {
+        CoopManager::update(dt);
+        CoopManager::updatePlayer2(*this, dt);
+    }
+
     updatePlayer(dt);
     updateBots(*this, dt);
     updateProjectiles(dt);
@@ -478,9 +484,63 @@ void Game::update(float dt) {
 
     // Check player death
     if (player.health <= 0) {
-        gameOver = true;
-        saveHighScore(*this);
-        printf("Game Over! Waves survived: %d, Kills: %d\n", wave - 1, kills);
+        if (coopActive) {
+            // In coop: game over only if both players dead
+            if (player2.health <= 0) {
+                gameOver = true;
+                saveHighScore(*this);
+                printf("Game Over! Waves survived: %d, Kills: %d/%d\n", wave - 1, kills, player2Kills);
+            } else {
+                // Player 1 down, player 2 can revive
+                player.alive = false;
+                if (!CoopManager::getRevive().playerDown) {
+                    CoopManager::getRevive().playerDown = true;
+                    printf("Player 1 DOWN! Player 2 has 5 seconds to revive!\n");
+                }
+            }
+        } else {
+            gameOver = true;
+            saveHighScore(*this);
+            printf("Game Over! Waves survived: %d, Kills: %d\n", wave - 1, kills);
+        }
+    }
+    
+    // Check player 2 death
+    if (coopActive && player2.health <= 0) {
+        if (player.health <= 0) {
+            gameOver = true;
+            saveHighScore(*this);
+            printf("Game Over! Waves survived: %d, Kills: %d/%d\n", wave - 1, kills, player2Kills);
+        } else {
+            player2.alive = false;
+            if (!CoopManager::getRevive().playerDown) {
+                CoopManager::getRevive().playerDown = true;
+                printf("Player 2 DOWN! Player 1 has 5 seconds to revive!\n");
+            }
+        }
+    }
+    
+    // Revive check: if revive timer expires, player stays down
+    if (coopActive && CoopManager::getRevive().playerDown && !CoopManager::getRevive().reviving) {
+        // Check if other player is close enough to revive
+        float dist = distance(player.pos, player2.pos);
+        if (dist < CoopManager::getRevive().reviveRange) {
+            CoopManager::startRevive();
+        }
+    }
+    
+    // Complete revive
+    if (coopActive && CoopManager::getRevive().reviving && CoopManager::getRevive().reviveTimer <= 0.0f) {
+        if (!player.alive) {
+            CoopManager::completeRevive(*this);
+            printf("Player 1 REVIVED!\n");
+        } else if (!player2.alive) {
+            player2.alive = true;
+            player2.health = maxHealth * 0.5f;
+            player2.pos = player.pos + Vec3(2.0f, 0, 2.0f);
+            CoopManager::getRevive().playerDown = false;
+            printf("Player 2 REVIVED!\n");
+        }
     }
 }
 
@@ -515,6 +575,21 @@ void Game::updatePlayer(float dt) {
     if (shootRequested && currentWeapon == WeaponType::PLASMA_RIFLE) {
         firePlasma(*this);
     }
+    
+    // Player 2 shooting (coop)
+    if (coopActive && player2Shoot && player2ShootCooldown <= 0.0f) {
+        // Player 2 fires railgun in facing direction
+        Vec3 dir(
+            sinf(player2.yaw),
+            0.0f,
+            -cosf(player2.yaw)
+        );
+        Vec3 muzzlePos = player2.pos + Vec3(0, 1.0f, 0);
+        projectiles.push_back(Projectile(muzzlePos, dir, true, WeaponType::RAILGUN, 15.0f));
+        player2ShootCooldown = 0.3f;
+    }
+    player2ShootCooldown -= dt;
+    if (player2ShootCooldown < 0.0f) player2ShootCooldown = 0.0f;
 }
 
 void Game::updateProjectiles(float dt) {
@@ -705,17 +780,33 @@ void Game::render() {
         -sinf(player.pitch),
         -cosf(player.yaw) * cosf(player.pitch)
     );
-    Vec3 eye = player.pos + shakeOffset;
-    Vec3 center = eye + forward;
+    
+    Vec3 eye, center;
+    float fov;
+    
+    if (coopActive) {
+        // Shared screen camera: center between both players
+        CoopManager::calculateSharedCamera(eye, center, fov,
+            player.pos, player2.pos, arenaSize,
+            (float)renderer_->getWidth() / renderer_->getHeight());
+        // Adjust for shake
+        eye = eye + Vec3(shakeOffset.x, shakeOffset.y, shakeOffset.z);
+    } else {
+        eye = player.pos + shakeOffset;
+        center = eye + forward;
+        fov = 1.1f;
+    }
+    
     Vec3 up(0, 1, 0);
-
     Mat4 view = Mat4::lookAt(eye, center, up);
     float aspect = (float)renderer_->getWidth() / renderer_->getHeight();
-    Mat4 proj = Mat4::perspective(1.1f, aspect, 0.1f, 200.0f);
-
+    Mat4 proj = Mat4::perspective(fov, aspect, 0.1f, 200.0f);
+    
     renderer_->setView(view);
     renderer_->setProjection(proj);
     renderer_->setViewPos(eye);
+    
+    renderer_->setBloomIntensity(coopActive ? 1.2f : 0.8f);
 
     renderer_->beginFrame();
     renderer_->clear(0.02f, 0.02f, 0.05f, 1.0f);
