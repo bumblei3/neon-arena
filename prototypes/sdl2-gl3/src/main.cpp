@@ -3,16 +3,7 @@
 #include <GL/glew.h>
 #include <cstdio>
 #include "game.h"
-#include "audio.h"
-
-// Global audio system
-AudioSystem* g_audio = nullptr;
-
-// Legacy sound pointers (for backward compatibility)
-Mix_Chunk* g_sndShoot = nullptr;
-Mix_Chunk* g_sndExplosion = nullptr;
-Mix_Chunk* g_sndWave = nullptr;
-Mix_Chunk* g_sndGameOver = nullptr;
+#include "audio_manager.h"
 
 int main(int argc, char* argv[]) {
     // Initialize SDL
@@ -79,9 +70,9 @@ int main(int argc, char* argv[]) {
     // Enable multisampling
     glEnable(GL_MULTISAMPLE);
 
-    // Initialize Audio System
-    g_audio = new AudioSystem();
-    if (!g_audio->init()) {
+    // Initialize Audio Manager
+    AudioManager audio;
+    if (!audio.init()) {
         fprintf(stderr, "Audio system init failed\n");
         SDL_GL_DeleteContext(ctx);
         SDL_DestroyWindow(window);
@@ -93,7 +84,6 @@ int main(int argc, char* argv[]) {
     Game game;
     if (!game.init(window)) {
         fprintf(stderr, "Failed to initialize game\n");
-        delete g_audio;
         SDL_GL_DeleteContext(ctx);
         SDL_DestroyWindow(window);
         SDL_Quit();
@@ -113,7 +103,6 @@ int main(int argc, char* argv[]) {
 
     // Cleanup
     game.shutdown();
-    delete g_audio;
     SDL_GL_DeleteContext(ctx);
     SDL_DestroyWindow(window);
     SDL_Quit();

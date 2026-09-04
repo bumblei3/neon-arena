@@ -6,7 +6,7 @@
 #include "math.h"
 #include "particle.h"
 #include "text.h"
-#include "audio.h"
+#include "audio_manager.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -22,17 +22,12 @@ enum class GameState {
     WAVE_COMPLETE
 };
 
-// Global sound pointers (set in main.cpp)
-extern Mix_Chunk* g_sndShoot;
-extern Mix_Chunk* g_sndExplosion;
-extern Mix_Chunk* g_sndWave;
-extern Mix_Chunk* g_sndGameOver;
+// AudioManager
+extern AudioManager* g_audio;
 
-// AudioSystem
-extern AudioSystem* g_audio;
-
-inline void playSnd(Mix_Chunk* snd) {
-    if (snd) Mix_PlayChannel(-1, snd, 0);
+// Play sound through AudioManager
+inline void playSnd(int soundHandle) {
+    if (g_audio && soundHandle >= 0) g_audio->playSFX(soundHandle);
 }
 
 struct Entity {

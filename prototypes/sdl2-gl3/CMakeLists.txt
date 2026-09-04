@@ -23,7 +23,7 @@ add_executable(neon-arena
     src/renderer.cpp
     src/game.cpp
     src/texture.cpp
-    src/audio.cpp
+    src/audio_manager.cpp
     src/menu.cpp
     src/text.cpp
     src/weapons.cpp

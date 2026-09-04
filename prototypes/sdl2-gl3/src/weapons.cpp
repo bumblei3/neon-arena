@@ -20,7 +20,7 @@ void fireRailgun(Game& game) {
     );
     Vec3 muzzlePos = game.player.pos + forward * 0.5f;
     game.projectiles.push_back(Projectile(muzzlePos, forward, true, WeaponType::RAILGUN, damage));
-    playSnd(g_sndShoot);
+    if (g_audio) g_audio->playShoot();
     if (g_audio) g_audio->playShoot();
 }
 
@@ -56,7 +56,7 @@ void findLightningTargets(Vec3 pos, Game& game, std::vector<Entity*>& targets) {
 void fireLightning(Game& game) {
     if (game.lightningCooldown > 0.0f) return;
     game.lightningCooldown = game.lightningFireRate;
-    playSnd(g_sndExplosion);
+    if (g_audio) g_audio->playExplosion();
     if (g_audio) g_audio->playLightning();
 
     Vec3 forward(
