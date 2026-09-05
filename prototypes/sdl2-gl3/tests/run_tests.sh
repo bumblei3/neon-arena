@@ -131,5 +131,14 @@ echo ""
 echo "=== Running Wave Editor Tests ==="
 ./test_wave_editor
 
+# --- 13. Map Validator Tests ---
+echo ""
+echo "=== Building Map Validator Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_map_validator test_map_validator.cpp ../src/map_validator.cpp
+
+echo ""
+echo "=== Running Map Validator Tests ==="
+./test_map_validator
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_wave_editor
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_wave_editor test_map_validator

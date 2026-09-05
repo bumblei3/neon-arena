@@ -40,6 +40,8 @@ add_executable(neon-arena
     src/balancing.cpp
     src/playtest.cpp
     src/audio_polish.cpp
+    src/wave_editor.cpp
+    src/map_validator.cpp
     src/score.cpp
     src/powerups.cpp
     src/specials.cpp
