@@ -37,10 +37,11 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 > *Ziel: Spielbarkeit verbessern durch Community-Feedback*
 
 **Was:**
-- Replay-Recorder: Inputs aufzeichnen → Wiedergabe für Bug-Reports
+- ✅ Replay-Recorder: Inputs aufzeichnen → Wiedergabe für Bug-Reports
 - Automatische Crash-Reports mit Replay-Anhang
 - Community-Bug-Tracker Integration
 
+**Status:** Replay-Recorder implementiert, Tests ausstehend
 **Aufwand:** ~2 Tage
 **Tests:** +10 (Roundtrip, Export, Import)
 
