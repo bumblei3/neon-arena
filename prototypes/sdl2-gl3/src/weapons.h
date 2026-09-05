@@ -6,6 +6,7 @@
 void fireRailgun(Game& game);
 void fireLightning(Game& game);
 void firePlasma(Game& game);
+void fireGhost(Game& game);
 void updateWeapons(float dt, Game& game);
 void renderLightning(Game& game);
 void switchWeapon(Game& game, WeaponType w);

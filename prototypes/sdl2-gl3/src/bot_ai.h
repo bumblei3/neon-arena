@@ -15,6 +15,7 @@ public:
         RETREAT,    // Low health, fleeing
         FLANK,      // Trying to get behind player
         STUNNED,    // Temporarily disabled
+        EVADE,      // Fleeing a tac-nuke impact point
         DEAD
     };
 
@@ -45,6 +46,13 @@ public:
         // Frenzy state (from fusion)
         float frenzyTimer = 0.0f;
         float originalFireRate = 1.0f;
+
+        // EMP / stun: how long STUNNED lasts (default 1s)
+        float stunDuration = 1.0f;
+
+        // Tac-nuke evade point
+        float evadeX = 0.0f;
+        float evadeZ = 0.0f;
     };
 
     static void update(BotState& bot, float dt, float playerX, float playerZ,

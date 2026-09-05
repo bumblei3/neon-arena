@@ -1,5 +1,8 @@
 // weapons.cpp - Weapon system implementation
 #include "weapons.h"
+#include "game.h"
+#include "specials.h"
+#include "ghost_rules.h"
 #include <cmath>
 #include <algorithm>
 
@@ -36,6 +39,58 @@ void firePlasma(Game& game) {
     Vec3 muzzlePos = game.player.pos + forward * 0.5f;
     game.projectiles.push_back(Projectile(muzzlePos, forward, true, WeaponType::PLASMA_RIFLE, game.plasmaDamage));
     if (g_audio) g_audio->playShoot();
+}
+
+void fireGhost(Game& game) {
+    if (game.ghostCooldown > 0.0f) return;
+
+    bool ambush = game.cloakTimer > 0.0f || game.ghostAmbushActive;
+    float damage = GhostRules::sniperDamage(ambush);
+
+    Vec3 forward(
+        sinf(game.player.yaw) * cosf(game.player.pitch),
+        -sinf(game.player.pitch),
+        -cosf(game.player.yaw) * cosf(game.player.pitch)
+    );
+    Vec3 dir = forward.normalized();
+    Vec3 muzzlePos = game.player.pos + dir * 0.5f;
+
+    Entity* hit = nullptr;
+    float bestT = GhostRules::SNIPER_RANGE;
+    for (auto& bot : game.bots) {
+        if (!bot.alive) continue;
+        float radius = GhostRules::sniperHitRadius(bot.ghostMarked != 0);
+        float t = 0.0f;
+        if (GhostRules::rayHitsSphere(
+                muzzlePos.x, muzzlePos.y, muzzlePos.z,
+                dir.x, dir.y, dir.z,
+                bot.pos.x, bot.pos.y, bot.pos.z,
+                radius, GhostRules::SNIPER_RANGE, &t)) {
+            if (t < bestT) {
+                bestT = t;
+                hit = &bot;
+            }
+        }
+    }
+
+    // Breaking cloak on the shot still applies ambush to this shot.
+    if (game.cloakTimer > 0.0f) breakCloak(game);
+
+    Vec3 impact = muzzlePos + dir * (hit ? bestT : GhostRules::SNIPER_RANGE);
+    game.lightningArcs.push_back(LightningArc(muzzlePos, impact, Vec3(0.2f, 0.6f, 1.0f), 0.35f, 6));
+    if (g_audio) g_audio->playShoot();
+
+    if (!hit) {
+        game.ghostCooldown = GhostRules::sniperLockout(false, false);
+        return;
+    }
+
+    hit->health -= damage;
+    bool killed = hit->health <= 0.0f;
+    game.ghostCooldown = GhostRules::sniperLockout(true, killed);
+    if (killed) {
+        registerBotKill(game, *hit, WeaponType::GHOST_SNIPER, ambush);
+    }
 }
 
 void findLightningTargets(Vec3 pos, Game& game, std::vector<Entity*>& targets) {
@@ -92,6 +147,7 @@ void updateWeapons(float dt, Game& game) {
     if (game.railgunCooldown > 0.0f) game.railgunCooldown -= dt;
     if (game.lightningCooldown > 0.0f) game.lightningCooldown -= dt;
     if (game.plasmaCooldown > 0.0f) game.plasmaCooldown -= dt;
+    if (game.ghostCooldown > 0.0f) game.ghostCooldown -= dt;
 
     for (auto& arc : game.lightningArcs) {
         arc.life -= dt;

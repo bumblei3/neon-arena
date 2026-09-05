@@ -155,6 +155,7 @@ void OverclockManager::applyUpgrade(Game& game, int upgradeIndex) {
     if (def.bug) def.bug(game);
 
     game.upgradePoints--;
+    useCount++;
 
     // Add glitch for taking the upgrade
     addGlitch(5.0f * activeUpgrades[findActive(upgradeIndex)].level);

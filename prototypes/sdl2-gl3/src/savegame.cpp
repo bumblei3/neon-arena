@@ -147,6 +147,9 @@ bool SavegameManager::save(const Game& game, const std::string& path) {
     // Damage Numbers
     writeVec(f, game.damageNumbers);
 
+    // Achievement progress
+    AchievementSystem::saveProgress(game.achievementProgress, f);
+
     fclose(f);
     return true;
 }

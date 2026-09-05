@@ -47,8 +47,10 @@ void BotAI::update(BotState& bot, float dt, float playerX, float playerZ,
     }
 
     if (bot.state == State::STUNNED) {
-        if (bot.stateTimer > 1.0f) {
+        float dur = (bot.stunDuration > 0.0f) ? bot.stunDuration : 1.0f;
+        if (bot.stateTimer > dur) {
             setState(bot, State::HUNT);
+            bot.stunDuration = 1.0f;
         }
         return;
     }
@@ -58,6 +60,16 @@ void BotAI::update(BotState& bot, float dt, float playerX, float playerZ,
     float dx = playerX - botX;
     float dz = playerZ - botZ;
     float dist = std::sqrt(dx * dx + dz * dz);
+
+    // Evading a nuke: don't re-decide, just run
+    if (bot.state == State::EVADE) {
+        executeState(bot, playerX, playerZ, botX, botZ, arenaSize);
+        if (bot.pathUpdateTimer > 0.3f) {
+            bot.pathUpdateTimer = 0.0f;
+            bot.path = Pathfinder::findPath(botX, botZ, bot.targetX, bot.targetZ, arenaSize);
+        }
+        return;
+    }
 
     // Make decisions more frequently when frenzied
     float decisionInterval = (bot.frenzyTimer > 0.0f) ? 0.1f : 0.2f;
@@ -198,6 +210,24 @@ void BotAI::executeState(BotState& bot, float playerX, float playerZ,
             bot.targetZ = playerZ - dx * 0.7f;
             break;
 
+        case State::EVADE: {
+            float edx = botX - bot.evadeX;
+            float edz = botZ - bot.evadeZ;
+            float elen = std::sqrt(edx * edx + edz * edz);
+            if (elen < 0.01f) {
+                edx = 1.0f;
+                edz = 0.0f;
+                elen = 1.0f;
+            }
+            bot.targetX = botX + (edx / elen) * 20.0f;
+            bot.targetZ = botZ + (edz / elen) * 20.0f;
+            if (bot.targetX > arenaSize - 2.0f) bot.targetX = arenaSize - 2.0f;
+            if (bot.targetX < -arenaSize + 2.0f) bot.targetX = -arenaSize + 2.0f;
+            if (bot.targetZ > arenaSize - 2.0f) bot.targetZ = arenaSize - 2.0f;
+            if (bot.targetZ < -arenaSize + 2.0f) bot.targetZ = -arenaSize + 2.0f;
+            break;
+        }
+
         case State::STUNNED:
         case State::DEAD:
             break;
@@ -244,7 +274,7 @@ void BotAI::swarmUpdate(std::vector<BotState>& bots, float playerX, float player
 
 bool BotAI::shouldAttack(const BotState& bot, float distToPlayer, int botType) {
     if (bot.state == State::STUNNED || bot.state == State::DEAD) return false;
-    if (bot.state == State::RETREAT) return false;
+    if (bot.state == State::RETREAT || bot.state == State::EVADE) return false;
 
     // Frenzy: attack from further away
     float frenzyRangeMult = (bot.frenzyTimer > 0.0f) ? 1.3f : 1.0f;
@@ -255,6 +285,8 @@ bool BotAI::shouldAttack(const BotState& bot, float distToPlayer, int botType) {
         case 2: return distToPlayer < 5.0f * frenzyRangeMult;   // Tank
         case 3: return distToPlayer < 3.5f * frenzyRangeMult;   // Flanker (fast)
         case 4: return distToPlayer < 25.0f * frenzyRangeMult;  // Boss
+        case 5: return distToPlayer < 3.5f * frenzyRangeMult;   // Stealth
+        case 6: return distToPlayer < 16.0f * frenzyRangeMult;  // Detector
         default: return distToPlayer < 5.0f * frenzyRangeMult;
     }
 }

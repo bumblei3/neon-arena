@@ -56,9 +56,13 @@ public:
     // Count total bugs (sum of all upgrade levels * bug multiplier)
     int getTotalBugCount() const;
 
+    // Achievement tracking
+    int getUseCount() const { return useCount; }
+
 private:
     std::vector<UpgradeDef> upgrades;
     std::vector<ActiveUpgrade> activeUpgrades;
+    int useCount = 0;        // Overclock-Anwendungen (für Achievements)
     float glitchMeter = 0.0f;
     float glitchDecay = 0.1f; // Glitch meter decays over time
 

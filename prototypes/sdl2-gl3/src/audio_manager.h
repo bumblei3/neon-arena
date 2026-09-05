@@ -62,6 +62,7 @@ public:
     void playGameOver();
     void playMenuClick();
     void playUpgrade();
+    void playAchievement();
 
 private:
     std::unordered_map<std::string, SoundHandle> sfxMap;
@@ -83,6 +84,7 @@ private:
     SoundHandle sndGameOver = INVALID_SOUND;
     SoundHandle sndMenuClick = INVALID_SOUND;
     SoundHandle sndUpgrade = INVALID_SOUND;
+    SoundHandle sndAchievement = INVALID_SOUND;
 
     float masterVolume = 1.0f;
     float sfxVolume = 1.0f;

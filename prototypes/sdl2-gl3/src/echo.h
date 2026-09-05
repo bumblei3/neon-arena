@@ -101,11 +101,15 @@ public:
     // Reset (neuer Loop)
     void reset();
 
+    // Achievement tracking
+    int getTriggerCount() const { return triggerCount; }
+
 private:
     EchoFrame frames[MAX_ECHO_FRAMES];
     int writeIndex;          // Nächster Schreib-Slot
     int frameCount;          // Anzahl belegter Frames
     int playIndex;           // Aktueller Playback-Index
+    int triggerCount = 0;    // Echo-Auslösungen (für Achievements)
 
     bool recording;
     bool playing;

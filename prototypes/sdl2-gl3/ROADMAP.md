@@ -1,7 +1,7 @@
 # NeonArena SDL2-GL3 Prototype — ROADMAP
 
-> **Last updated:** 2026-09-05
-> **Status:** ~60% complete — core loop functional, several modules wired but not fully utilized
+> **Last updated:** 2026-09-06
+> **Status:** ~70% complete — core loop functional, Ghost-Modus playable (loadout + hitscan + cloak)
 
 ---
 
@@ -16,22 +16,27 @@
 | AudioPolish | audio_polish.cpp/h | ✅ Active | Dynamic layers, reverb, occlusion |
 | MusicGenerator | music_generator.cpp/h | ✅ Active | Procedural synthwave, scene-based |
 | SpatialHash | spatial_hash.cpp/h | ✅ Active | Collision broadphase |
-| Savegame | savegame.cpp/h | ⚠️ Partial | Code complete, save/load not called in game loop |
+| Savegame | savegame.cpp/h | ✅ Active | Auto-save on pause/quit, delete on game over |
 | Overclock | overclock.cpp/h | ✅ Active | Roguelite upgrades + bug effects |
 | Echo | echo.cpp/h | ✅ Active | Ghost replay, boost, stun, chaos |
 | BotAI | bot_ai.cpp/h | ✅ Active | State machine, personalities |
 | Coop | coop.cpp/h | ✅ Active | Shared screen, player2, revive |
 | WaveConfig | wave_config.h | ✅ Active | Data definitions |
 | WaveEditor | wave_editor.cpp/h | ⚠️ Header-only | CLI tool, not integrated in-game |
-| Weapons | weapons.cpp/h | ✅ Active | Railgun, Lightning, Plasma |
-| Bots | bots.cpp/h | ✅ Active | Spawn, update, render |
+| **Ghost Sniper** | **weapons.cpp/h** | ✅ **Active** | Hitscan 200 dmg, ADS, miss 4s / hit 1.5s / kill 0.8s, marked aim-assist |
+| **Ghost Specials** | **specials.cpp/h** | ✅ **Active** | Scanner, EMP stun, **Tac Nuke**, Cloak; energy-guarded |
+| **Detector Bots** | **bots.cpp/h** | ✅ **Active** | Type 6 from wave 8 — red cone reveals cloak, swarm call |
+| **Stealth Bots** | **bots.cpp/h** | ✅ **Active** | Type 5 — hidden on minimap until scanned, erratic hover |
+| **Ghost Kill Cloak** | **game.cpp/h** | ✅ **Active** | Kill grants 2s cloak; cloak hides from AI (last-known pos) |
+| Weapons | weapons.cpp/h | ✅ Active | Railgun, Lightning Gun, Plasma, **Ghost Sniper** |
+| Bots | bots.cpp/h | ✅ Active | Spawn, update, render + Stealth Bots |
 | Score | score.cpp/h | ✅ Active | Combo, multiplier, kill feed |
 | PowerUps | powerups.cpp/h | ✅ Active | Health, score, damage boost |
-| Specials | specials.cpp/h | ✅ Active | Nuclear, time slow, shield |
+| Specials | specials.cpp/h | ✅ Active | Nuclear, time slow, shield, **Scanner/EMP/Nuke/Cloak** |
 | HUD | hud.cpp/h | ✅ Active | Crosshair, minimap, wave announce |
-| Menu | menu.cpp/h | ✅ Active | Basic menu system |
+| Menu | menu.cpp/h | ✅ Active | Basic menu system + Q: Quit to menu from pause |
 | Balancing | balancing.cpp/h | ⚠️ Standalone | Playtest sim, not live-tuned |
-| Achievements | achievements.cpp/h | ⚠️ Not linked | Code exists, not in game.h |
+| Achievements | achievements.cpp/h | ✅ Active | 25 achievements, hook into kills/waves/combat |
 | MapValidator | map_validator.cpp/h | ⚠️ Standalone | CLI tool, not integrated |
 | PerfProfiler | perf_profiler.cpp/h | ⚠️ Not linked | Frame analysis, not in game loop |
 | ReplayRecorder | replay_recorder.cpp/h | ⚠️ Not linked | Input recording, not in game |
@@ -50,7 +55,7 @@
 - [x] Player movement + mouse look
 - [x] Wave spawning system
 - [x] Bot AI (state machine, pathfinding)
-- [x] Weapons (Railgun, Lightning Gun, Plasma)
+- [x] Weapons (Railgun, Lightning Gun, Plasma, **Ghost Sniper**)
 - [x] Collision detection (spatial hash)
 - [x] Particle effects (ECS)
 - [x] HUD (health, ammo, wave counter)
@@ -60,15 +65,19 @@
 - [x] Camera shake on hit
 - [x] Kill feed + damage numbers
 - [x] Power-ups (health, score, damage)
-- [x] Special abilities (nuclear, time slow, shield)
+- [x] Special abilities (nuclear, time slow, shield, **Scanner/EMP/Nuke**)
 - [x] Overclock system (roguelite upgrades)
 - [x] Score combos + multiplier
 - [x] Audio polish (dynamic layers based on combat state)
 - [x] Music scene system (menu, gameplay, boss, game over)
+- [x] **Achievement popups** with sound feedback
 
 ### Milestone 3: Systems Integration 🔄 IN PROGRESS
-- [ ] Savegame: wire save/load into game loop (pause menu, auto-save)
-- [ ] Achievements: link to game events, popup display
+- [x] Savegame: auto-save on pause/quit, delete on game over
+- [x] Achievements: linked to kills/waves/combat, popup display
+- [x] **Ghost-Modus**: Ghost Sniper, Cloak, Scanner, EMP, Tac Nuke + Detector bots
+- [x] **Stealth Bots**: Invisible enemies (wave 6+), scanner-reveal mechanic
+- [x] **Ghost Kill Cloaking**: 2s cloak after Ghost Sniper kill
 - [ ] PerfProfiler: integrate frame timing, in-game overlay toggle
 - [ ] ReplayRecorder: in-game recording trigger, playback mode
 - [ ] WaveEditor: in-game overlay for live wave editing
@@ -102,11 +111,45 @@
 
 ---
 
-## Immediate Next Steps (this week)
+## Ghost-Modus (StarCraft-style)
 
-1. **Savegame wiring** — Call SavegameManager::save() on pause/exit, ::load() on startup
-2. **Achievements** — Include achievements.h, hook into game events (kills, waves, combos)
-3. **PerfProfiler** — Add to game loop, toggle with F3, draw overlay
+Pick **Start Ghost** in the menu (separate loadout from Arena).
+
+### Weapons
+| Weapon | Damage | Cooldown | Notes |
+|--------|--------|----------|-------|
+| Ghost Sniper | 200 (400 ambush) | miss 4s / hit 1.5s / kill 0.8s | Hitscan, RMB ADS, marked targets have wider hit radius |
+
+### Specials (Ghost kit)
+| Special | Cost | Cooldown | Effect |
+|---------|------|----------|--------|
+| Scanner Sweep (G) | 25 | 15s | Ping radius 25m; stealth marked 5s, others 3s |
+| EMP Blast (H) | 35 | 25s | Stun 1.5s + wipe enemy projectiles in 15m |
+| Tac Nuke (N/I) | 80 | 45s | 1.5s stand-still paint + 4s inbound; trash dies, boss 400 dmg; bots flee |
+| Cloak (J) | 40 | 20s | 5s invisible; bots hunt last-known pos; break on shot / damage / 2m / detector |
+
+Arena kit keeps E/R/F (Nuke / Time Slow / Shield) and Rail/LG/Plasma.
+
+### Stealth Bot (Bot Type 5)
+- **Spawn**: Wave 6+, every 5th bot
+- **Behavior**: Fast, erratic movement, semi-invisible (15% opacity without scanner)
+- **Detection**: Scanner mark. Hidden on Ghost minimap until marked.
+- **Health**: 60% of Flanker base, 1.4x speed multiplier
+
+### Detector Bot (Bot Type 6)
+- **Spawn**: Wave 8+, one per wave (plus on boss waves)
+- **Behavior**: Shooter-like, red 12m detection cone
+- **Counter**: Reveals cloak, 4s swarm call on the real player position
+- Boss Phase 3+ ignores cloak even without a detector
+
+### Ghost loop
+- Start with 40 energy, regen 3/s — nuke needs 80, so farm kills first
+- Cloak → reposition → sniper (ambush 2×) → kill grants 2s cloak + energy
+- Mid-wave climax: stand still, paint laser, bots scatter, nuke lands
+- Paint cancels if you move, take damage, or a detector breaks cloak
+- Energy is not spent if the ability is on cooldown
+
+---
 
 ## Architecture Notes
 
@@ -115,6 +158,9 @@
 - Particle ECS uses SoA layout (8192 fixed capacity, no realloc)
 - SpatialHash is used for bot-player and projectile-bot collision broadphase
 - Particle system and spatial hash are heap-allocated in Game::init()
+- **New**: `AchievementSystem::AchievementProgress` stored in `Game`, saved with savegame
+- **New**: `OverclockManager::useCount` tracks Overclock applications for achievements
+- **New**: `EchoSystem::triggerCount` tracks Echo activations for achievements
 
 ---
 
@@ -134,4 +180,4 @@ make -j$(nproc)
 
 Run: `cd prototypes/sdl2-gl3/tests && ./run_tests.sh`
 
-222 tests covering: audio, bot_ai, echo, game_state, map_validator, music, overclock, particle_ecs, perf_profiler, replay_recorder, savegame, spatial_hash, wave_config, wave_editor, achievements, game, integration
+Tests covering: audio, bot_ai, echo, game_state, map_validator, music, overclock, particle_ecs, perf_profiler, replay_recorder, savegame, spatial_hash, wave_config, wave_editor, achievements, game, integration, special abilities, **ghost rules**

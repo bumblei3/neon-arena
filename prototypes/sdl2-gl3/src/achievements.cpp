@@ -5,6 +5,7 @@
 
 AchievementSystem::Achievement AchievementSystem::achievements[(int)ID::COUNT];
 bool AchievementSystem::initialized = false;
+std::vector<AchievementSystem::ID> AchievementSystem::newlyUnlocked_;
 
 void AchievementSystem::initAchievements() {
     if (initialized) return;
@@ -49,6 +50,9 @@ const AchievementSystem::Achievement& AchievementSystem::getAchievement(ID id) {
 
 void AchievementSystem::unlock(AchievementProgress& p, ID id) {
     initAchievements();
+    if (!p.isUnlocked(id)) {
+        newlyUnlocked_.push_back(id);
+    }
     p.unlock(id);
 }
 
@@ -156,13 +160,17 @@ void AchievementSystem::printProgress(const AchievementProgress& p) {
     printf("\n============================\n");
 }
 
-int AchievementSystem::getNewlyUnlocked(AchievementProgress& p, ID* outArray, int maxCount) {
+int AchievementSystem::consumeNewlyUnlocked(ID* outArray, int maxCount) {
     initAchievements();
     int count = 0;
-    for (int i = 0; i < (int)ID::COUNT && count < maxCount; i++) {
-        if (p.isUnlocked((ID)i)) {
-            outArray[count++] = (ID)i;
-        }
+    for (auto id : newlyUnlocked_) {
+        if (count >= maxCount) break;
+        outArray[count++] = id;
     }
+    newlyUnlocked_.clear();
     return count;
+}
+
+void AchievementSystem::clearNewlyUnlocked() {
+    newlyUnlocked_.clear();
 }

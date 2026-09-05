@@ -58,6 +58,7 @@ bool Game::init(SDL_Window* window) {
     wave = 0;
     waveComplete = true;
     waveBreak = 0;
+    updateMenuItems();
 
     return true;
 }
@@ -120,6 +121,9 @@ void Game::handleInput(float dt) {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
+            if (state == GameState::PLAYING || state == GameState::PAUSED) {
+                SavegameManager::save(*this);
+            }
             running = false;
         } else if (event.type == SDL_KEYDOWN) {
             keys[event.key.keysym.scancode] = true;
@@ -130,42 +134,59 @@ void Game::handleInput(float dt) {
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     state = GameState::PLAYING;
                     SDL_SetRelativeMouseMode(SDL_TRUE);
+                } else if (event.key.keysym.sym == SDLK_q) {
+                    state = GameState::MENU;
+                    SDL_SetRelativeMouseMode(SDL_FALSE);
+                    updateMenuItems();
                 }
             } else if (state == GameState::PLAYING) {
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     state = GameState::PAUSED;
                     SDL_SetRelativeMouseMode(SDL_FALSE);
+                    SavegameManager::save(*this);
                 }
                 if (showUpgradeMenu) {
                     handleUpgradeInput(*this, event);
                 } else if (event.key.keysym.sym == SDLK_SPACE && waveComplete) {
                     nextWave();
                 }
-                if (event.key.keysym.sym == SDLK_1) {
-                    currentWeapon = WeaponType::RAILGUN;
-                }
-                if (event.key.keysym.sym == SDLK_2) {
-                    currentWeapon = WeaponType::LIGHTNING_GUN;
-                }
-                if (event.key.keysym.sym == SDLK_3) {
-                    currentWeapon = WeaponType::PLASMA_RIFLE;
-                }
-                if (event.key.keysym.sym == SDLK_e) {
-                    activateNuclearBlast(*this);
-                }
-                if (event.key.keysym.sym == SDLK_r) {
-                    activateTimeSlow(*this);
-                }
-                if (event.key.keysym.sym == SDLK_f) {
-                    activateShield(*this);
-                }
-                if (event.key.keysym.sym == SDLK_q) {
-                    if (currentWeapon == WeaponType::RAILGUN) {
-                        currentWeapon = WeaponType::LIGHTNING_GUN;
-                    } else if (currentWeapon == WeaponType::LIGHTNING_GUN) {
-                        currentWeapon = WeaponType::PLASMA_RIFLE;
-                    } else {
+                if (loadout == Loadout::GHOST) {
+                    if (event.key.keysym.sym == SDLK_1 || event.key.keysym.sym == SDLK_4) {
+                        currentWeapon = WeaponType::GHOST_SNIPER;
+                    }
+                    if (event.key.keysym.sym == SDLK_g) {
+                        activateScannerSweep(*this);
+                    }
+                    if (event.key.keysym.sym == SDLK_h) {
+                        activateEMPBlast(*this);
+                    }
+                    if (event.key.keysym.sym == SDLK_i || event.key.keysym.sym == SDLK_n) {
+                        activateTacNuke(*this);
+                    }
+                    if (event.key.keysym.sym == SDLK_j) {
+                        activateCloak(*this);
+                    }
+                } else {
+                    if (event.key.keysym.sym == SDLK_1) {
                         currentWeapon = WeaponType::RAILGUN;
+                    }
+                    if (event.key.keysym.sym == SDLK_2) {
+                        currentWeapon = WeaponType::LIGHTNING_GUN;
+                    }
+                    if (event.key.keysym.sym == SDLK_3) {
+                        currentWeapon = WeaponType::PLASMA_RIFLE;
+                    }
+                    if (event.key.keysym.sym == SDLK_e) {
+                        activateNuclearBlast(*this);
+                    }
+                    if (event.key.keysym.sym == SDLK_r) {
+                        activateTimeSlow(*this);
+                    }
+                    if (event.key.keysym.sym == SDLK_f) {
+                        activateShield(*this);
+                    }
+                    if (event.key.keysym.sym == SDLK_q) {
+                        currentWeapon = WeaponType::LIGHTNING_GUN;
                     }
                 }
             } else if (state == GameState::OPTIONS) {
@@ -194,12 +215,11 @@ void Game::handleInput(float dt) {
                 }
             } else if (state == GameState::GAME_OVER) {
                 if (event.key.keysym.sym == SDLK_SPACE) {
-                    resetGame();
-                    state = GameState::PLAYING;
-                    SDL_SetRelativeMouseMode(SDL_TRUE);
+                    startNewRun(loadout);
                 } else if (event.key.keysym.sym == SDLK_ESCAPE) {
                     state = GameState::MENU;
                     SDL_SetRelativeMouseMode(SDL_FALSE);
+                    updateMenuItems();
                 }
             }
 
@@ -213,7 +233,8 @@ void Game::handleInput(float dt) {
                 shootRequested = true;
             }
             if (event.button.button == SDL_BUTTON_RIGHT) {
-                shootLightning = true;
+                if (loadout == Loadout::GHOST) adsHeld = true;
+                else shootLightning = true;
             }
         } else if (event.type == SDL_MOUSEBUTTONUP) {
             if (event.button.button == SDL_BUTTON_LEFT) {
@@ -221,6 +242,7 @@ void Game::handleInput(float dt) {
             }
             if (event.button.button == SDL_BUTTON_RIGHT) {
                 shootLightning = false;
+                adsHeld = false;
             }
         }
     }
@@ -230,14 +252,31 @@ void Game::updateMenuItems() {
     menuItems.clear();
     if (SavegameManager::exists()) {
         menuItems.push_back("Continue");
-        menuItems.push_back("New Game");
+        menuItems.push_back("New Arena");
+        menuItems.push_back("New Ghost");
         menuItems.push_back("Sensitivity");
         menuItems.push_back("Quit");
     } else {
-        menuItems.push_back("Start Game");
+        menuItems.push_back("Start Arena");
+        menuItems.push_back("Start Ghost");
         menuItems.push_back("Sensitivity");
         menuItems.push_back("Quit");
     }
+}
+
+void Game::startNewRun(Loadout kit) {
+    resetGame();
+    loadout = kit;
+    adsHeld = false;
+    if (kit == Loadout::GHOST) {
+        currentWeapon = WeaponType::GHOST_SNIPER;
+        ghostEnergy = GhostRules::ENERGY_START;
+    } else {
+        currentWeapon = WeaponType::RAILGUN;
+        ghostEnergy = 0.0f;
+    }
+    state = GameState::PLAYING;
+    SDL_SetRelativeMouseMode(SDL_TRUE);
 }
 
 void Game::handleMenuInput(SDL_Event& event) {
@@ -249,29 +288,26 @@ void Game::handleMenuInput(SDL_Event& event) {
         if (menuSelection >= (int)menuItems.size()) menuSelection = 0;
     } else if (event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_SPACE) {
         bool hasSave = SavegameManager::exists();
-        // Menu: 0=Start/Continue, 1=New Game (if save exists), 2=Options, 3=Quit
-        int startIdx = 0;
-        int newGameIdx = hasSave ? 1 : -1;
-        int optionsIdx = hasSave ? 2 : 1;
-        int quitIdx = hasSave ? 3 : 2;
-        
-        if (menuSelection == startIdx) {
-            // Continue or New Game
-            if (hasSave) {
-                // Load savegame
-                if (SavegameManager::load(*this)) {
-                    state = GameState::PLAYING;
-                    SDL_SetRelativeMouseMode(SDL_TRUE);
-                }
-            } else {
-                resetGame();
+        int continueIdx = hasSave ? 0 : -1;
+        int arenaIdx = hasSave ? 1 : 0;
+        int ghostIdx = hasSave ? 2 : 1;
+        int optionsIdx = hasSave ? 3 : 2;
+        int quitIdx = hasSave ? 4 : 3;
+
+        if (menuSelection == continueIdx && continueIdx >= 0) {
+            if (SavegameManager::load(*this)) {
+                loadout = (currentWeapon == WeaponType::GHOST_SNIPER)
+                    ? Loadout::GHOST : Loadout::ARENA;
+                adsHeld = false;
                 state = GameState::PLAYING;
                 SDL_SetRelativeMouseMode(SDL_TRUE);
             }
-        } else if (menuSelection == newGameIdx && newGameIdx >= 0) {
-            resetGame();
-            state = GameState::PLAYING;
-            SDL_SetRelativeMouseMode(SDL_TRUE);
+        } else if (menuSelection == arenaIdx) {
+            if (hasSave) SavegameManager::remove();
+            startNewRun(Loadout::ARENA);
+        } else if (menuSelection == ghostIdx) {
+            if (hasSave) SavegameManager::remove();
+            startNewRun(Loadout::GHOST);
         } else if (menuSelection == optionsIdx) {
             state = GameState::OPTIONS;
         } else if (menuSelection == quitIdx) {
@@ -296,6 +332,35 @@ void Game::resetGame() {
     resetUpgrades(*this);
     if (overclock) overclock->reset();
     if (echoSystem) echoSystem->reset();
+    // Reset ghost mode
+    loadout = Loadout::ARENA;
+    currentWeapon = WeaponType::RAILGUN;
+    adsHeld = false;
+    ghostEnergy = 0.0f;
+    ghostCooldown = 0.0f;
+    ghostKills = 0;
+    ghostComboCount = 0;
+    ghostComboTimer = 0.0f;
+    ghostAmbushActive = false;
+    ghostAmbushTimer = 0.0f;
+    cloakTimer = 0.0f;
+    cloakCooldown = 0.0f;
+    scannerCooldown = 0.0f;
+    empCooldown = 0.0f;
+    nukeCooldown = 0.0f;
+    scannerTimer = 0.0f;
+    empTimer = 0.0f;
+    nukePaintTimer = 0.0f;
+    nukeInboundTimer = 0.0f;
+    nukeFlashTimer = 0.0f;
+    detectorSwarmTimer = 0.0f;
+    comboBonusDamage = 1.0f;
+    lastKnownPlayerX = 0.0f;
+    lastKnownPlayerZ = 0.0f;
+    for (auto& b : bots) {
+        b.ghostMarked = 0;
+        b.ghostMarkTimer = 0.0f;
+    }
     // Reset bug effects
     railgunFeedbackChance = 0.0f;
     plasmaOverheatPenalty = 0.0f;
@@ -405,7 +470,16 @@ void Game::update(float dt) {
     updateSpecials(dt, *this);
     updateKillFeed(dt, *this);
     updateDamageNumbers(dt, *this);
-    
+
+    // Ghost energy regen (kit only)
+    if (loadout == Loadout::GHOST) {
+        ghostEnergy = GhostRules::addEnergy(ghostEnergy, GhostRules::ENERGY_REGEN * dt);
+        if (cloakTimer <= 0.0f) {
+            lastKnownPlayerX = player.pos.x;
+            lastKnownPlayerZ = player.pos.z;
+        }
+    }
+
     // Rebuild spatial hash for collision detection
     spatialHash->clear();
     for (int i = 0; i < (int)bots.size(); i++) {
@@ -448,6 +522,25 @@ void Game::update(float dt) {
     // Decay HUD timers
     if (hitFeedbackTimer > 0.0f) { hitFeedbackTimer -= dt; if (hitFeedbackTimer < 0.0f) hitFeedbackTimer = 0.0f; }
     if (waveAnnounceTimer > 0.0f) { waveAnnounceTimer -= dt; if (waveAnnounceTimer < 0.0f) waveAnnounceTimer = 0.0f; }
+
+    // Achievement popup queue processing
+    if (achievementPopupTimer <= 0.0f && !pendingAchievements.empty()) {
+        AchievementSystem::ID id = pendingAchievements.front();
+        pendingAchievements.erase(pendingAchievements.begin());
+        const auto& ach = AchievementSystem::getAchievement(id);
+        achievementPopupText = ach.name;
+        achievementPopupDesc = ach.description;
+        achievementPopupColor = Vec3(0.0f, 1.0f, 0.8f);
+        achievementPopupTimer = 3.0f;
+        if (g_audio) g_audio->playAchievement();
+    }
+
+    // Poll newly unlocked achievements
+    AchievementSystem::ID newlyUnlocked[8];
+    int newCount = AchievementSystem::consumeNewlyUnlocked(newlyUnlocked, 8);
+    for (int i = 0; i < newCount; i++) {
+        pendingAchievements.push_back(newlyUnlocked[i]);
+    }
     
     // Decay post-processing effects
     if (renderer_) {
@@ -492,6 +585,8 @@ void Game::update(float dt) {
         score += wave * 100;
         upgradePoints += 1 + wave / 3;
         showUpgradeMenu = true;
+        // Achievement: wave check
+        AchievementSystem::checkWaveAchievements(achievementProgress, wave, gameTime, tookDamageThisWave);
         if (wave % 5 == 0) {
             upgradePoints += 3;
             printf("BOSS KILLED! Wave %d cleared! Score: %d\n", wave, score);
@@ -571,10 +666,13 @@ void Game::updatePlayer(float dt) {
     if (keys[SDL_SCANCODE_A]) moveX -= 1;
     if (keys[SDL_SCANCODE_D]) moveX += 1;
 
+    float speedMult = 1.0f;
+    if (cloakTimer > 0.0f) speedMult = cloakSpeedBoost;
+
     if (moveX != 0 || moveZ != 0) {
         Vec3 moveDir = normalize(Vec3(moveX, 0, moveZ));
-        player.pos.x += moveDir.x * playerSpeed * dt;
-        player.pos.z += moveDir.z * playerSpeed * dt;
+        player.pos.x += moveDir.x * playerSpeed * dt * speedMult;
+        player.pos.z += moveDir.z * playerSpeed * dt * speedMult;
     }
 
     player.pos.y = playerHeight;
@@ -593,7 +691,10 @@ void Game::updatePlayer(float dt) {
     if (shootRequested && currentWeapon == WeaponType::PLASMA_RIFLE) {
         firePlasma(*this);
     }
-    
+    if (shootRequested && currentWeapon == WeaponType::GHOST_SNIPER && loadout == Loadout::GHOST) {
+        fireGhost(*this);
+    }
+
     // Player 2 shooting (coop)
     if (coopActive && player2Shoot && player2ShootCooldown <= 0.0f) {
         // Player 2 fires railgun in facing direction
@@ -640,44 +741,8 @@ void Game::checkCollisions() {
                 if (distance(it->pos, bot.pos) < 1.5f) {
                     bot.health -= it->damage;
                     if (bot.health <= 0) {
-                        bot.alive = false;
-                        kills++;
-                        killStreak++;
-                        addScore(*this, 10);
-                        if (g_audio) g_audio->playKill();
-                        if (bot.botType == 4) {
-                            addKillFeed(*this, "BOSS KILLED!", Vec3(1.0f, 0.8f, 0.0f));
-                        } else {
-                            addKillFeed(*this, "KILL", Vec3(0.0f, 1.0f, 0.5f));
-                        }
-                        addDamageNumber(*this, bot.pos, 50);
-                        spawnExplosion(*this, bot.pos, Vec3(0.0f, 0.8f, 1.0f), 20);
-                        // Trigger camera shake on kill
-                        shakeAmount = 2.0f + bot.botType * 1.0f;  // More shake for bosses
-                        int dropChance = rand() % 100;
-                        if (dropChance < 30) {
-                            int type = rand() % 3;
-                            spawnPowerUp(*this, bot.pos, type);
-                        }
-
-                        // Splitter: spawn mini-bots on death
-                        if (bot.splitters > 0) {
-                            for (int s = 0; s < bot.splitters; s++) {
-                                Entity mini;
-                                float sAngle = (float)s / bot.splitters * 6.28318f;
-                                mini.pos = bot.pos + Vec3(cosf(sAngle) * 2.0f, 0.0f, sinf(sAngle) * 2.0f);
-                                mini.yaw = 0;
-                                mini.pitch = 0;
-                                mini.alive = true;
-                                mini.type = 1;
-                                mini.botType = 0;
-                                mini.health = 30.0f + wave * 3;
-                                mini.moveSpeed = bot.moveSpeed * 1.3f;
-                                mini.splitters = bot.splitters - 1;
-                                bots.push_back(mini);
-                            }
-                            printf("Splitter! %d mini-bots spawned\n", bot.splitters);
-                        }
+                        bool ambush = cloakTimer > 0.0f || ghostAmbushActive;
+                        registerBotKill(*this, bot, it->weapon, ambush);
                     }
                     hit = true;
                     break;
@@ -685,15 +750,8 @@ void Game::checkCollisions() {
             }
         } else {
             if (distance(it->pos, player.pos) < 1.0f) {
-                player.health -= it->damage;
-                shakeAmount = 3.0f;  // Strong shake when player hit
+                notifyPlayerHit(*this, it->damage);
                 hit = true;
-                
-                // Trigger post-processing effects
-                if (renderer_) {
-                    renderer_->setHitFlash(0.6f);
-                    renderer_->setChromaticAberration(2.0f);
-                }
             }
         }
 
@@ -718,6 +776,7 @@ void Game::handleMouse() {
 void Game::nextWave() {
     waveComplete = false;
     waveBreak = 0;
+    tookDamageThisWave = false;
     spawnWave(*this);
     waveAnnounceTimer = 2.0f;
     if (echoSystem) echoSystem->startRecording();
@@ -788,8 +847,8 @@ void Game::render() {
 
     if (state == GameState::GAME_OVER) {
         renderGameOver();
-        // Auto-save on game over
-        SavegameManager::save(*this);
+        // Delete savegame on game over — "Continue" should not load a dead player
+        SavegameManager::remove();
         return;
     }
 
@@ -812,7 +871,9 @@ void Game::render() {
     } else {
         eye = player.pos + shakeOffset;
         center = eye + forward;
-        fov = 1.1f;
+        fov = (loadout == Loadout::GHOST && adsHeld)
+            ? GhostRules::ADS_FOV
+            : GhostRules::HIP_FOV;
     }
     
     Vec3 up(0, 1, 0);
@@ -835,10 +896,23 @@ void Game::render() {
     renderParticles();
     renderLightning(*this);
     renderPowerUps(*this);
+    renderSpecialEffects(*this);
 
     renderer_->endFrame();
 
     renderHUD(*this);
+
+    // Achievement popup
+    if (achievementPopupTimer > 0.0f) {
+        float popupY = 0.3f;
+        float alpha = fminf(1.0f, achievementPopupTimer / 0.5f);
+        if (achievementPopupTimer > 2.5f) alpha = fminf(1.0f, (3.0f - achievementPopupTimer) / 0.5f);
+        Vec3 popupColor = achievementPopupColor * alpha;
+        text_.drawTextCentered("ACHIEVEMENT UNLOCKED", popupY, 0.8f, popupColor);
+        text_.drawTextCentered(achievementPopupText, popupY - 0.06f, 1.0f, popupColor);
+        text_.drawTextCentered(achievementPopupDesc, popupY - 0.12f, 0.7f, popupColor * 0.7f);
+        achievementPopupTimer -= 0.016f;
+    }
 
     SDL_GL_SwapWindow(window_);
 }

@@ -38,7 +38,10 @@ void renderMinimap(Game& game) {
         float bx = mapX + (bot.pos.x + game.arenaSize) * scale;
         float by = mapY + (bot.pos.z + game.arenaSize) * scale;
         float bs = 0.01f;
-        Vec3 botColor = (bot.botType == 4) ? Vec3(1.0f, 0.8f, 0.0f) : Vec3(1.0f, 0.3f, 0.0f);
+        if (game.loadout == Loadout::GHOST && bot.botType == 5 && !bot.ghostMarked) continue;
+        Vec3 botColor = (bot.botType == 4) ? Vec3(1.0f, 0.8f, 0.0f)
+            : (bot.botType == 6) ? Vec3(1.0f, 0.15f, 0.1f)
+            : (bot.ghostMarked ? Vec3(1.0f, 0.3f, 0.8f) : Vec3(1.0f, 0.3f, 0.0f));
         Vertex botIcon[] = {
             Vertex(Vec3(bx - bs, by - bs, -0.05f), botColor),
             Vertex(Vec3(bx + bs, by - bs, -0.05f), botColor),
@@ -46,6 +49,21 @@ void renderMinimap(Game& game) {
             Vertex(Vec3(bx - bs, by + bs, -0.05f), botColor),
         };
         game.renderer_->drawQuad(botIcon);
+    }
+
+    if (game.loadout == Loadout::GHOST &&
+        (game.nukePaintTimer > 0.0f || game.nukeInboundTimer > 0.0f)) {
+        float nx = mapX + (game.nukeX + game.arenaSize) * scale;
+        float ny = mapY + (game.nukeZ + game.arenaSize) * scale;
+        float ns = 0.012f;
+        Vec3 nukeCol(1.0f, 0.15f, 0.05f);
+        Vertex nukeIcon[] = {
+            Vertex(Vec3(nx - ns, ny - ns, -0.04f), nukeCol),
+            Vertex(Vec3(nx + ns, ny - ns, -0.04f), nukeCol),
+            Vertex(Vec3(nx + ns, ny + ns, -0.04f), nukeCol),
+            Vertex(Vec3(nx - ns, ny + ns, -0.04f), nukeCol),
+        };
+        game.renderer_->drawQuad(nukeIcon);
     }
 
     // Power-Ups (grün/gelb)
@@ -74,10 +92,13 @@ void renderHUD(Game& game) {
     // Simple HUD using OpenGL lines
     // Dynamic crosshair - pulses on hit
     float cx = 0.0f, cy = 0.0f;
-    float chSize = 0.03f;
+    float chSize = (game.loadout == Loadout::GHOST && game.adsHeld) ? 0.015f : 0.03f;
     float chPulse = (game.hitFeedbackTimer > 0.0f) ? 1.5f + sinf(game.hitFeedbackTimer * 20.0f) * 0.3f : 1.0f;
     chSize *= chPulse;
     Vec3 chColor(0.0f, 1.0f, 0.8f);
+    if (game.loadout == Loadout::GHOST) {
+        chColor = Vec3(0.3f, 0.75f, 1.0f);
+    }
     if (game.hitFeedbackTimer > 0.0f) {
         chColor = Vec3(1.0f, 0.3f, 0.0f);  // Flash red on hit
     }
@@ -188,15 +209,22 @@ void renderHUD(Game& game) {
             weaponColor = Vec3(1.0f, 0.5f, 0.0f);
             weaponName = "PLASMA";
             break;
+        case WeaponType::GHOST_SNIPER:
+            weaponColor = Vec3(0.3f, 0.7f, 1.0f);
+            weaponName = game.adsHeld ? "GHOST SNIPER [ADS]" : "GHOST SNIPER";
+            break;
         default:
             weaponColor = Vec3(1.0f, 1.0f, 1.0f);
             weaponName = "UNKNOWN";
             break;
     }
-    game.text_.drawText(weaponName, 0.6f, -0.9f, 1.0f, weaponColor);
+    game.text_.drawText(weaponName, 0.55f, -0.9f, 1.0f, weaponColor);
 
-    // Weapon switch hint
-    game.text_.drawText("1: RAIL  2: LIGHT  3: PLASMA  Q: SWITCH", 0.5f, -0.95f, 0.7f, Vec3(0.4f, 0.4f, 0.5f));
+    if (game.loadout == Loadout::GHOST) {
+        game.text_.drawText("GHOST  G:SCAN  H:EMP  N:NUKE  J:CLOAK  RMB:ADS", 0.22f, -0.95f, 0.65f, Vec3(0.35f, 0.55f, 0.7f));
+    } else {
+        game.text_.drawText("1: RAIL  2: LIGHT  3: PLASMA  E/R/F: SPECIALS", 0.35f, -0.95f, 0.7f, Vec3(0.4f, 0.4f, 0.5f));
+    }
 
     // Minimap (oben rechts)
     renderMinimap(game);
@@ -220,6 +248,15 @@ void renderHUD(Game& game) {
     }
     if (hasBoss) {
         game.text_.drawTextCentered("!!! BOSS !!!", 0.95f, 1.5f, Vec3(1.0f, 0.2f, 0.0f));
+    }
+
+    if (game.nukeInboundTimer > 0.0f) {
+        char nbuf[16];
+        snprintf(nbuf, sizeof(nbuf), "%d", (int)ceilf(game.nukeInboundTimer));
+        game.text_.drawTextCentered(nbuf, 0.25f, 3.0f, Vec3(1.0f, 0.15f, 0.05f));
+        game.text_.drawTextCentered("NUCLEAR STRIKE", 0.12f, 1.4f, Vec3(1.0f, 0.3f, 0.1f));
+    } else if (game.nukePaintTimer > 0.0f) {
+        game.text_.drawTextCentered("DESIGNATING — STAND STILL", 0.18f, 1.1f, Vec3(1.0f, 0.4f, 0.15f));
     }
 
     // Wave announcement

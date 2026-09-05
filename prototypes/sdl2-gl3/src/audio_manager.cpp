@@ -269,6 +269,7 @@ void AudioManager::generateAllSounds() {
     addGeneratedSound(generateSound(0, 0.8f, 400.0f, 100.0f, 0.8f), "game_over");
     addGeneratedSound(generateSound(3, 0.05f, 1000.0f, 500.0f, 0.5f), "menu_click");
     addGeneratedSound(generateSound(1, 0.4f, 500.0f, 1500.0f, 0.7f), "upgrade");
+    addGeneratedSound(generateSound(0, 0.5f, 400.0f, 2000.0f, 0.8f), "achievement");
     
     sndShoot = sfxMap["shoot"];
     sndLightning = sfxMap["lightning"];
@@ -281,6 +282,7 @@ void AudioManager::generateAllSounds() {
     sndGameOver = sfxMap["game_over"];
     sndMenuClick = sfxMap["menu_click"];
     sndUpgrade = sfxMap["upgrade"];
+    sndAchievement = sfxMap["achievement"];
 }
 
 void AudioManager::playShoot() { if (sndShoot >= 0) playSFX(sndShoot); }
@@ -294,6 +296,7 @@ void AudioManager::playWaveComplete() { if (sndWaveComplete >= 0) playSFX(sndWav
 void AudioManager::playGameOver() { if (sndGameOver >= 0) playSFX(sndGameOver); }
 void AudioManager::playMenuClick() { if (sndMenuClick >= 0) playSFX(sndMenuClick); }
 void AudioManager::playUpgrade() { if (sndUpgrade >= 0) playSFX(sndUpgrade); }
+void AudioManager::playAchievement() { if (sndAchievement >= 0) playSFX(sndAchievement); }
 
 int AudioManager::getFreeChannel() {
     for (int i = 0; i < 32; i++) {

@@ -118,11 +118,13 @@ public:
     static void printAchievements();
     static void printProgress(const AchievementProgress& p);
     
-    // Get newly unlocked since last check
-    static int getNewlyUnlocked(AchievementProgress& p, ID* outArray, int maxCount);
-    
+    // Get newly unlocked since last check (consumes the list)
+    static int consumeNewlyUnlocked(ID* outArray, int maxCount);
+    static void clearNewlyUnlocked();
+
 private:
     static Achievement achievements[(int)ID::COUNT];
     static bool initialized;
     static void initAchievements();
+    static std::vector<ID> newlyUnlocked_;
 };

@@ -139,6 +139,17 @@ void testBotAI() {
         AI_TEST("low_health_retreats", bot.state == BotAI::State::RETREAT || bot.state == BotAI::State::HUNT);
     }
 
+    // Evade runs away from nuke point
+    {
+        BotAI::BotState bot;
+        BotAI::setState(bot, BotAI::State::EVADE);
+        bot.evadeX = 10.0f;
+        bot.evadeZ = 0.0f;
+        BotAI::executeState(bot, 0.0f, 0.0f, 0.0f, 0.0f, 40.0f);
+        AI_TEST("evade_target_away_from_nuke", bot.targetX < -1.0f);
+        AI_TEST("evade_no_attack", !BotAI::shouldAttack(bot, 2.0f, 0));
+    }
+
     // Stunned bot doesn't move
     {
         BotAI::BotState bot;
@@ -157,6 +168,21 @@ void testBotAI() {
             BotAI::update(bot, 0.1f, 50.0f, 0.0f, 0.0f, 0.0f, 100.0f, 100.0f, 40.0f, 5, false);
         }
         AI_TEST("stunned_recovers", bot.state != BotAI::State::STUNNED);
+    }
+
+    // EMP stun lasts 1.5s
+    {
+        BotAI::BotState bot;
+        BotAI::setState(bot, BotAI::State::STUNNED);
+        bot.stunDuration = 1.5f;
+        for (int i = 0; i < 12; i++) {
+            BotAI::update(bot, 0.1f, 50.0f, 0.0f, 0.0f, 0.0f, 100.0f, 100.0f, 40.0f, 5, false);
+        }
+        AI_TEST("emp_still_stunned_at_1_2s", bot.state == BotAI::State::STUNNED);
+        for (int i = 0; i < 8; i++) {
+            BotAI::update(bot, 0.1f, 50.0f, 0.0f, 0.0f, 0.0f, 100.0f, 100.0f, 40.0f, 5, false);
+        }
+        AI_TEST("emp_recovers_after_1_5s", bot.state != BotAI::State::STUNNED);
     }
 
     // Boss behavior

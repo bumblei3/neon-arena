@@ -155,6 +155,7 @@ bool EchoSystem::checkPlayerBoost(float playerX, float playerY, float playerZ, f
         ghost.active = false;
         ghost.alpha = 0.0f;
         effects.push_back(EchoEffect(EchoEffectType::PLAYER_BOOST, ghost.posX, ghost.posY, ghost.posZ));
+        triggerCount++;
         return true;
     }
     return false;

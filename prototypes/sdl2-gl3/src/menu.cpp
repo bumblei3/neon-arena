@@ -29,10 +29,10 @@ void Game::renderMenu() {
     // Overlay box (drawn after post-processing)
     float cx = 0.0f, cy = 0.0f;
     Vertex box[] = {
-        Vertex(Vec3(cx - 0.35f, cy - 0.3f, 0), Vec3(0, 0, 0.15f)),
-        Vertex(Vec3(cx + 0.35f, cy - 0.3f, 0), Vec3(0, 0, 0.15f)),
-        Vertex(Vec3(cx + 0.35f, cy + 0.3f, 0), Vec3(0, 0, 0.15f)),
-        Vertex(Vec3(cx - 0.35f, cy + 0.3f, 0), Vec3(0, 0, 0.15f)),
+        Vertex(Vec3(cx - 0.38f, cy - 0.42f, 0), Vec3(0, 0, 0.15f)),
+        Vertex(Vec3(cx + 0.38f, cy - 0.42f, 0), Vec3(0, 0, 0.15f)),
+        Vertex(Vec3(cx + 0.38f, cy + 0.32f, 0), Vec3(0, 0, 0.15f)),
+        Vertex(Vec3(cx - 0.38f, cy + 0.32f, 0), Vec3(0, 0, 0.15f)),
     };
     renderer_->drawQuad(box);
 
@@ -45,7 +45,7 @@ void Game::renderMenu() {
         Vec3 itemColor = (i == menuSelection) ?
             Vec3(0.0f, 1.0f, 0.8f) : Vec3(0.5f, 0.5f, 0.5f);
 
-        float yPos = 0.05f - i * 0.12f;
+        float yPos = 0.08f - i * 0.10f;
 
         // Selection arrow
         if (i == menuSelection) {
@@ -62,8 +62,8 @@ void Game::renderMenu() {
     }
 
     // Controls
-    text_.drawTextCentered("WASD: MOVE  MOUSE: AIM  LMB: RAILGUN  RMB: LIGHTNING", -0.32f, 0.7f, Vec3(0.3f, 0.3f, 0.4f));
-    text_.drawTextCentered("1/2/Q: SWITCH WEAPON  SPACE: NEXT WAVE", -0.38f, 0.7f, Vec3(0.3f, 0.3f, 0.4f));
+    text_.drawTextCentered("ARENA: RAIL / LG / PLASMA    GHOST: SNIPER + CLOAK", -0.32f, 0.7f, Vec3(0.3f, 0.3f, 0.4f));
+    text_.drawTextCentered("WASD MOVE   MOUSE AIM   LMB FIRE   SPACE NEXT WAVE", -0.38f, 0.7f, Vec3(0.3f, 0.3f, 0.4f));
 
     SDL_GL_SwapWindow(window_);
 }

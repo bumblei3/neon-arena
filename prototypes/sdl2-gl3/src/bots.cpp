@@ -3,6 +3,8 @@
 #include "wave_config.h"
 #include "bot_ai.h"
 #include "balancing.h"
+#include "specials.h"
+#include "ghost_rules.h"
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -39,12 +41,22 @@ static void getBalancedBotStats(int wave, int botType, float& outHealth, float& 
             outHealth = (boss->baseHealth + boss->healthPerWave * wave) * healthMult * 1.5f;
             outMoveSpeed = boss->moveSpeed * speedMult;
             break;
+        case 5: // Stealth
+            outHealth = (flanker->baseHealth * 0.6f + flanker->healthPerWave * wave * 0.8f) * healthMult;
+            outMoveSpeed = flanker->moveSpeed * 1.4f * speedMult;
+            break;
+        case 6: // Detector
+            outHealth = (shooter->baseHealth + shooter->healthPerWave * wave) * healthMult;
+            outMoveSpeed = shooter->moveSpeed * 0.85f * speedMult;
+            break;
         default:
             outHealth = 50.0f;
             outMoveSpeed = 3.0f;
             break;
     }
 }
+
+static void getBotMaxHealth(int wave, int botType, float& outMaxHealth);
 
 static void applyModifiers(Entity& bot, EnemyModifier modifiers) {
     if (hasModifier(modifiers, EnemyModifier::SPEED_BOOST)) {
@@ -78,6 +90,12 @@ static void initBotAI(Entity& bot) {
             break;
         case 4: // Boss
             bot.aiState.personality = BotAI::Personality::BOSS;
+            break;
+        case 5: // Stealth
+            bot.aiState.personality = BotAI::Personality::FLANKER;
+            break;
+        case 6: // Detector
+            bot.aiState.personality = BotAI::Personality::DEFENSIVE;
             break;
         default:
             bot.aiState.personality = BotAI::Personality::AGGRESSIVE;
@@ -113,6 +131,14 @@ void spawnWave(Game& game) {
                 bot.moveSpeed = speed;
                 bot.attackCooldown = 0;
                 bot.aiState.personality = BotAI::Personality::BOSS;
+            } else if (game.wave >= GhostRules::DETECTOR_WAVE && i == 1) {
+                bot.botType = 6;
+                float health, speed;
+                getBalancedBotStats(game.wave, 6, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed;
+                applyModifiers(bot, config.modifiers);
+                initBotAI(bot);
             } else {
                 bot.botType = 0;
                 float health, speed;
@@ -156,6 +182,19 @@ void spawnWave(Game& game) {
                 getBalancedBotStats(game.wave, 1, health, speed);
                 bot.health = health;
                 bot.moveSpeed = speed;
+            } else if (game.wave >= GhostRules::DETECTOR_WAVE && i == 1) {
+                bot.botType = 6;
+                float health, speed;
+                getBalancedBotStats(game.wave, 6, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed;
+            } else if (game.wave >= 6 && i % 5 == 2) {
+                // Stealth Bot from wave 6+
+                bot.botType = 5;
+                float health, speed;
+                getBalancedBotStats(game.wave, 5, health, speed);
+                bot.health = health;
+                bot.moveSpeed = speed * 1.2f;  // Stealth bots are faster
             } else {
                 bot.botType = 0;
                 float health, speed;
@@ -189,6 +228,8 @@ void updateBots(Game& game, float dt) {
     }
 
     bool playerIsMoving = (std::abs(game.player.vx) > 0.1f || std::abs(game.player.vz) > 0.1f);
+    bool swarmCalled = game.detectorSwarmTimer > 0.0f;
+    bool cloaked = game.cloakTimer > 0.0f && !swarmCalled;
 
     for (auto& bot : game.bots) {
         if (!bot.alive) continue;
@@ -201,12 +242,34 @@ void updateBots(Game& game, float dt) {
         // Apply fusion effects to bot AI
         BotAI::applyFusion(bot.aiState, game.currentFusion, dt);
 
-        // Update AI state machine
+        if (game.nukeInboundTimer > 0.0f && bot.aiState.state != BotAI::State::STUNNED) {
+            BotAI::setState(bot.aiState, BotAI::State::EVADE);
+            bot.aiState.evadeX = game.nukeX;
+            bot.aiState.evadeZ = game.nukeZ;
+        }
+
+        bool hide = cloaked;
+        if (bot.botType == 6) hide = false;
+        if (bot.botType == 4) {
+            float maxH = 0.0f;
+            getBotMaxHealth(game.wave, 4, maxH);
+            int phase = BotAI::getBossPhase(bot.aiState, bot.health / maxH, bot.bossPhase);
+            if (phase >= 3) hide = false;
+        }
+        GhostRules::HuntPos hunt = GhostRules::huntPosition(
+            hide, game.player.pos.x, game.player.pos.z,
+            game.lastKnownPlayerX, game.lastKnownPlayerZ);
+
+        // Update AI state machine — cloaked players are hunted at last known pos
         BotAI::update(bot.aiState, dt,
-                      game.player.pos.x, game.player.pos.z,
+                      hunt.x, hunt.z,
                       bot.pos.x, bot.pos.z,
                       bot.health, 100.0f + game.wave * 10,
                       game.arenaSize, game.wave, playerIsMoving);
+
+        if (bot.aiState.state == BotAI::State::STUNNED) {
+            continue;
+        }
 
         // Pathfinding: use waypoint if path is available
         float targetX = bot.aiState.targetX;
@@ -232,25 +295,63 @@ void updateBots(Game& game, float dt) {
 
         if (dist > 0.5f) {
             float speed = bot.moveSpeed;
-            // Slow down when close to target
-            if (dist < 2.0f) speed *= 0.5f;
+            if (bot.aiState.state == BotAI::State::EVADE) speed *= 1.6f;
+            else if (dist < 2.0f) speed *= 0.5f;
             bot.pos.x += (dx / dist) * speed * dt;
             bot.pos.z += (dz / dist) * speed * dt;
         }
 
-        // Rotate towards movement direction or player
+        // Rotate towards movement direction or hunt target
         if (bot.aiState.state == BotAI::State::HUNT || bot.aiState.state == BotAI::State::ATTACK) {
-            float targetYaw = atan2f(game.player.pos.x - bot.pos.x, -(game.player.pos.z - bot.pos.z));
+            float targetYaw = atan2f(hunt.x - bot.pos.x, -(hunt.z - bot.pos.z));
             bot.yaw = targetYaw;
         } else {
             float moveYaw = atan2f(dx, -dz);
             bot.yaw = moveYaw;
         }
 
-        // Hover animation
+        // Stealth bots (type 5): move erratically, semi-invisible
+        if (bot.botType == 5) {
+            if (dist < 5.0f || bot.aiState.state != BotAI::State::HUNT) {
+                bot.aiState.targetX = hunt.x + (rand() % 20 - 10) * 3.0f;
+                bot.aiState.targetZ = hunt.z + (rand() % 20 - 10) * 3.0f;
+            }
+        }
+
+        // Hover animation (stealth bots bob faster, not overwritten)
         float hoverOffset = sinf(game.gameTime * 2.0f + bot.pos.x * 0.1f + bot.pos.z * 0.1f) * 0.3f;
         if (bot.botType == 4) hoverOffset *= 2.0f;
-        bot.pos.y = hoverOffset;
+        if (bot.botType == 5) {
+            bot.pos.y = 1.0f + sinf(game.gameTime * 3.0f + bot.pos.x * 2.0f) * 0.2f;
+        } else {
+            bot.pos.y = hoverOffset;
+        }
+
+        // Detector: red cone always tracks the real player
+        if (bot.botType == 6 && game.cloakTimer > 0.0f) {
+            if (GhostRules::inDetectorCone(bot.pos.x, bot.pos.z, bot.yaw,
+                    game.player.pos.x, game.player.pos.z)) {
+                breakCloak(game);
+                game.detectorSwarmTimer = GhostRules::DETECTOR_SWARM;
+                cloaked = false;
+                swarmCalled = true;
+                hunt = GhostRules::huntPosition(false, game.player.pos.x, game.player.pos.z,
+                    game.lastKnownPlayerX, game.lastKnownPlayerZ);
+            }
+        }
+
+        // Cloak breaks if a bot gets within 2m of the real player
+        if (cloaked) {
+            float realDist = std::sqrt(
+                (game.player.pos.x - bot.pos.x) * (game.player.pos.x - bot.pos.x) +
+                (game.player.pos.z - bot.pos.z) * (game.player.pos.z - bot.pos.z));
+            if (GhostRules::cloakBreaksOnProximity(realDist)) {
+                breakCloak(game);
+                cloaked = false;
+                hunt = GhostRules::huntPosition(false, game.player.pos.x, game.player.pos.z,
+                    game.lastKnownPlayerX, game.lastKnownPlayerZ);
+            }
+        }
 
         // Keep bots in bounds
         if (bot.pos.x < -game.arenaSize + 2) bot.pos.x = -game.arenaSize + 2;
@@ -264,15 +365,21 @@ void updateBots(Game& game, float dt) {
             // Frenzy modifier: faster fire rate
             float fireRateMult = (bot.aiState.frenzyTimer > 0.0f) ? 0.6f : 1.0f;
             
-            if (bot.botType == 0 || bot.botType == 2 || bot.botType == 3) {
-                game.player.health -= 10.0f;
-                bot.attackCooldown = 1.0f * fireRateMult;
+            if (bot.botType == 0 || bot.botType == 2 || bot.botType == 3 || bot.botType == 5) {
+                // Melee only if the real player is actually in range
+                float realDist = std::sqrt(
+                    (game.player.pos.x - bot.pos.x) * (game.player.pos.x - bot.pos.x) +
+                    (game.player.pos.z - bot.pos.z) * (game.player.pos.z - bot.pos.z));
+                if (realDist < 4.0f) {
+                    notifyPlayerHit(game, 10.0f);
+                    bot.attackCooldown = 1.0f * fireRateMult;
+                }
             }
-            if (bot.botType == 1) {
+            if (bot.botType == 1 || bot.botType == 6) {
                 Vec3 toPlayerDir = Vec3(
-                    game.player.pos.x - bot.pos.x,
+                    hunt.x - bot.pos.x,
                     0,
-                    game.player.pos.z - bot.pos.z
+                    hunt.z - bot.pos.z
                 ).normalized();
                 Vec3 muzzlePos = bot.pos + Vec3(0, 1.0f, 0);
                 game.projectiles.push_back(Projectile(muzzlePos, toPlayerDir, false, WeaponType::RAILGUN, 15.0f));
@@ -295,9 +402,9 @@ void updateBots(Game& game, float dt) {
                 } else if (phase == 2) {
                     // Aimed double shot
                     Vec3 toPlayerDir = Vec3(
-                        game.player.pos.x - bot.pos.x,
+                        hunt.x - bot.pos.x,
                         0,
-                        game.player.pos.z - bot.pos.z
+                        hunt.z - bot.pos.z
                     ).normalized();
                     Vec3 muzzlePos = bot.pos + Vec3(0, 2.0f, 0);
                     game.projectiles.push_back(Projectile(muzzlePos, toPlayerDir, false, WeaponType::RAILGUN, 25.0f));
@@ -306,9 +413,9 @@ void updateBots(Game& game, float dt) {
                 } else if (phase == 3) {
                     // Frenzy: rapid aimed shots
                     Vec3 toPlayerDir = Vec3(
-                        game.player.pos.x - bot.pos.x,
+                        hunt.x - bot.pos.x,
                         0,
-                        game.player.pos.z - bot.pos.z
+                        hunt.z - bot.pos.z
                     ).normalized();
                     Vec3 muzzlePos = bot.pos + Vec3(0, 2.0f, 0);
                     game.projectiles.push_back(Projectile(muzzlePos, toPlayerDir, false, WeaponType::RAILGUN, 20.0f));
@@ -338,6 +445,8 @@ static void getBotMaxHealth(int wave, int botType, float& outMaxHealth) {
         case 2: outMaxHealth = (db.getBot("Tank")->baseHealth + db.getBot("Tank")->healthPerWave * wave) * healthMult; break;
         case 3: outMaxHealth = (db.getBot("Flanker")->baseHealth + db.getBot("Flanker")->healthPerWave * wave) * healthMult; break;
         case 4: outMaxHealth = (db.getBot("Boss")->baseHealth + db.getBot("Boss")->healthPerWave * wave) * healthMult * 1.5f; break;
+        case 5: outMaxHealth = (db.getBot("Flanker")->baseHealth * 0.6f + db.getBot("Flanker")->healthPerWave * wave * 0.8f) * healthMult; break;
+        case 6: outMaxHealth = (db.getBot("Shooter")->baseHealth + db.getBot("Shooter")->healthPerWave * wave) * healthMult; break;
         default: outMaxHealth = 100.0f + wave * 10.0f;
     }
 }
@@ -350,6 +459,7 @@ void renderSolidBots(Game& game) {
         float s = 0.8f * pulse;
         float sizeMult = 1.0f;
         if (bot.botType == 4) sizeMult = 2.5f;
+        if (bot.botType == 6) sizeMult = 1.2f;
         s *= sizeMult;
 
         float maxHealth;
@@ -365,7 +475,50 @@ void renderSolidBots(Game& game) {
             case 2: botColor = Vec3(0.6f + healthPct * 0.4f, (1.0f - healthPct) * 0.3f, 0.8f); break;
             case 3: botColor = Vec3(1.0f, (1.0f - healthPct) * 0.5f, (1.0f - healthPct) * 0.3f); break;
             case 4: botColor = Vec3(1.0f, 0.3f + healthPct * 0.4f, 0.0f); break;
+            case 5: { // Stealth Bot — dark/ transparent, scanner-detectable
+                float stealthAlpha = bot.ghostMarked ? 1.0f : 0.15f;
+                botColor = Vec3(0.1f, 0.1f, 0.3f) * stealthAlpha;
+                break;
+            }
+            case 6: botColor = Vec3(1.0f, 0.15f + healthPct * 0.2f, 0.08f); break;
             default: botColor = Vec3((1.0f - healthPct) * 0.8f, healthPct * 1.0f, healthPct * 0.5f); break;
+        }
+
+        // Scanner mark: pink glow outline for marked bots
+        if (bot.ghostMarked) {
+            Vec3 markColor(1.0f, 0.2f, 0.8f);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            float pulse = 0.5f + 0.5f * sinf(game.gameTime * 6.0f + bot.pos.x);
+            glColor4f(markColor.x, markColor.y, markColor.z, 0.6f * pulse);
+            glBegin(GL_LINE_LOOP);
+            for (int i = 0; i < 36; i++) {
+                float a = (float)i / 36.0f * 6.28318f;
+                float rx = bot.pos.x + cosf(a) * s * 1.2f;
+                float rz = bot.pos.z + sinf(a) * s * 1.2f;
+                glVertex3f(rx, bot.pos.y + 0.1f, rz);
+            }
+            glEnd();
+            glDisable(GL_BLEND);
+        }
+
+        if (bot.botType == 6) {
+            float fx = sinf(bot.yaw);
+            float fz = -cosf(bot.yaw);
+            float half = acosf(GhostRules::DETECTOR_CONE_COS);
+            float ca = cosf(half), sa = sinf(half);
+            float r = GhostRules::DETECTOR_RANGE;
+            float lx = fx * ca - fz * sa, lz = fx * sa + fz * ca;
+            float rx = fx * ca + fz * sa, rz = -fx * sa + fz * ca;
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4f(1.0f, 0.15f, 0.08f, 0.28f);
+            glBegin(GL_LINE_LOOP);
+            glVertex3f(bot.pos.x, bot.pos.y + 0.2f, bot.pos.z);
+            glVertex3f(bot.pos.x + lx * r, bot.pos.y + 0.2f, bot.pos.z + lz * r);
+            glVertex3f(bot.pos.x + rx * r, bot.pos.y + 0.2f, bot.pos.z + rz * r);
+            glEnd();
+            glDisable(GL_BLEND);
         }
 
         if (bot.vy > 0.5f) botColor = botColor * 0.7f + Vec3(0.0f, 0.3f, 0.0f);

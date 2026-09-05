@@ -56,7 +56,7 @@ echo ""
 echo "=== Building Savegame Tests ==="
 SDL_CFLAGS=$(sdl2-config --cflags)
 SDL_LIBS=$(sdl2-config --libs)
-g++ -std=c++17 -O2 $SDL_CFLAGS -I../src -o test_savegame test_savegame.cpp ../src/savegame.cpp $SDL_LIBS
+g++ -std=c++17 -O2 $SDL_CFLAGS -I../src -o test_savegame test_savegame.cpp ../src/savegame.cpp ../src/achievements.cpp $SDL_LIBS
 
 echo ""
 echo "=== Running Savegame Tests ==="
@@ -122,6 +122,15 @@ echo ""
 echo "=== Running Bot AI Tests ==="
 ./test_bot_ai
 
+# --- Ghost rules ---
+echo ""
+echo "=== Building Ghost Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_ghost test_ghost.cpp
+
+echo ""
+echo "=== Running Ghost Tests ==="
+./test_ghost
+
 # --- 12. Wave Editor Tests ---
 echo ""
 echo "=== Building Wave Editor Tests ==="
@@ -168,4 +177,4 @@ echo "=== Running Achievement Tests ==="
 ./test_achievements
 
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_wave_editor test_map_validator test_replay_recorder test_perf_profiler test_achievements
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_ghost test_wave_editor test_map_validator test_replay_recorder test_perf_profiler test_achievements
