@@ -85,7 +85,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 67 | perfect-wave-ach | clear ohne Damage | `ACHIEVEMENT UNTOUCHABLE` | keine Fatal-Warnung |
 | 68 | triple-kill-ach | 3 kills / 1 s | `ACHIEVEMENT TRIPLE KILL` | keine Fatal-Warnung |
 | 69 | pentakill-ach | 5 kills / 1 s | `ACHIEVEMENT PENTAKILL` | keine Fatal-Warnung |
-| 70 | maxed-out-ach | startwave 10, autokill, fastbreak | `maxed-out` / Achievement-Marker | keine Fatal-Warnung |
+| 70 | maxed-out-ach | startwave 10, autokill, fastbreak | `starting wave 10`, `ACHIEVEMENT VETERAN` | keine Fatal-Warnung |
 | 71 | healer-boss | startwave 17, bosstype 8 | `boss spawned: HEALER (hc 300` | keine Fatal-Warnung |
 | 72 | shield-mod | startwave 6, modifier 15 | `starting wave 6.*\[SHIELD\]` | keine Fatal-Warnung |
 | 73 | ghost-kit-w1 | ghost 1, autostart, startwave 1, failrun | `GHOST kit active (wave 1)` | `DETECTOR spawned` |

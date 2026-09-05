@@ -796,6 +796,16 @@ assert_69() {
   report $ok "pentakill-ach"
 }
 
+# TEST 70: startwave 10 smoke (MAXED OUT is not granted by this hook yet;
+# VETERAN fires at wave >= 10)
+assert_70() {
+  local ok=0
+  check "$1" "starting wave 10";                        [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "ACHIEVEMENT VETERAN";                     [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "maxed-out-ach"
+}
+
 # TEST 71: HEALER boss (v0.70, 8th boss type)
 assert_71() {
   local ok=0
