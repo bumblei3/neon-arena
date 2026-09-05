@@ -17,6 +17,7 @@ BLOOM="${BLOOM:-1}"
 WAYLAND="${NW_WAYLAND:-0}"
 DAILY=0
 HARDCORE=0
+GHOST=0
 EXTRA_CVARS=()
 
 usage() {
@@ -29,6 +30,7 @@ Usage:
 Optionen:
   --daily         Daily Challenge (g_neonwave_daily 1); wählt die Tages-Map
   --hardcore      Hardcore-Lauf (g_neonwave_hardcore 1)
+  --ghost         StarCraft Ghost kit (g_neonwave_ghost 1): Rail-Snipe, Cloak, EMP, Nuke
   --wayland       SDL2 native Wayland backend (kein X11-Compat-Layer)
   --map NAME      Map (Default: oa_shine; mit --daily überschreibt die Tages-Map)
   --help          diese Hilfe
@@ -54,6 +56,7 @@ while [ $# -gt 0 ]; do
     --help|-h) usage ;;
     --daily) DAILY=1; shift ;;
     --hardcore) HARDCORE=1; shift ;;
+    --ghost) GHOST=1; shift ;;
     --wayland) WAYLAND=1; shift ;;
     --map)
       if [ $# -lt 2 ]; then
@@ -115,6 +118,10 @@ if [ "$DAILY" -eq 1 ]; then
 fi
 if [ "$HARDCORE" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_hardcore 1)
+fi
+if [ "$GHOST" -eq 1 ]; then
+  MODE_CVARS+=(+set g_neonwave_ghost 1)
+  echo "Ghost kit: cloak/emp/nuke  (bind j cloak, h emp, n nuke)"
 fi
 
 exec "$ENGINE_BIN" \

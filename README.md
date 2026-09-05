@@ -3,7 +3,7 @@
 **Wave-Survival-Shooter auf OpenArena-Basis** – Railgun & Lightning Gun gegen
 steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 
-> Spielen: `scripts/start-quake3e.sh` · Daily: `scripts/start-quake3e.sh --daily`  
+> Spielen: `scripts/start-quake3e.sh` · Daily: `--daily` · Ghost: `--ghost`  
 > oder: `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
 
 ## Features (Mod `neonarena`, Gametype 14 „Neon Wave Survival")
@@ -12,6 +12,9 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
   tot ist tot. 12 s Pause zwischen Wellen.
 - **Waffen-Identität:** Spawn mit Railgun + Lightning Gun + Gauntlet. Andere
   Waffen-Pickups werden ignoriert – Rail/LG-Pickups dienen als Ammo-Nachschub.
+- **Ghost-Kit** (optional, `g_neonwave_ghost 1` / `--ghost`): StarCraft-inspirierter
+  Loadout — Rail-Snipe, Cloak, EMP, Tac-Nuke-Calldown, Detector ab Welle 8.
+  Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md).
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
 - **Wellen-Modifier** (ab Welle 5, auch in Boss-Wellen): 14 Modifier mit
   Synergie-/Anti-Synergie-System (ab Welle 8). Siehe [Modifier-Reference](docs/MODIFIER_REFERENCE.md).
@@ -51,6 +54,7 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - [Boss-Reference](docs/BOSS_REFERENCE.md) — Alle 7 Boss-Typen mit Phase-2-Verhalten
 - [Modifier-Reference](docs/MODIFIER_REFERENCE.md) — Alle 14 Modifier + Synergien
 - [Perk-Reference](docs/PERK_REFERENCE.md) — Perk-System mit allen 6 Perks
+- [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Cloak, EMP, Nuke, Detector)
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
 - [Test-Suite](tests/TESTS.md) — 56 Tests mit CVar-Hooks
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
@@ -202,10 +206,11 @@ oa-gamecode/
 ├── code/game/
 │   ├── g_neonwave.c      # Hauptlogik (Waves, Modifier, Boss, Perks, Records)
 │   ├── g_neonwave.h      # Defines (NW_MOD_*, NW_BOSS_*, NW_PERK_*)
+│   ├── g_ghost.c         # Ghost-Kit (Cloak, EMP, Nuke-Calldown, Detector)
 │   ├── g_cmds.c          # Upgrade-Kommando (upgrade hp|dmg|speed)
 │   └── g_main.c          # CVar-Registrierungen
 └── code/cgame/
-    └── cg_draw.c         # HUD, Modifier-Anzeige, Codex
+    └── cg_draw.c         # HUD, Modifier-Anzeige, Codex, Ghost-Leiste
 ```
 
 Siehe [Architektur](docs/ARCHITECTURE.md) für Details.
@@ -235,4 +240,4 @@ Jede Rückmeldung hilft, NeonArena besser zu machen. Egal ob Bug-Bericht, Balanc
 
 ---
 
-**Version:** v0.53 | **Letzte Aktualisierung:** 2026-09-03
+**Version:** v0.70 | **Letzte Aktualisierung:** 2026-09-05

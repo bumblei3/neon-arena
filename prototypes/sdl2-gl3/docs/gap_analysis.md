@@ -25,6 +25,7 @@
 | Achievement System | ✅ achievements.cpp | ✅ (CVar-basiert, minimal) | **Ja (Priorität)** |
 | Overclock System | ✅ overclock.cpp | ✅ (g_neonwave.c) | Erweitern |
 | Echo System | ✅ echo.cpp | ✅ (g_neonwave.c) | Erweitern |
+| StarCraft Ghost-Kit | ✅ specials.cpp / ghost_rules.h | ✅ `g_ghost.c` (OA-Produkt) | OA ist Quelle; Prototyp nur Skizze |
 
 ## Rückportierungs-Priorisierung
 

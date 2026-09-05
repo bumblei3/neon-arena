@@ -56,6 +56,9 @@ mv neonarena-engine ~/quake3e-engine/
   +g_gametype 14 +map oa_shine
 ```
 
+Ghost-Kit (optional): `scripts/start-quake3e.sh --ghost` setzt `g_neonwave_ghost 1`.
+Siehe [Ghost-Reference](GHOST_REFERENCE.md).
+
 ### Windows
 
 ```powershell

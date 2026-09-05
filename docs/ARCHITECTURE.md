@@ -19,12 +19,13 @@ neon-arena/
 │   ├── BOSS_REFERENCE.md  # Alle 7 Boss-Typen
 │   ├── MODIFIER_REFERENCE.md  # Alle 14 Modifier
 │   ├── PERK_REFERENCE.md  # Perk-System
+│   ├── GHOST_REFERENCE.md # StarCraft Ghost-Kit
 │   └── CI-engine-quake3e.md   # Engine-Build-Dokumentation
 ├── oa-gamecode/           # Submodule: bumblei3/oa-gamecode
 │   └── code/
-│       ├── game/          # Server-seitige Logik (g_neonwave.c)
+│       ├── game/          # Server-seitige Logik (g_neonwave.c, g_ghost.c)
 │       └── cgame/         # Client-seitige Logik (HUD, Rendering)
-├── prototypes/            # Experimentelle Renderer (SDL2, Vulkan)
+├── prototypes/            # Skizzen (SDL2-GL3) — nicht das Produkt
 ├── references/            # Historische Referenzen
 ├── scripts/               # Start-Skripte
 ├── tests/                 # Headless-Test-Suite
@@ -38,29 +39,36 @@ neon-arena/
 
 | Datei | Verantwortung |
 |-------|---------------|
-| `g_neonwave.c` | Wave-Survival-Hauptlogik (2612 Zeilen): Modifier, Boss, Perks, Records, Coop |
+| `g_neonwave.c` | Wave-Survival-Hauptlogik: Modifier, Boss, Perks, Records, Coop; tickt `NW_GhostFrame` |
 | `g_neonwave.h` | Defines (NW_MOD_*, NW_BOSS_*, NW_PERK_*, NW_MAX_*) |
-| `g_cmds.c` | Upgrade-Kommando (`upgrade hp\|dmg\|speed`) |
+| `g_ghost.c` | Ghost-Kit: Energy, Cloak/EMP/Nuke, Detector-Think, HUD-CVars |
+| `g_cmds.c` | Upgrade-Kommando (`upgrade hp\|dmg\|speed`); Ghost `cloak`/`emp`/`nuke` |
 | `g_main.c` | CVar-Registrierungen, Spielinitialisierung |
-| `g_combat.c` | Damage-Hooks (Vampiric Heal, Mirror Reflektion) |
-| `g_client.c` | Client-Persistenz (Upgrade-Punkte, Perk-Stände) |
-| `g_bot.c` | Bot-Handling |
+| `g_combat.c` | Damage-Hooks (Vampiric Heal, Mirror; Ghost Cloak-Break) |
+| `g_weapon.c` | Fire-Hooks (Ghost Cloak-Break) |
+| `g_client.c` | Client-Persistenz; Ghost-Spawn (Rail+Gauntlet); Detector-Flag |
+| `g_bot.c` | Bot-Handling; `neonwave_detector` Userinfo |
+| `ai_dmq3.c` | Bot-Sicht: `NW_GhostSeesInvis` überspringt Cloak |
 
 ### Client (`code/cgame/`)
 
 | Datei | Verantwortung |
 |-------|---------------|
-| `cg_draw.c` | HUD, Modifier-Anzeige, Codex/Bestiary, Upgrade-Shop |
+| `cg_draw.c` | HUD, Modifier-Anzeige, Codex/Bestiary, Upgrade-Shop, Ghost-Energy-Leiste |
 
 ## Datenfluss
 
 ```
 NeonWave_Frame()
+  ├── NW_GhostFrame()        → Energy-Regen, Cloak/EMP/Nuke, Detector, HUD-CVars
   ├── NW_PickModifier()      → Modifier für diese Welle
   ├── NW_ApplySynergy()      → Synergie-/Anti-Synergie-Prüfung
-  ├── NeonWave_StartWave()   → Bot-Spawns, Skill-Berechnung
+  ├── NeonWave_StartWave()   → Bot-Spawns, Skill-Berechnung; Detector ab Welle 8
   ├── NW_SpawnBoss()         → Boss-Spawn (ab Welle 10)
   └── NW_GrantUpgradePoints() → Punkte nach Wave-Clear
+
+NeonWave_OnDroneKill()
+  └── NW_GhostOnKill()       → +15 Energy (Humans)
 
 NW_Cache()                   → Single-Pass-Aggregation aller Client-Stats
   ├── points                 → Upgrade-Punkte
@@ -85,6 +93,12 @@ NW_Cache()                   → Single-Pass-Aggregation aller Client-Stats
 | `g_neonwave_modifier2` | 0 | Zweiter Modifier-Slot (Test-Hook) |
 | `g_neonwave_daily` | 0 | Daily Challenge |
 | `g_neonwave_dailyseed` | 0 | Daily Seed (Test-Hook) |
+| `g_neonwave_ghost` | 0 | StarCraft Ghost-Kit (ARCHIVE, SERVERINFO) |
+| `g_ghost_energy` | 0 | HUD: aktuelle Energy (ROM) |
+| `g_ghost_cloakms` | 0 | HUD: Cloak-Rest ms (ROM) |
+| `g_ghost_empcd` | 0 | HUD: EMP-Cooldown ms (ROM) |
+| `g_ghost_nukecd` | 0 | HUD: Nuke-Cooldown ms (ROM) |
+| `g_ghost_status` | `""` | HUD: DESIGNATING / NUKE N / DETECTED / CLOAKED (ROM) |
 
 ### Test-Hooks (Headless/CI)
 

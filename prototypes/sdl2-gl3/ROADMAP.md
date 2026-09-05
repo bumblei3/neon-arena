@@ -1,7 +1,11 @@
 # NeonArena SDL2-GL3 Prototype — ROADMAP
 
-> **Last updated:** 2026-09-06
-> **Status:** ~70% complete — core loop functional, Ghost-Modus playable (loadout + hitscan + cloak)
+> **Last updated:** 2026-09-05
+> **Status:** playable sketch only. The product is the OpenArena mod
+> (`oa-gamecode`, `g_ghost.c`, `scripts/start-quake3e.sh --ghost`).
+> See `docs/GHOST_REFERENCE.md` in the repo root for the live kit.
+>
+> Prototype Ghost numbers below are **not** the OA source of truth.
 
 ---
 
@@ -111,9 +115,13 @@
 
 ---
 
-## Ghost-Modus (StarCraft-style)
+## Ghost-Modus (StarCraft-style) — prototype sketch
 
-Pick **Start Ghost** in the menu (separate loadout from Arena).
+This section describes the **SDL prototype** only. OpenArena Ghost is
+documented in `../../docs/GHOST_REFERENCE.md` (Cloak 5s lump, EMP self-AoE,
+Nuke calldown, Detector wave 8; no Scanner, no ambush 2× yet).
+
+Pick **Start Ghost** in the prototype menu (separate loadout from Arena).
 
 ### Weapons
 | Weapon | Damage | Cooldown | Notes |

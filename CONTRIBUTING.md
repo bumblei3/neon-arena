@@ -10,17 +10,19 @@ CI, Dokumentation).
 ```
 neon-arena/
   README.md              # Übersicht, Startanleitung, Features
+  docs/                  # BOSS/MODIFIER/PERK/GHOST_REFERENCE, ARCHITECTURE
   build-mod.sh           # Mod-Build + Installation nach ~/.openarena/neonarena/
   Makefile               # Top-Level (nur SDL2-Prototyp main.cpp)
   Makefile.local         # Lokale Overrides für oa-gamecode/ (BASEGAME=neonarena)
   oa-gamecode/           # Git-Submodul → bumblei3/oa-gamecode
     code/game/g_neonwave.c   # NeonWave-Logik (GT_NEONWAVE)
-    code/cgame/             # Client-Seite (HUD, Codex, Perks)
+    code/game/g_ghost.c      # Ghost-Kit (g_neonwave_ghost)
+    code/cgame/             # Client-Seite (HUD, Codex, Perks, Ghost-Leiste)
     Makefile.local          # Wird aus Top-Level kopiert
   assets/                # Look-Pack (shader, textures, gfx, sound, autoexec)
   tests/                 # Headless-Suite (run_suite.sh, TESTS.md, verify_catalog.py)
   references/            # Test-Harness, Build/Release, Parallel-Suite, Runstats-JSON, Musik
-  scripts/               # start-quake3e.sh (Engine-Start mit Bloom)
+  scripts/               # start-quake3e.sh (Engine-Start mit Bloom, --ghost)
   dist/                  # CI-PK3-Artifacts (master-Releases)
   .github/workflows/     # build-mod.yml, engine-quake3e.yml
 ```

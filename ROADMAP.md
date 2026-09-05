@@ -1,7 +1,25 @@
 # NeonArena Roadmap
 
 > Letztes Update: 2026-09-05
-> Stand: v0.70 released, 506 Prototyp-Tests, 72 Haupt-Mod-Tests
+> Stand: v0.70 released, Ghost-Kit im OpenArena-Mod (Unreleased), 506 Prototyp-Tests, 72 Haupt-Mod-Tests
+>
+> Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
+
+---
+
+## Ghost-Kit (StarCraft)
+
+Optionaler Loadout: `scripts/start-quake3e.sh --ghost` / `g_neonwave_ghost 1`.
+Referenz: [docs/GHOST_REFERENCE.md](docs/GHOST_REFERENCE.md).
+
+| Slice | Inhalt | Status |
+|-------|--------|--------|
+| v1 | Energy, Cloak 5 s, EMP-Stun-Blase, Nuke-Paint, Rail-Spawn, HUD-CVars | ✅ |
+| Calldown + Detector | Nuke Sky-Laser, 4-3-2-1, Bots fliehen, BFG-FX, custom Dmg; Detector Welle 8; Swarm; Boss Phase 2 sieht Cloak | ✅ |
+| Drain + EMP-Round + Lockdown | Cloak Toggle/Drain + Ambush 2×; EMP als Plasma-Bolt (Armor-Strip); Lockdown vs Boss/Detector; Gauntlet raus | 🔜 nächste Slice |
+| HUD-Polish | Energy/CDs live (ggf. Configstring statt CVar-Poll) | später |
+
+Nicht geplant: extra Rail-Feuerverzögerung (Q3-Rail ist schon 1500 ms). Scanner ist Comsat, nicht Ghost.
 
 ---
 
@@ -142,6 +160,7 @@ Mär 2027  Release v0.80 (Multiplayer-Ready)
 
 ## 🚧 Blocked / Warteliste
 
+- **Ghost Slice 2:** Cloak-Drain, EMP-Projektil, Lockdown — empfohlen, nicht blockiert
 - **Netzwerk-Coop:** Erst nach lokalem Coop implementieren (M4 erledigt ✅)
 - **Modding-Support:** Benötigt stabile API (erst nach M7 ✅)
 - **Achievements:** Benötigt Savegame-Erweiterung (erledigt ✅)

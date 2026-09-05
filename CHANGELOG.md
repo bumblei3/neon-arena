@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **StarCraft Ghost-Kit** (`g_neonwave_ghost 1`, Start: `scripts/start-quake3e.sh --ghost`) — optionaler Loadout für GT_NEONWAVE:
+  - Spawn: Railgun (30) + Gauntlet, Energy 40/100, +3/s, +15 pro Kill
+  - **Cloak** (J, 40 Energy, 5 s `PW_INVIS`) — Bots sehen unsichtbar nicht jenseits 80 u; bricht bei Schuss, Schaden, Detector
+  - **EMP** (H, 35 Energy, 25 s CD) — 400 u Stun 1.5 s auf Bots
+  - **Tac Nuke** (N, 80 Energy, 45 s CD) — Calldown: 1.5 s stehen (Cancel bei Bewegung/Schaden), 4 s inbound mit Sky-Laser und Countdown, Bots fliehen, BFG-FX; Trash instakill, Boss 40 % maxHealth, Selbst 40
+  - **Detector** ab Welle 8 (120 HP, 400 u / ~40° Cone) — Cloak-Break + 4 s Swarm; Boss Phase 2 sieht Cloak
+  - HUD: Energy-Leiste + Status (`CLOAKED` / `DESIGNATING` / `NUKE N` / `DETECTED`)
+  - Binds in `assets/autoexec.cfg`: J/H/N
+  - Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md)
+
+### CVars Added
+- `g_neonwave_ghost` — Ghost-Kit an/aus (ARCHIVE, SERVERINFO)
+- `g_ghost_energy`, `g_ghost_cloakms`, `g_ghost_empcd`, `g_ghost_nukecd`, `g_ghost_status` — HUD-Spiegel (ROM)
+
 ## [0.70] - 2026-09-05
 
 ### Added
