@@ -3,7 +3,7 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-05 · Kit in **v0.71** · G7 Detector-Turm
+> Letztes Update: 2026-09-05 · Kit in **v0.71** · G9 Cues
 
 ## Stand
 
@@ -33,6 +33,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 | G5 | Runde Scope-Blende; Cyan-Cloak-Shell |
 | G6 | Hit-Confirm im Scope; Tests 73–75 in CI (single) |
 | G7 | Ortsfester Detector-Turm ab Welle 8; Lockdown zählt |
+| G9 | Eigene Short-Sounds (Cloak/EMP/Lock/Nuke/Scan) |
 
 ## Lücken vs StarCraft Ghost
 
@@ -41,7 +42,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 | Treffer im Scope | Cyan/Gold im Iris | Snipe zeigt Treffer | G6 ✅ |
 | Detector | Bot + Turm ab W8 (Rail-Ping, 800 ms) | SC Missile Turret analog | G7 ✅ |
 | Balance | 55 Start, Drain 8/s, ~3.7 s Cloak | eine Zahl nach einer Runde | **G8** |
-| Sounds | OA-Stock | eigene Short-Cues | **G9** |
+| Sounds | PK3 `ghost_*.wav` | eigene Short-Cues | G9 ✅ |
 | Modell | Sarge + Cyan-Shell cloaked | Ghost-Look auch uncloaked | **G10** |
 | Tests in CI | Chunk 4: 73–75 single (echte Asserts) | 61–72 weiter nur lokal | G6 ✅ |
 | Nuke-Inbound | 4 s | SC ~20 s | nicht — Arena |
@@ -73,9 +74,9 @@ Erst eine Runde `--ghost` mindestens bis Welle 8, dann **eine** Änderung:
 
 Keine Zahlen stapeln. Ohne Runde bleibt G8 liegen.
 
-### G9 — Eigene Cues (PK3)
+### G9 — Eigene Cues (PK3) ✅
 
-Kurze eigene Sounds statt Stock: Cloak an/aus, EMP-Abschuss, Lock-Treffer, Nuke-Paint, Scan-Warn. Liegen in `assets/sound/`, nicht SDL.
+`assets/sound/ghost_{cloak_on,cloak_off,emp,lock,nuke,scan}.wav`. Scan spielt einmal beim Cone-Eintritt (`SCANNING`). Ambush bleibt OA `hit`. Generator: `assets/gen_ghost_sounds.py`.
 
 ### G10 — Ghost-Look
 

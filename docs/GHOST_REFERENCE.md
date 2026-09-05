@@ -23,7 +23,7 @@ Binds in `assets/autoexec.cfg`: **J** cloak · **H** emp · **K** lockdown · **
 Spawn: Railgun (30 Slugs) — das ist die Sniper. Keine Lightning Gun, kein Gauntlet.
 Hip-Fire: normales Rail-Crosshair + Cyan/Gold Hit-Confirm. **RMB** (`+zoom`, `cg_zoomfov 28`): runde Cyan-Blende + Fadenkreuz, Hit-Confirm im Iris, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
 
-Sounds (OA-Stock): Cloak `protect3` / aus `wearoff` · EMP `hyprbf1a` · Lock `lg_hit` · Nuke-Paint `bfg_fire` · Ambush `hit`.
+Sounds (PK3): Cloak `sound/ghost_cloak_on.wav` / aus `_off` · EMP `ghost_emp` · Lock-Treffer `ghost_lock` · Nuke-Paint `ghost_nuke` · Scan-Warn `ghost_scan`. Ambush bleibt `sound/feedback/hit.wav`.
 
 ## Loop
 
