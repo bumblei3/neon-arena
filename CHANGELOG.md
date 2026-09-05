@@ -9,12 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Arena Hit-Confirm:** Cyan-Ecken am Fadenkreuz ~150 ms bei Treffer (`PERS_HITS`); Gold ~220 ms bei Kill.
-- **Ghost G6:** derselbe Marker im runden Scope-Iris; CI-Chunk 4 läuft Tests 73–75 als Single (echte Asserts).
+- **Ghost G6:** derselbe Marker im runden Scope-Iris; CI-Chunks laufen Ghost-Tests 73–75 mit echten Asserts.
 - **Ghost G7:** ortsfester Detector-Turm ab Welle 8 (Rail-Ping, 800 ms Scan, Lockdown-Ziel). Tests 74–75 erwarten `DETECTOR turret`.
 - **Ghost G9:** eigene Short-Sounds im PK3 (`ghost_cloak_on/off`, `ghost_emp`, `ghost_lock`, `ghost_nuke`, `ghost_scan`).
 - **Auto-GFX:** `scripts/start-quake3e.sh` probed GPU/Vulkan/VRAM einmal, schreibt `gfx-auto.cfg` (low/med/high). `--gfx-reset` neu probe. Manuelle Datei wird nicht überschrieben.
 
 ### Changed
+- **Tests:** `--parallel` führt echte `assert_N` aus (isoliertes Homepath). CI-Chunks 0–5 (inkl. 61–75) fallen bei FAIL durch; Catalog verlangt `assert_N` für jede ALL_TESTS-Nummer.
 - **Ghost G5:** RMB-Zoom ist eine runde Blende statt Letterbox-Balken; Cloak zeigt eine Cyan-Shell statt Stock-Invis.
 
 ## [0.71] - 2026-09-05

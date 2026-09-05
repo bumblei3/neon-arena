@@ -4,7 +4,7 @@
 #   ./run_suite.sh              # run all tests
 #   ./run_suite.sh --quick      # smoke-only subset (see QUICK_TESTS)
 #   ./run_suite.sh --test 7     # single test
-#   ./run_suite.sh --parallel N # run tests in parallel (experimental)
+#   ./run_suite.sh --parallel N --test '1 3 73'  # real asserts, isolated homepath
 #   ./run_suite.sh --list       # list test names
 #   ./run_suite.sh --real-window [N...]   # run on DISPLAY=:0 with visible window
 #
@@ -25,11 +25,13 @@ if [ "${OA_BIN##*/}" = "openarena" ] || [ "$OA_BIN" = "/usr/games/openarena" ]; 
   : # wrapper sets its own cvars; nothing extra needed
 elif [ "${OA_BIN##*/}" = "ioq3ded" ] || [ "$OA_BIN" = "/usr/lib/ioquake3/ioq3ded" ]; then
   OA_EXTRA=(+set com_basegame baseoa +set fs_basepath /usr/lib/openarena
-            +set fs_homepath "$HOME/.openarena" +set com_legacyprotocol 71
-            +set com_protocol 71)
+            +set com_legacyprotocol 71 +set com_protocol 71)
 fi
 
-HOME_DIR="$HOME/.openarena/neonarena"
+# Isolated homepath for --parallel slots (default: the player install).
+na_root() { echo "${TEST_HOMEPATH:-$HOME/.openarena}"; }
+na_game() { echo "$(na_root)/neonarena"; }
+HOME_DIR="$(na_game)"
 PASS=0; FAIL=0; FAILED_NAMES=""
 
 MODE="all"
@@ -111,6 +113,7 @@ run_test() {
     local _before_pass="${PASS:-0}" _before_fail="${FAIL:-0}"
     printf '%s' "TEST $num: $name ... "
     $RUNNER timeout "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
+      +set fs_homepath "$(na_root)" \
       +set sv_maxclients 24 \
       +set fs_game neonarena +set g_gametype 14 +map oa_shine \
       "$@" > "$log" 2>&1 || true
@@ -277,7 +280,7 @@ assert_17() {
 
 # TEST 18: run-stats JSON export
 assert_18() {
-  local ok=0 json="$HOME/.openarena/neonarena/neonwave_runstats.json"
+  local ok=0 json="$(na_game)/neonwave_runstats.json"
   check "$1" "RUN STATS JSON written"; [ $LAST_RESULT -eq 0 ] || ok=1
   [ -f "$json" ] || ok=1
   if [ -f "$json" ]; then
@@ -954,7 +957,7 @@ assert_16() {
 dispatch_test() {
   case "$1" in
     1)  run_test 1 "smoke+boss" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 ;;
-    2)  rm -f "$HOME/.openarena/neonarena/neonwave_records.dat"; run_test 2 "full-run-victory" 240 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_best 0 ;;
+    2)  rm -f "$(na_game)/neonwave_records.dat"; run_test 2 "full-run-victory" 240 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_best 0 ;;
     3)  run_test 3 "modifier-lowgrav" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 3 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
     4)  run_test 4 "failrun-stats" 60 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     5)  run_test 5 "boss-tank-hp" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_autokill 1 ;;
@@ -971,9 +974,9 @@ dispatch_test() {
     15) run_test 15 "daily-challenge-determinism" 120 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 12345 +set g_neonwave_startwave 10 ;;
     16) run_test 16 "boss-warden" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 5 +set g_neonwave_wardenforce 1 ;;
     17) run_test 17 "timewarp-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 5 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
-    18) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 18 "runstats-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
-    19) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 19 "achievements-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_failrun 1 ;;
-    20) rm -f "$HOME/.openarena/neonarena/neonwave_runstats.json"; run_test 20 "hardcore-mode" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_hardcore 1 ;;
+    18) rm -f "$(na_game)/neonwave_runstats.json"; run_test 18 "runstats-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
+    19) rm -f "$(na_game)/neonwave_runstats.json"; run_test 19 "achievements-json" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_failrun 1 ;;
+    20) rm -f "$(na_game)/neonwave_runstats.json"; run_test 20 "hardcore-mode" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 2 +set g_neonwave_hardcore 1 ;;
     21) run_test 21 "vampire-lifesteal" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 6 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     22) run_test 22 "frenzy-quadfactor" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 7 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     23) run_test 23 "overshield-armor" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 8 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
@@ -1059,40 +1062,67 @@ QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 
     ;;
 
   parallel)
-    # Run selected tests in parallel, each as its own ioq3ded with isolated
-    # fs_homepath + net_port. Used for CI speed experiments only — not wired into
-    # the main suite path yet. Syntax: --parallel N --test 'n1 n2 ...'
+    # Real asserts (same dispatch_test / assert_N as --test). Isolated
+    # fs_homepath per slot so records/json do not collide. Syntax:
+    # --parallel N --test 'n1 n2 ...'
     if [ -z "$SELECTED" ]; then
       echo "specify --parallel N --test 'n1 n2 ...'"
       exit 1
     fi
+    nslots="${PARALLEL_N:-4}"
     testlist="$SELECTED"
     slot_pids=""
+    slot_n=0
+    src="$HOME/.openarena/neonarena"
     for t in $testlist; do
-      hp="$HOME/.openarena-nwtest/${t}"
-      mkdir -p "$hp"
-      ln -sf "$HOME/.openarena/neonarena" "$hp/neonarena"
-      port=$(( 27970 + ( t % 80 ) ))
+      if [ "$slot_n" -ge "$nslots" ]; then
+        set -- $slot_pids
+        wait "$1" || true
+        shift
+        slot_pids="$*"
+        slot_n=$((slot_n-1))
+      fi
       (
-        log="$hp/test${t}.log"
-        $RUNNER timeout 60 "$OA_BIN" \
-          +set dedicated 1 "${OA_EXTRA[@]}" \
-          +set sv_maxclients 24 \
-          +set fs_game neonarena +set g_gametype 14 +map oa_shine \
-          +set fs_homepath "$hp" \
-          +set net_port "$port" \
-          +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 \
-          > "$log" 2>&1 || true
-        if grep -q "gamename.*NeonArena" "$log" 2>/dev/null; then
-          echo "TEST $t: PARALLEL-OK PASS"
-        else
-          echo "TEST $t: PARALLEL-OK FAIL (no NeonArena load)"
+        hp="$HOME/.openarena-nwtest/${t}"
+        mkdir -p "$hp/neonarena/vm"
+        if [ -d "$src" ]; then
+          for f in "$src"/*.pk3; do
+            [ -e "$f" ] && ln -sfn "$f" "$hp/neonarena/"
+          done
+          if [ -d "$src/vm" ]; then
+            for f in "$src/vm"/*.qvm; do
+              [ -e "$f" ] && ln -sfn "$f" "$hp/neonarena/vm/"
+            done
+          fi
         fi
-      ) &
+        TEST_HOMEPATH="$hp"
+        LOGDIR="$LOGDIR/p${t}"
+        mkdir -p "$LOGDIR"
+        PASS=0
+        FAIL=0
+        FAILED_NAMES=""
+        dispatch_test "$t"
+        if [ "$FAIL" -gt 0 ]; then
+          exit 1
+        fi
+        exit 0
+      ) >"$LOGDIR/par-${t}.out" 2>&1 &
       slot_pids="$slot_pids $!"
+      slot_n=$((slot_n+1))
     done
     for p in $slot_pids; do
       wait "$p" || true
+    done
+    for t in $testlist; do
+      if grep -q "TEST ${t}:.*PASS" "$LOGDIR/par-${t}.out" 2>/dev/null; then
+        echo "TEST $t: PASS (parallel)"
+        PASS=$((PASS+1))
+      else
+        echo "TEST $t: FAIL (parallel, see $LOGDIR/par-${t}.out)"
+        FAIL=$((FAIL+1))
+        FAILED_NAMES="$FAILED_NAMES $t"
+        par_fail=1
+      fi
     done
     ;;
 

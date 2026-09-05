@@ -10,6 +10,9 @@ Test-Hooks via `g_neonwave_*` Cvars.
   **unerwünschte Marker** (Anti-Patterns).
 - Neue Tests werden mit Nummer und Kurzname eingetragen; die Nummer
   darf nicht kollidieren.
+- `--parallel N --test '…'` läuft **dieselben Asserts** wie `--test N`
+  (isoliertes `fs_homepath` pro Slot). Kein Gamename-Smoke.
+- CI `build-mod` Chunks 0–5 nutzen diesen Parallel-Pfad; FAIL macht den Job rot.
 
 ## Test-Katalog
 

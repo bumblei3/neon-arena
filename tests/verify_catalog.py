@@ -147,7 +147,16 @@ def main() -> None:
                 f"{', '.join(sorted(undocumented, key=lambda x: (x.isdigit(), x)))}"
             )
 
-    # Direction 4 (soft): every documented entry should be in ALL_TESTS
+    # Direction 4: every ALL_TESTS id must have assert_<id>()
+    assert_fns = set(re.findall(r"^assert_([\w]+)\s*\(", suite_text, re.M))
+    missing_assert = all_tests - assert_fns
+    if missing_assert:
+        errors.append(
+            f"FAIL: ALL_TESTS has {len(missing_assert)} test(s) without assert_N(): "
+            f"{', '.join(sorted(missing_assert, key=lambda x: (x.isdigit(), x)))}"
+        )
+
+    # Direction 5 (soft): every documented entry should be in ALL_TESTS
     undocumented_in_md = documented - all_tests
     if undocumented_in_md:
         print(
