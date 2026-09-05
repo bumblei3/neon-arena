@@ -94,6 +94,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 73 | ghost-kit-w1 | ghost 1, autostart, startwave 1, failrun | `GHOST kit active (wave 1)` | `DETECTOR spawned`, `DETECTOR turret` |
 | 74 | ghost-detector-w8 | ghost 1, startwave 8, failrun | `DETECTOR spawned (wave 8, 1`, `DETECTOR turret (wave 8)` | `wave 8, 2` |
 | 75 | ghost-detector-w12 | ghost 1, startwave 12, failrun | `DETECTOR spawned (wave 12, 2`, `DETECTOR turret (wave 12)` | keine Fatal-Warnung |
+| 76 | replay-roundtrip | replaytest 1, autostart, failrun | `NeonWave: REPLAY roundtrip events=5 loaded=5 match=1` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 
@@ -151,7 +152,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **45 Tests** (1–44 inkl. 9b). Der vollständige Katalog
+Die Suite umfasst **77 Tests** (1–76 inkl. 9b). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:
