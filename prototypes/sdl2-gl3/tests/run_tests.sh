@@ -122,5 +122,14 @@ echo ""
 echo "=== Running Bot AI Tests ==="
 ./test_bot_ai
 
+# --- 12. Wave Editor Tests ---
+echo ""
+echo "=== Building Wave Editor Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_wave_editor test_wave_editor.cpp ../src/wave_editor.cpp
+
+echo ""
+echo "=== Running Wave Editor Tests ==="
+./test_wave_editor
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_wave_editor
