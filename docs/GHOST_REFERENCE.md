@@ -93,8 +93,10 @@ Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist. Cloak-Toggle-Aus kostet
 
 ## Detector
 
-Ab Welle 8 ein extra Sarge-Bot `Detector W<n>-1` (120 HP, rotes `constantLight`).
-Ab Welle 12 ein zweiter (`W<n>-2`). Bot-Skill = Wellen-Skill + 1 (max 5).
+Ab Welle 8 ein extra Sarge-Bot `Detector W<n>-1` (120 HP, rotes `constantLight`)
+plus ein **ortsfester Turm** (`ghost_detector_turret`, 120 HP, dreht, Rail-Ping).
+Ab Welle 12 ein zweiter Bot (`W<n>-2`). Bot-Skill = Wellen-Skill + 1 (max 5).
+Lockdown trifft Bot **und** Turm. Marker: `DETECTOR turret (wave N)`.
 
 | | Wert |
 |---|---|

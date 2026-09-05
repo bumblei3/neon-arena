@@ -22,12 +22,12 @@ Referenz: [docs/GHOST_REFERENCE.md](docs/GHOST_REFERENCE.md) · Plan: [docs/GHOS
 | Ghost-Feedback | Cloak-Sicht, OA-Sounds pro Verb, goldener Ambush-Trail | ✅ |
 | G5 Cosmetic | Runde Scope-Blende; Cyan-Cloak-Shell | ✅ |
 | G6 Scope Hit-Confirm | Cyan/Gold im Iris; Tests 73–75 in CI (single) | ✅ |
-| G7 Detector-Turm | Ortsfester Scanner, sichtbarer Hunt | geplant |
+| G7 Detector-Turm | Ortsfester Scanner, sichtbarer Hunt | ✅ |
 | G8 eine Balance-Zahl | Nur nach einer Runde bis Welle 8 | geplant |
 | G9 eigene Cues | Short-Sounds statt OA-Stock | später |
 | G10 Ghost-Look | Cyan-Shell / Skin uncloaked | später |
 
-**G1–G6 ✅.** Nächster Ghost-Hebel: [GHOST_ROADMAP](docs/GHOST_ROADMAP.md) G7 (Detector-Turm) oder G8 nach einer Runde. Keine neuen Verben.
+**G1–G7 ✅.** Nächster Ghost-Hebel: eine Runde, dann G8 (eine Zahl). Keine neuen Verben.
 
 Nicht geplant: extra Rail-Feuerverzögerung (Q3-Rail ist schon 1500 ms). Scanner Sweep ist Comsat, nicht Ghost.
 
@@ -170,7 +170,7 @@ Mär 2027  Release v0.80 (Multiplayer-Ready)
 
 ## 🚧 Blocked / Warteliste
 
-- **Ghost:** G1–G6 sitzen (Hit-Confirm auch im Scope). Nächster Hebel G7 Turm oder G8 nach Play. Plan: [docs/GHOST_ROADMAP.md](docs/GHOST_ROADMAP.md).
+- **Ghost:** G1–G7 sitzen. Nächster Hebel G8 nach einer Runde bis Welle 8. Plan: [docs/GHOST_ROADMAP.md](docs/GHOST_ROADMAP.md).
 - **Netzwerk-Coop:** Erst nach lokalem Coop implementieren (M4 erledigt ✅)
 - **Modding-Support:** Benötigt stabile API (erst nach M7 ✅)
 - **Achievements:** Benötigt Savegame-Erweiterung (erledigt ✅)

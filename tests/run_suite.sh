@@ -829,6 +829,7 @@ assert_73() {
   check "$1" "GHOST kit active (wave 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "starting wave 1 ("; [ $LAST_RESULT -eq 0 ] || ok=1
   assert_no_pattern "$1" "DETECTOR spawned" || ok=1
+  assert_no_pattern "$1" "DETECTOR turret" || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "ghost-kit-w1"
 }
@@ -838,6 +839,7 @@ assert_74() {
   local ok=0
   check "$1" "GHOST kit active (wave 8)"; [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "DETECTOR spawned (wave 8, 1"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "DETECTOR turret (wave 8)"; [ $LAST_RESULT -eq 0 ] || ok=1
   assert_no_pattern "$1" "wave 8, 2," || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "ghost-detector-w8"
@@ -848,6 +850,7 @@ assert_75() {
   local ok=0
   check "$1" "GHOST kit active (wave 12)"; [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "DETECTOR spawned (wave 12, 2"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "DETECTOR turret (wave 12)"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "ghost-detector-w12"
 }

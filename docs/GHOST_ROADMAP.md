@@ -3,7 +3,7 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-05 · Kit in **v0.71** · G6 Scope Hit-Confirm
+> Letztes Update: 2026-09-05 · Kit in **v0.71** · G7 Detector-Turm
 
 ## Stand
 
@@ -32,13 +32,14 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 | G4 | Tests 73–75 |
 | G5 | Runde Scope-Blende; Cyan-Cloak-Shell |
 | G6 | Hit-Confirm im Scope; Tests 73–75 in CI (single) |
+| G7 | Ortsfester Detector-Turm ab Welle 8; Lockdown zählt |
 
 ## Lücken vs StarCraft Ghost
 
 | Thema | Jetzt | SC / Wunsch | Slice |
 |-------|--------|-------------|-------|
 | Treffer im Scope | Cyan/Gold im Iris | Snipe zeigt Treffer | G6 ✅ |
-| Detector | Sarge-Bot, rotes Licht, unsichtbarer Cone | Turm / sichtbarer Scan, nicht nur ein zweiter Bot | **G7** |
+| Detector | Bot + Turm ab W8 (Rail-Ping, 800 ms) | SC Missile Turret analog | G7 ✅ |
 | Balance | 55 Start, Drain 8/s, ~3.7 s Cloak | eine Zahl nach einer Runde | **G8** |
 | Sounds | OA-Stock | eigene Short-Cues | **G9** |
 | Modell | Sarge + Cyan-Shell cloaked | Ghost-Look auch uncloaked | **G10** |
@@ -54,16 +55,9 @@ Eine Slice nach der anderen. Keine neuen Tasten.
 
 Cyan-Tick ~150 ms / Gold ~220 ms im runden Iris bei `PERS_HITS` / Kill. Hip-Fire behält den Arena-Marker. `build-mod` Chunk 4 läuft Tests 73–75 im Single-Modus (echte Asserts, nicht Parallel-Smoke).
 
-### G7 — Detector-Jagd (Turm)
+### G7 — Detector-Jagd (Turm) ✅
 
-Zwei Sarge-Detectoren ab Welle 12 sind noch „mehr Bots“, kein Hunt.
-
-- Ab Welle 8: ein Detector bleibt Bot.
-- Zusätzlich ein **ortsfester Scanner** (kein zweiter Runner): sichtbarer Cone oder Rail-Ping auf den Ghost, 800 ms Warn bleibt.
-- Lockdown trifft den Turm wie den Bot (Mechanical).
-- Headless-Marker: `DETECTOR turret` neben `DETECTOR spawned`.
-
-Nicht: kürzere Scan-Warn, dritter Runner, Comsat-Sweep.
+Ab Welle 8 ein **ortsfester Scanner** (`ghost_detector_turret`, 120 HP) zusätzlich zum Bot-Detector. Dreht, 400 u / Cone 0.76, 800 ms `SCANNING` + Rail-Ping, dann Cloak-Break + Swarm. Lockdown freeze 4 s (Mechanical). Marker `DETECTOR turret (wave N)`. Bot-Kurve G3 unverändert (1 ab W8, 2 ab W12).
 
 ### G8 — Eine Balance-Zahl (nach Play)
 
