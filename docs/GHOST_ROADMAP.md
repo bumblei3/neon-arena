@@ -3,7 +3,7 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-05 · Kit in **v0.71** · G9 Cues
+> Letztes Update: 2026-09-05 · Kit in **v0.71** · G8 Drain 5/s
 
 ## Stand
 
@@ -34,6 +34,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 | G6 | Hit-Confirm im Scope; Tests 73–75 in CI (single) |
 | G7 | Ortsfester Detector-Turm ab Welle 8; Lockdown zählt |
 | G9 | Eigene Short-Sounds (Cloak/EMP/Lock/Nuke/Scan) |
+| G8 | Drain 8 → 5/s nach Welle-1-Play |
 
 ## Lücken vs StarCraft Ghost
 
@@ -41,7 +42,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 |-------|--------|-------------|-------|
 | Treffer im Scope | Cyan/Gold im Iris | Snipe zeigt Treffer | G6 ✅ |
 | Detector | Bot + Turm ab W8 (Rail-Ping, 800 ms) | SC Missile Turret analog | G7 ✅ |
-| Balance | 55 Start, Drain 8/s, ~3.7 s Cloak | eine Zahl nach einer Runde | **G8** |
+| Balance | 55 Start, Drain 5/s, ~6 s Cloak | eine Zahl nach einer Runde | G8 ✅ |
 | Sounds | PK3 `ghost_*.wav` | eigene Short-Cues | G9 ✅ |
 | Modell | Sarge + Cyan-Shell cloaked | Ghost-Look auch uncloaked | **G10** |
 | Tests in CI | Chunk 4: 73–75 single (echte Asserts) | 61–72 weiter nur lokal | G6 ✅ |
@@ -60,19 +61,11 @@ Cyan-Tick ~150 ms / Gold ~220 ms im runden Iris bei `PERS_HITS` / Kill. Hip-Fire
 
 Ab Welle 8 ein **ortsfester Scanner** (`ghost_detector_turret`, 120 HP) zusätzlich zum Bot-Detector. Dreht, 400 u / Cone 0.76, 800 ms `SCANNING` + Rail-Ping, dann Cloak-Break + Swarm. Lockdown freeze 4 s (Mechanical). Marker `DETECTOR turret (wave N)`. Bot-Kurve G3 unverändert (1 ab W8, 2 ab W12).
 
-### G8 — Eine Balance-Zahl (nach Play)
+### G8 — Eine Balance-Zahl (nach Play) ✅
 
-Erst eine Runde `--ghost` mindestens bis Welle 8, dann **eine** Änderung:
+Play: Welle 1 tot, 1 Kill, 66 s. **Eine** Zahl: Drain **8 → 5/s**. Start 55 unverändert (Cloak 25 + EMP 35 = 60, nicht beides voll). Nach Cloak-Kosten 30 Energy → ~6 s Tarnung (vorher ~3.7 s).
 
-| Wenn sich so anfühlt | Änderung |
-|---|---|
-| Cloak in Welle 1 unbrauchbar | Drain 8 → 5/s **oder** Start 55 → 70 |
-| Detector unfair | Scan-Warn 800 → 1200 ms |
-| Lockdown zu kurz am Boss | 4 s → 6 s |
-| Rail zu spammy | 30 Slugs → 20 |
-| Nuke zu oft | Cost 80 → 90 oder CD 45 → 60 s |
-
-Keine Zahlen stapeln. Ohne Runde bleibt G8 liegen.
+Weitere Zahlen erst nach der nächsten Runde.
 
 ### G9 — Eigene Cues (PK3) ✅
 

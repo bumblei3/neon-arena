@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Auto-GFX:** `scripts/start-quake3e.sh` probed GPU/Vulkan/VRAM einmal, schreibt `gfx-auto.cfg` (low/med/high). `--gfx-reset` neu probe. Manuelle Datei wird nicht überschrieben.
 
 ### Changed
+- **Ghost G8:** Cloak-Drain 8 → **5**/s (Start 55 bleibt). Welle-1-Play: Tarnung ~6 s.
+- **FROST-Log** nur wenn der Modifier wirklich aktiv ist (vorher immer `FROST slowed to 320`).
 - **Tests:** `--parallel` führt echte `assert_N` aus (isoliertes Homepath). CI-Chunks 0–5 (inkl. 61–75) fallen bei FAIL durch; Catalog verlangt `assert_N` für jede ALL_TESTS-Nummer.
 - **Ghost G5:** RMB-Zoom ist eine runde Blende statt Letterbox-Balken; Cloak zeigt eine Cyan-Shell statt Stock-Invis.
 

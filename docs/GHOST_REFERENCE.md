@@ -47,14 +47,14 @@ Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist. Cloak-Toggle-Aus kostet
 
 | Taste | Command | Cost | Cooldown | Effekt |
 |-------|---------|------|----------|--------|
-| J | `cloak` | 25 | — (Drain 8/s) | Toggle `PW_INVIS`. Bots sehen dich nicht jenseits von 80 u, außer Detector / Swarm / Boss Phase 2. |
+| J | `cloak` | 25 | — (Drain 5/s) | Toggle `PW_INVIS`. Bots sehen dich nicht jenseits von 80 u, außer Detector / Swarm / Boss Phase 2. |
 | H | `emp` | 35 | 25 s | Plasma-Bolt: 400 u Armor auf 0 + 1.5 s Stun. |
 | K | `lockdown` | 50 | 20 s | Raketen-Bolt (900 u/s). Nur Boss/Detector; Miss refundet Energy, kein CD. |
 | N | `nuke` | 80 | 45 s | Calldown: 1.5 s stehen + 4 s inbound. |
 
 ### Cloak
 
-- J an (25 Energy), J nochmal aus. Drain 8 Energy/s, kein Regen solange cloaked. 0 Energy = auto-decloak.
+- J an (25 Energy), J nochmal aus. Drain 5 Energy/s, kein Regen solange cloaked. 0 Energy = auto-decloak.
 - Bricht bei Schuss (`FireWeapon`), EMP, Lockdown, eingehendem Schaden und im Detector-Cone.
 - Nach jedem Break: 2 s **Ambush** — nächster Rail 2× Schaden (`AMBUSH`), goldener Rail-Trail + Hit-Cue.
 - Solange cloaked: kühle Cyan-Vignette auf dem eigenen Bildschirm; andere sehen eine Cyan-Shell (kein volles Stock-Invis).
