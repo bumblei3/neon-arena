@@ -3,7 +3,7 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-05 · Kit in **v0.71** · G5 Cosmetic
+> Letztes Update: 2026-09-05 · Kit in **v0.71** · G6 Scope Hit-Confirm
 
 ## Stand
 
@@ -11,7 +11,10 @@ Der Kit-Loop ist **feature-complete** als Ghost-Analog:
 
 Cloak (Toggle + Drain) → RMB-Snipe (Rail, Ambush 2×) → EMP-Round → Lockdown (Boss/Detector) → Tac-Nuke-Calldown. Ab Welle 8 jagt ein Detector mit 800 ms Scan-Warnung.
 
-Keine neuen Verben, bis eine echte Runde sagt, dass eines fehlt. Nächster Hebel ist **Balance und Jagd**, nicht Ability-Spam.
+Keine neuen Verben, bis eine echte Runde sagt, dass eines fehlt. Weiter geht’s mit **Jagd, Lesbarkeit, einer Balance-Zahl**.
+
+Start: `scripts/start-quake3e.sh --ghost`  
+J cloak · H emp · K lockdown · N nuke · RMB zoom.
 
 ## Erledigt
 
@@ -21,50 +24,68 @@ Keine neuen Verben, bis eine echte Runde sagt, dass eines fehlt. Nächster Hebel
 | Calldown + Detector | Sky-Laser, 4-3-2-1, Bots fliehen, BFG-FX, custom Dmg; Detector W8; Swarm; Boss P2 sieht Cloak |
 | Drain + EMP + Lock | Cloak Toggle/Drain + Ambush; EMP-Bolt Armor-Strip; Lockdown K; Gauntlet raus |
 | HUD + Tells | `STAT_GHOST_*` (Coop); J/H/K/N-Pips; Lock-Cyan; Scan 800 ms |
-| Snipe ADS | RMB `+zoom`, Cyan-Fadenkreuz, Vignette; Rail bleibt 1500 ms |
-| Feedback | Cloak-Sicht, OA-Sounds, goldener Ambush-Trail |
-| G5 Cosmetic | Runde Scope-Blende; Cyan-Cloak-Shell statt Stock-Invis |
+| Snipe ADS | RMB `+zoom`, Cyan-Fadenkreuz; Rail bleibt 1500 ms |
+| Feedback | Cloak-Vignette, OA-Sounds, goldener Ambush-Trail |
+| G1 | Start-Energy 40 → **55** |
+| G2 | Lockdown als Raketen-Bolt, Miss-Refund |
+| G3 | Detector-Kurve: 1 ab W8, 2 ab W12, Skill +1 |
+| G4 | Tests 73–75 |
+| G5 | Runde Scope-Blende; Cyan-Cloak-Shell |
+| G6 | Hit-Confirm im Scope; Tests 73–75 in CI (single) |
 
 ## Lücken vs StarCraft Ghost
 
-| Thema | Jetzt | SC / Wunsch | Prio |
-|-------|--------|-------------|------|
-| Cloak-Länge am Start | 55 Energy, Cloak 25, Drain 8/s → ~3.7 s | G1 ✅; weiter nur nach Playtest | — |
-| Lockdown | Raketen-Bolt, Miss-Refund | G2 ✅ | — |
-| Detector | 1 ab W8, 2 ab W12 | Turm später | 3 |
-| Tests | 73–75 | mehr Ability-Hooks nach Play | 3 |
-| Cloak für andere | Cyan-Shell (`neonarena/ghostCloak`) | SC-Schimmer | G5 ✅ |
-| Sounds | OA-Stock, funktional | eigene Cues | 3 |
-| Modell | Sarge + Cyan-Shell cloaked | eigener Skin | 3 |
+| Thema | Jetzt | SC / Wunsch | Slice |
+|-------|--------|-------------|-------|
+| Treffer im Scope | Cyan/Gold im Iris | Snipe zeigt Treffer | G6 ✅ |
+| Detector | Sarge-Bot, rotes Licht, unsichtbarer Cone | Turm / sichtbarer Scan, nicht nur ein zweiter Bot | **G7** |
+| Balance | 55 Start, Drain 8/s, ~3.7 s Cloak | eine Zahl nach einer Runde | **G8** |
+| Sounds | OA-Stock | eigene Short-Cues | **G9** |
+| Modell | Sarge + Cyan-Shell cloaked | Ghost-Look auch uncloaked | **G10** |
+| Tests in CI | Chunk 4: 73–75 single (echte Asserts) | 61–72 weiter nur lokal | G6 ✅ |
 | Nuke-Inbound | 4 s | SC ~20 s | nicht — Arena |
+| Scanner / Storm | — | Comsat / High Templar | nicht |
 
 ## Nächste Slices (Reihenfolge)
 
-### G1 — Start-Energy 55 ✅
+Eine Slice nach der anderen. Keine neuen Tasten.
 
-Eine Zahl: `GH_ENERGY_START` 40 → **55**. Drain 8/s und Kosten unverändert.
+### G6 — Snipe Hit-Confirm im Scope ✅
 
-Welle 1: Cloak (25) + EMP (35) = 60, also nicht beides voll — aber Cloak mit ~3.7 s Drain, oder EMP sofort, oder Cloak und nach einem Kill EMP. Vorher: Cloak und fast leer.
+Cyan-Tick ~150 ms / Gold ~220 ms im runden Iris bei `PERS_HITS` / Kill. Hip-Fire behält den Arena-Marker. `build-mod` Chunk 4 läuft Tests 73–75 im Single-Modus (echte Asserts, nicht Parallel-Smoke).
 
-Weitere Zahlen erst nach der nächsten Runde, nicht stapeln.
+### G7 — Detector-Jagd (Turm)
 
-### G2 — Lockdown als Round ✅
+Zwei Sarge-Detectoren ab Welle 12 sind noch „mehr Bots“, kein Hunt.
 
-Raketen-Bolt 900 u/s. Energy wird beim Abschuss reserviert, bei Miss refundet. CD nur bei Treffer auf Boss/Detector.
+- Ab Welle 8: ein Detector bleibt Bot.
+- Zusätzlich ein **ortsfester Scanner** (kein zweiter Runner): sichtbarer Cone oder Rail-Ping auf den Ghost, 800 ms Warn bleibt.
+- Lockdown trifft den Turm wie den Bot (Mechanical).
+- Headless-Marker: `DETECTOR turret` neben `DETECTOR spawned`.
 
-### G3 — Detector-Kurve ✅
+Nicht: kürzere Scan-Warn, dritter Runner, Comsat-Sweep.
 
-Welle 8–11: 1 Detector. Ab Welle 12: 2. Skill = Wellen-Skill + 1 (cap 5). Namen `Detector W<n>-1` / `-2`. Scan-Warn 800 ms unverändert.
+### G8 — Eine Balance-Zahl (nach Play)
 
-### G4 — Headless-Tests ✅
+Erst eine Runde `--ghost` mindestens bis Welle 8, dann **eine** Änderung:
 
-Tests 73–75 in `tests/run_suite.sh`: Ghost an ohne Detector (W1), ein Detector (W8), zwei Detectoren (W12). Marker `GHOST kit active` / `DETECTOR spawned (wave N, C`.
+| Wenn sich so anfühlt | Änderung |
+|---|---|
+| Cloak in Welle 1 unbrauchbar | Drain 8 → 5/s **oder** Start 55 → 70 |
+| Detector unfair | Scan-Warn 800 → 1200 ms |
+| Lockdown zu kurz am Boss | 4 s → 6 s |
+| Rail zu spammy | 30 Slugs → 20 |
+| Nuke zu oft | Cost 80 → 90 oder CD 45 → 60 s |
 
-### G5 — Cosmetic ✅
+Keine Zahlen stapeln. Ohne Runde bleibt G8 liegen.
 
-- Scope: runde Blende (`gfx/2d/ghost_scope`) statt Letterbox-Balken.
-- Cloak: Cyan-Shell (`neonarena/ghostCloak`) statt Stock-Invis; lokal Vignette ohne Balken.
-- Sounds bleiben OA-Stock (eigene Cues später, nicht in dieser Slice).
+### G9 — Eigene Cues (PK3)
+
+Kurze eigene Sounds statt Stock: Cloak an/aus, EMP-Abschuss, Lock-Treffer, Nuke-Paint, Scan-Warn. Liegen in `assets/sound/`, nicht SDL.
+
+### G10 — Ghost-Look
+
+Uncloaked: Cyan-Shell oder eigenes Player-Model, damit es kein Sarge mit Rail ist. Cloaked bleibt die schwache Cyan-Shell aus G5. Kein voller SC-Schimmer (Q3-Renderer).
 
 ## Nicht geplant
 
@@ -72,20 +93,15 @@ Tests 73–75 in `tests/run_suite.sh`: Ghost an ohne Detector (W1), ein Detector
 - Scanner Sweep (Comsat / Orbital, nicht Ghost)
 - Psionic Storm (High Templar)
 - 20 s SC-Nuke-Inbound
+- Neue Taste / sechstes Verb
 - SDL2-GL3-Prototyp als Produkt
 - Momentum-WIP in denselben Commits
+- Netz-Coop als Ghost-Slice
 
 ## Definition of Done (jede Slice)
 
 - C89, `g_ghost.o` in BASEGAME **und** MISSIONPACK
 - `./build-mod.sh` exit 0
 - [GHOST_REFERENCE](GHOST_REFERENCE.md) + dieses File + CHANGELOG Unreleased
+- Tests 73–75 weiterhin PASS, plus Marker der Slice falls Spawn/Jagd
 - Momentum/Legacy-CVars nicht mitcommitten
-
-## Start zum Playtest (G1)
-
-```sh
-scripts/start-quake3e.sh --ghost
-```
-
-J cloak · H emp · K lockdown · N nuke · RMB zoom.

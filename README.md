@@ -104,7 +104,12 @@ Die klassische OpenArena-Engine bleibt ausdrücklich voll unterstützt. Quake3e 
 
 ### Start mit Bloom
 
+Launcher probed GPU einmal und schreibt `~/.openarena/neonarena/gfx-auto.cfg`
+(low/med/high). Neu probe: `scripts/start-quake3e.sh --gfx-reset`.
+
 ```sh
+scripts/start-quake3e.sh
+# oder direkt:
 ~/quake3e-engine/quake3e.x64 \
   +set cl_renderer vulkan \
   +set r_bloom 1 \

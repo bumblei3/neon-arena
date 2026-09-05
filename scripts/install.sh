@@ -115,15 +115,33 @@ install_mod() {
 create_launcher() {
   log "Erstelle Starter..."
   local launcher="$HOME/.local/bin/neonarena"
+  local here gfx_auto detect
+
+  here="$(cd "$(dirname "$0")" && pwd)"
+  detect="$here/detect-gfx.sh"
+  gfx_auto="$INSTALL_DIR/neonarena/gfx-auto.cfg"
+  mkdir -p "$INSTALL_DIR/neonarena"
+  if [ -x "$detect" ]; then
+    "$detect" --ensure "$gfx_auto" >/dev/null || true
+  fi
 
   mkdir -p "$(dirname "$launcher")"
 
   cat > "$launcher" <<LAUNCHER
 #!/usr/bin/env bash
 # NeonArena Launcher (automatisch generiert)
+GFX_AUTO="$INSTALL_DIR/neonarena/gfx-auto.cfg"
+RENDERER=vulkan
+BLOOM=1
+if [ -f "\$GFX_AUTO" ]; then
+  r=\$(awk '\$1=="seta" && \$2=="cl_renderer" { gsub(/"/, "", \$3); print \$3; exit }' "\$GFX_AUTO")
+  b=\$(awk '\$1=="seta" && \$2=="r_bloom" { gsub(/"/, "", \$3); print \$3; exit }' "\$GFX_AUTO")
+  [ -n "\$r" ] && RENDERER="\$r"
+  [ -n "\$b" ] && BLOOM="\$b"
+fi
 exec "$ENGINE_DIR/quake3e.x64" \\
-  +set cl_renderer vulkan \\
-  +set r_bloom 1 \\
+  +set cl_renderer "\$RENDERER" \\
+  +set r_bloom "\$BLOOM" \\
   +set fs_basepath "$ENGINE_DIR" \\
   +set fs_homepath "$INSTALL_DIR" \\
   +set fs_game neonarena \\

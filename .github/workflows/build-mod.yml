@@ -118,6 +118,9 @@ jobs:
             chunk_tests: "36 37 38 39 40 41 42 43 44 45 46 47"
           - chunk_id: 3
             chunk_tests: "48 49 50 51 52 53 54 55 56 57 58 59 60"
+          - chunk_id: 4
+            chunk_tests: "73 74 75"
+            run_mode: single
     steps:
       - uses: actions/checkout@v7
         with:
@@ -172,17 +175,28 @@ jobs:
 
       - name: Run chunk ${{ matrix.chunk_id }} (${{ matrix.chunk_tests }})
         id: test-chunk
-        continue-on-error: true
+        continue-on-error: ${{ matrix.run_mode != 'single' }}
         run: |
           CHUNK_TESTS="${{ matrix.chunk_tests }}"
-          echo "Running chunk ${{ matrix.chunk_id }}: tests $CHUNK_TESTS"
+          RUN_MODE="${{ matrix.run_mode }}"
+          echo "Running chunk ${{ matrix.chunk_id }}: tests $CHUNK_TESTS mode=${RUN_MODE:-parallel}"
           echo "suite mode: ${{ needs.suite-mode.outputs.mode }}" >> "$GITHUB_STEP_SUMMARY"
-          xvfb-run ./tests/run_suite.sh --parallel 4 --test "$CHUNK_TESTS" | tee /tmp/chunk-${{ matrix.chunk_id }}.log
-          EXIT_CODE=${PIPESTATUS[0]}
+          if [ "$RUN_MODE" = "single" ]; then
+            fail=0
+            : > /tmp/chunk-${{ matrix.chunk_id }}.log
+            for t in $CHUNK_TESTS; do
+              xvfb-run ./tests/run_suite.sh --test "$t" | tee -a /tmp/chunk-${{ matrix.chunk_id }}.log || fail=1
+            done
+            EXIT_CODE=$fail
+          else
+            xvfb-run ./tests/run_suite.sh --parallel 4 --test "$CHUNK_TESTS" | tee /tmp/chunk-${{ matrix.chunk_id }}.log
+            EXIT_CODE=${PIPESTATUS[0]}
+          fi
           echo "chunk_${{ matrix.chunk_id }}_exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
           if [ "$EXIT_CODE" -ne 0 ]; then
             echo "::error::Chunk ${{ matrix.chunk_id }} failed (exit $EXIT_CODE)"
             cat /tmp/chunk-${{ matrix.chunk_id }}.log
+            exit "$EXIT_CODE"
           fi
 
       - name: Upload chunk logs

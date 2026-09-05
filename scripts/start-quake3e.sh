@@ -10,14 +10,15 @@ GAME="${FS_GAME:-neonarena}"
 GAME_TYPE="${GAME_TYPE:-14}"
 MAP="${MAP:-oa_shine}"
 MAP_FORCED=0
-RENDERER="${RENDERER:-vulkan}"
-BLOOM="${BLOOM:-1}"
+RENDERER="${RENDERER:-auto}"
+BLOOM="${BLOOM:-auto}"
 # Wayland: run SDL2's native Wayland backend instead of the X11 compat layer.
 # Pass --wayland or set NW_WAYLAND=1. Falls back to X11 automatically if unset.
 WAYLAND="${NW_WAYLAND:-0}"
 DAILY=0
 HARDCORE=0
 GHOST=0
+GFX_RESET=0
 EXTRA_CVARS=()
 
 usage() {
@@ -32,6 +33,7 @@ Optionen:
   --hardcore      Hardcore-Lauf (g_neonwave_hardcore 1)
   --ghost         StarCraft Ghost kit (g_neonwave_ghost 1): Rail, Cloak, EMP, Lockdown, Nuke
   --wayland       SDL2 native Wayland backend (kein X11-Compat-Layer)
+  --gfx-reset     GPU neu probe, gfx-auto.cfg überschreiben
   --map NAME      Map (Default: oa_shine; mit --daily überschreibt die Tages-Map)
   --help          diese Hilfe
 
@@ -42,8 +44,9 @@ Umgebungsvariablen (optional):
   FS_GAME         fs_game                (Default: neonarena)
   GAME_TYPE       g_gametype             (Default: 14)
   MAP             map                    (Default: oa_shine)
-  RENDERER        cl_renderer            (Default: vulkan, alternativen: opengl)
-  BLOOM           r_bloom               (Default: 1)
+  RENDERER        cl_renderer            (Default: auto → gfx-auto.cfg)
+  BLOOM           r_bloom               (Default: auto → gfx-auto.cfg)
+  NW_GFX_PRESET   low|med|high           (nur beim ersten Schreiben)
 
 Extra Cvars als Argumente übergeben, z.B.:
   $0 --daily +set r_bloomIntensity 0.8
@@ -58,6 +61,7 @@ while [ $# -gt 0 ]; do
     --hardcore) HARDCORE=1; shift ;;
     --ghost) GHOST=1; shift ;;
     --wayland) WAYLAND=1; shift ;;
+    --gfx-reset) GFX_RESET=1; shift ;;
     --map)
       if [ $# -lt 2 ]; then
         echo "usage: --map <name>" >&2
@@ -122,6 +126,32 @@ fi
 if [ "$GHOST" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_ghost 1)
   echo "Ghost kit: cloak/emp/lockdown/nuke  (J/H/K/N)  RMB zoom/snipe"
+fi
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+DETECT="$ROOT/scripts/detect-gfx.sh"
+GFX_AUTO="$HOME_PATH/$GAME/gfx-auto.cfg"
+mkdir -p "$HOME_PATH/$GAME"
+if [ "$GFX_RESET" -eq 1 ] && [ -f "$GFX_AUTO" ]; then
+  rm -f "$GFX_AUTO"
+  echo "gfx-auto.cfg reset"
+fi
+if [ -x "$DETECT" ]; then
+  PRESET=$("$DETECT" --ensure "$GFX_AUTO")
+  echo "gfx auto: $PRESET  ($GFX_AUTO)"
+fi
+cfg_cvar() {
+  local key="$1" file="$2"
+  [ -f "$file" ] || return 0
+  awk -v k="$key" '$1=="seta" && $2==k { gsub(/"/, "", $3); print $3; exit }' "$file"
+}
+if [ "$RENDERER" = auto ]; then
+  RENDERER=$(cfg_cvar cl_renderer "$GFX_AUTO")
+  RENDERER="${RENDERER:-vulkan}"
+fi
+if [ "$BLOOM" = auto ]; then
+  BLOOM=$(cfg_cvar r_bloom "$GFX_AUTO")
+  BLOOM="${BLOOM:-1}"
 fi
 
 exec "$ENGINE_BIN" \

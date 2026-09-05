@@ -21,7 +21,7 @@ openarena +set fs_game neonarena +g_gametype 14 +set g_neonwave_ghost 1 +map oa_
 Binds in `assets/autoexec.cfg`: **J** cloak · **H** emp · **K** lockdown · **N** nuke · **RMB** zoom.
 
 Spawn: Railgun (30 Slugs) — das ist die Sniper. Keine Lightning Gun, kein Gauntlet.
-Hip-Fire: normales Rail-Crosshair. **RMB** (`+zoom`, `cg_zoomfov 28`): runde Cyan-Blende + Fadenkreuz, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
+Hip-Fire: normales Rail-Crosshair + Cyan/Gold Hit-Confirm. **RMB** (`+zoom`, `cg_zoomfov 28`): runde Cyan-Blende + Fadenkreuz, Hit-Confirm im Iris, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
 
 Sounds (OA-Stock): Cloak `protect3` / aus `wearoff` · EMP `hyprbf1a` · Lock `lg_hit` · Nuke-Paint `bfg_fire` · Ambush `hit`.
 

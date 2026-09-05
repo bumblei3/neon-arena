@@ -116,6 +116,23 @@ Die Engine wird mit `BASEGAME=baseoa` gebaut, sodass sie direkt aus `baseoa/` l�
 | `r_hdr` | 0 | HDR-Framebuffer (0/1) |
 | `r_ext_multisample` | 0 | MSAA (0/2/4/6/8) |
 
+## Auto-GFX
+
+`scripts/start-quake3e.sh` schreibt beim **ersten** Start
+`~/.openarena/neonarena/gfx-auto.cfg` (Preset low / med / high) aus GPU-Name,
+Vulkan-ICD und VRAM. `autoexec.cfg` lädt die Datei nach `neon-gfx.cfg`.
+
+| Preset | Wann | Renderer | Bloom | picmip |
+|--------|------|----------|-------|--------|
+| high | Vulkan + ≥6 GB VRAM oder RTX/RX 6xxx+ | vulkan | an | 0 |
+| med | Default / iGPU mit Vulkan | vulkan | an | 1 |
+| low | kein Vulkan, Software-Renderer | opengl | aus | 2 |
+
+Neu probe: `scripts/start-quake3e.sh --gfx-reset`. Override beim Schreiben:
+`NW_GFX_PRESET=low`. Existierende `gfx-auto.cfg` bleibt unangetastet.
+
+Command-line `+set cl_renderer` / `RENDERER=` gewinnt weiter über auto.
+
 ## Bloom-Kalibrierung für NeonArena
 
 NeonArena nutzt additive, leuchtende Elemente. Bloom-Werte:
