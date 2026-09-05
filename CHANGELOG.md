@@ -7,8 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.60] - 2026-09-05
+
 ### Added
-- **Wave-Editor (M7)** — Per-wave configuration editor with JSON load/save, interactive commands (`set`, `add`, `remove`, `generate`, `list`, `show`), modifier flag parsing, and clamping. 43 tests.
+- **M7 Tools & Editor** — Complete tooling suite for NeonArena:
+  - **Wave-Editor** — Per-wave configuration editor with JSON load/save, interactive commands (`set`, `add`, `remove`, `generate`, `list`, `show`), modifier flag parsing, and clamping
+  - **Map-Validator** — Arena validation system: checks size, spawn points, player/bot spawns, cover density, waypoints, connectivity; auto-generates default maps
+  - **Replay-Recorder** — Input recording system for bug reports: records move/aim/fire/use/jump events, ring buffer mode, binary + JSON export/import, playback with reset
+  - **Perf-Profiler** — Frame-time analysis: frame recording with draw call counting, summary (avg/min/max FPS, P99), histogram (20 buckets)
+- **Achievement System** — 25 achievements across 5 categories (Combat, Wave, Collection, Skill, Secret), save/load integration, points system
+- **M6 Audio-Polish** — Dynamic music layers, reverb, occlusion for spatial audio
+- **M5 Balancing** — Playtest-simulation, balance database, spawn-radius fix, bot HP/damage tuning
+- **M4 Coop-Modus** — Shared-screen coop, gamepad support, revive system, coop spectator
+- **M3 Rendering-Polish** — Multi-pass bloom, hit-flash, ACES tonemapping
+- **M1 Bot-AI Overhaul** — State machine AI, pathfinding, swarm intelligence, personality-driven behavior
+- **Wave-Fusion System** — Modifier combinations create fusion effects (Eternal Winter, Bullet Hell, etc.)
+- **Rival Ghost System** — Compete against rival player ghosts
+
+### Performance
+- **Status Dirty Flag** — Skip redundant configstring updates (~90% network overhead reduction)
+- **Bot Batch Spawning** — Single console command for multiple bots (20x reduction)
+- **Bot Cap** — Late-wave bot count capped at 15
+- **Particle ECS** — Struct-of-arrays particle system (8192 max, instanced rendering)
+
+### Changed
+- Coop respawn now uses direct origin copy + link
+- Swarm Mother mini-spawn cap reduced from 20 to 15
+
+### CVars Added
+- `ui_neonwave_achievement` — Achievement notification trigger
+- `g_neonwave_updateavail` — Update available flag
+- `g_neonwave_motd` — Message of the day
+
+### Test Suite
+- **506 tests** across 18 test files (up from 204)
+- New tests: Wave-Editor (43), Map-Validator (33), Replay-Recorder (49), Perf-Profiler (23), Achievements (46)
 
 ## [0.54] - 2026-09-04
 
@@ -113,7 +146,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Modifier system (15 modifiers, 2 slots with synergy)
 
-[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.54...HEAD
+[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.60...HEAD
+[0.60]: https://github.com/bumblei3/neon-arena/compare/v0.54...v0.60
 [0.54]: https://github.com/bumblei3/neon-arena/compare/v0.53...v0.54
 [0.53]: https://github.com/bumblei3/neon-arena/compare/v0.52...v0.53
 [0.52]: https://github.com/bumblei3/neon-arena/compare/v0.51...v0.52
