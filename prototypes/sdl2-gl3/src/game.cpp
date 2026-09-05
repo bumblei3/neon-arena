@@ -416,6 +416,24 @@ void Game::update(float dt) {
     
     checkCollisions();
     
+    // Count alive bots for audio
+    int aliveBots = 0;
+    bool bossActive = false;
+    for (const auto& bot : bots) {
+        if (bot.alive) {
+            aliveBots++;
+            if (bot.botType == 4) bossActive = true;
+        }
+    }
+    
+    // Audio polish: dynamic layers, reverb, occlusion
+    if (g_audio) {
+        AudioPolish::update(dt, aliveBots, wave,
+            bossActive,
+            arenaSize > 60.0f);
+        AudioPolish::setListenerPosition(player.pos.x, player.pos.z);
+    }
+    
     // Update camera shake
     if (shakeAmount > 0.0f) {
         shakeOffset.x = (rand() % 100 / 100.0f - 0.5f) * shakeAmount;

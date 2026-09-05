@@ -16,6 +16,8 @@
 #include "echo.h"
 #include "bot_ai.h"
 #include "coop.h"
+#include "audio_polish.h"
+#include "wave_editor.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
