@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Wave-Editor (M7)** — Per-wave configuration editor with JSON load/save, interactive commands (`set`, `add`, `remove`, `generate`, `list`, `show`), modifier flag parsing, and clamping. 43 tests.
+
 ## [0.54] - 2026-09-04
 
 ### Added
