@@ -790,12 +790,21 @@ assert_69() {
   report $ok "pentakill-ach"
 }
 
-# TEST 70: MAXED OUT achievement (max all upgrades)
-assert_70() {
+# TEST 71: HEALER boss (v0.70, 8th boss type)
+assert_71() {
   local ok=0
-  check "$1" "ACHIEVEMENT MAXED OUT";                   [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "HEALER"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "boss spawned: HEALER (hc 300"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$1" || ok=1
-  report $ok "maxed-out-ach"
+  report $ok "healer-boss"
+}
+
+# TEST 72: SHIELD modifier (v0.70, 16th modifier)
+assert_72() {
+  local ok=0
+  check "$1" "starting wave 6.*\\[SHIELD\\]"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "shield-mod"
 }
 
 # TEST 2: full run victory
@@ -970,12 +979,14 @@ dispatch_test() {
     68) run_test 68 "triple-kill-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 3 +set g_neonwave_botasplayer 1 +set g_neonwave_failrun 1 ;;
     69) run_test 69 "pentakill-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 5 +set g_neonwave_botasplayer 1 +set g_neonwave_failrun 1 ;;
     70) run_test 70 "maxed-out-ach" 120 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 10 ;;
+    71) run_test 71 "healer-boss" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 17 +set g_neonwave_bosstype 8 +set g_neonwave_fastbreak 1 ;;
+    72) run_test 72 "shield-mod" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 15 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72"
 
   case "$MODE" in
   all)
