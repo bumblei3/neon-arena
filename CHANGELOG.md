@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.70] - 2026-09-05
+
+### Added
+- **M8 Replay-Recorder** — Input recording system for bug reports: records move/aim/fire/use/jump events, ring buffer mode, binary save/load, playback with reset. Console command: `nw_replay <start|stop|save|load|play|status>`
+- **M9 Modding-Support** — CLI tools for community content creation:
+  - `neon-tools wave-edit` — Interactive wave configuration editor (JSON)
+  - `neon-tools wave-generate` — Generate default wave config
+  - `neon-tools map-validate` — Validate arena maps
+  - `neon-tools map-generate` — Generate default valid map
+- **M11 Neue Inhalte** — HEALER boss (8th boss type) and SHIELD modifier (16th modifier)
+  - **HEALER Boss** — Heals nearby bots, low HP (300 base), no direct attack
+  - **SHIELD Modifier** — Temporary invulnerability at wave start (3 seconds)
+- **Achievement System erweitert** — 17 neue Achievements (8→25 total), Save/Load-Integration, Punkte-System
+
+### Test Suite
+- **72 Haupt-Mod-Tests** (up from 58)
+- Neue Tests: HEALER boss (71), SHIELD modifier (72)
+
+### CVars Added
+- `g_neonwave_shieldactive` — Shield modifier active flag
+- `g_neonwave_shieldtime` — Shield duration in ms
+
 ## [0.60] - 2026-09-05
 
 ### Added
@@ -146,7 +168,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Modifier system (15 modifiers, 2 slots with synergy)
 
-[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.60...HEAD
+[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.70...HEAD
+[0.70]: https://github.com/bumblei3/neon-arena/compare/v0.60...v0.70
 [0.60]: https://github.com/bumblei3/neon-arena/compare/v0.54...v0.60
 [0.54]: https://github.com/bumblei3/neon-arena/compare/v0.53...v0.54
 [0.53]: https://github.com/bumblei3/neon-arena/compare/v0.52...v0.53

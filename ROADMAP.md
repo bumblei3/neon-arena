@@ -1,7 +1,7 @@
 # NeonArena Roadmap
 
 > Letztes Update: 2026-09-05
-> Stand: v0.60 released, 506 Prototyp-Tests, 70 Haupt-Mod-Tests
+> Stand: v0.70 released, 506 Prototyp-Tests, 72 Haupt-Mod-Tests
 
 ---
 
