@@ -140,5 +140,23 @@ echo ""
 echo "=== Running Map Validator Tests ==="
 ./test_map_validator
 
+# --- 14. Replay Recorder Tests ---
+echo ""
+echo "=== Building Replay Recorder Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_replay_recorder test_replay_recorder.cpp ../src/replay_recorder.cpp
+
+echo ""
+echo "=== Running Replay Recorder Tests ==="
+./test_replay_recorder
+
+# --- 15. Perf Profiler Tests ---
+echo ""
+echo "=== Building Perf Profiler Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_perf_profiler test_perf_profiler.cpp ../src/perf_profiler.cpp
+
+echo ""
+echo "=== Running Perf Profiler Tests ==="
+./test_perf_profiler
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_wave_editor test_map_validator
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_wave_editor test_map_validator test_replay_recorder test_perf_profiler

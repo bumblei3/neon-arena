@@ -42,6 +42,8 @@ add_executable(neon-arena
     src/audio_polish.cpp
     src/wave_editor.cpp
     src/map_validator.cpp
+    src/replay_recorder.cpp
+    src/perf_profiler.cpp
     src/score.cpp
     src/powerups.cpp
     src/specials.cpp
