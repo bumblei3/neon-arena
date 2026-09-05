@@ -2,6 +2,7 @@
 #include <SDL.h>
 #include <GL/glew.h>
 #include <cstdio>
+#include <cstring>
 #include "game.h"
 #include "audio_manager.h"
 #include "music_generator.h"
@@ -112,13 +113,25 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    printf("\n=== NEON ARENA - OpenGL Prototype ===\n");
-    printf("Controls:\n");
-    printf("  WASD - Move\n");
-    printf("  Mouse - Look around\n");
-    printf("  Left Click - Shoot (Railgun)\n");
-    printf("  SPACE - Start next wave\n");
-    printf("  ESC - Quit\n\n");
+    bool ghost = false;
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--ghost") == 0) ghost = true;
+    }
+    if (ghost) {
+        game.startNewRun(Loadout::GHOST);
+        printf("\n=== NEON ARENA — GHOST PROTOCOL ===\n");
+        printf("  WASD move   Mouse look   LMB snipe   RMB ADS\n");
+        printf("  G scan   H EMP   N/I nuke   J cloak   SPACE next wave   ESC pause\n\n");
+    } else {
+        printf("\n=== NEON ARENA - OpenGL Prototype ===\n");
+        printf("Controls:\n");
+        printf("  WASD - Move\n");
+        printf("  Mouse - Look around\n");
+        printf("  Left Click - Shoot (Railgun)\n");
+        printf("  SPACE - Start next wave\n");
+        printf("  ESC - Quit\n");
+        printf("  Launch with --ghost to skip the menu into Ghost kit\n\n");
+    }
 
     // Main loop
     game.run();

@@ -135,8 +135,8 @@ bool TextRenderer::init() {
     glGenBuffers(1, &textVBO_);
     glBindVertexArray(textVAO_);
     glBindBuffer(GL_ARRAY_BUFFER, textVBO_);
-    // Max 256 chars * 4 verts * 8 floats (pos.xy, uv.xy, color.rgb, padding)
-    glBufferData(GL_ARRAY_BUFFER, 256 * 4 * 8 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+    // Max 256 chars * 6 verts * 8 floats (pos.xy, uv.xy, color.rgb, padding)
+    glBufferData(GL_ARRAY_BUFFER, 256 * 6 * 8 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
@@ -210,7 +210,7 @@ void TextRenderer::drawText(const std::string& text, float x, float y, float sca
     if (len > 256) len = 256;
 
     // Build vertex data: 4 verts per char, 8 floats per vert
-    float verts[256 * 4 * 8];
+    float verts[256 * 6 * 8];
     int vertCount = 0;
 
     for (int i = 0; i < len; i++) {
@@ -223,13 +223,13 @@ void TextRenderer::drawText(const std::string& text, float x, float y, float sca
         float uw = glyphW_[(int)c];
         float vh = glyphH_[(int)c];
 
-        // 4 vertices: TL, TR, BR, BL
-        float vx[4] = {cx, cx + charW, cx + charW, cx};
-        float vy[4] = {y, y, y + charH, y + charH};
-        float uu[4] = {u, u + uw, u + uw, u};
-        float vv[4] = {v, v, v + vh, v + vh};
+        // Two triangles (core profile has no GL_QUADS): TL, TR, BR / TL, BR, BL
+        float vx[6] = {cx, cx + charW, cx + charW, cx, cx + charW, cx};
+        float vy[6] = {y, y, y + charH, y, y + charH, y + charH};
+        float uu[6] = {u, u + uw, u + uw, u, u + uw, u};
+        float vv[6] = {v, v, v + vh, v, v + vh, v + vh};
 
-        for (int j = 0; j < 4; j++) {
+        for (int j = 0; j < 6; j++) {
             float* vptr = &verts[vertCount * 8];
             vptr[0] = vx[j];
             vptr[1] = vy[j];
@@ -263,8 +263,9 @@ void TextRenderer::drawText(const std::string& text, float x, float y, float sca
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_DEPTH_TEST);
 
-    glDrawArrays(GL_QUADS, 0, vertCount);
+    glDrawArrays(GL_TRIANGLES, 0, vertCount);
     glBindVertexArray(0);
 }
 

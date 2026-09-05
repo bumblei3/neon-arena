@@ -25,6 +25,7 @@ public:
 
     void beginFrame();
     void endFrame();
+    void beginOverlay();
 
     void drawLineLoop(const Vertex* verts, int count, const Vec3& color);
     void drawTriangles(const Vertex* verts, int count, const Vec3& color);
@@ -86,6 +87,7 @@ private:
     // Bloom framebuffer
     unsigned int fbo = 0;
     unsigned int fboTexture = 0;
+    unsigned int fboDepth = 0;
     unsigned int brightFbo = 0;
     unsigned int brightTexture = 0;
     unsigned int blurFbo[3] = {0, 0, 0};      // 3 blur stages

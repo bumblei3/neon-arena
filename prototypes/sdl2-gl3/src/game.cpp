@@ -38,6 +38,9 @@ bool Game::init(SDL_Window* window) {
     particleSystem = new ParticleSystem();
     particleSystem->init();
 
+    spatialHash = new SpatialHash();
+    g_spatialHash = spatialHash;
+
     // Initialize overclock system
     overclock = new OverclockManager();
 
@@ -64,6 +67,7 @@ bool Game::init(SDL_Window* window) {
 }
 
 void Game::shutdown() {
+    if (!renderer_ && !particleSystem && !spatialHash && !overclock && !echoSystem) return;
     if (spatialHash) {
         delete spatialHash;
         spatialHash = nullptr;
@@ -277,6 +281,7 @@ void Game::startNewRun(Loadout kit) {
     }
     state = GameState::PLAYING;
     SDL_SetRelativeMouseMode(SDL_TRUE);
+    nextWave();
 }
 
 void Game::handleMenuInput(SDL_Event& event) {
@@ -324,7 +329,7 @@ void Game::resetGame() {
     killStreak = 0;
     player.health = maxHealth;
     player.alive = true;
-    player.pos = Vec3(0, 0, 0);
+    player.pos = Vec3(0, playerHeight, 0);
     waveComplete = true;
     waveBreak = 0;
     projectiles.clear();
@@ -394,11 +399,11 @@ void Game::update(float dt) {
     if (gameOver) {
         state = GameState::GAME_OVER;
         if (g_music) g_music->playScene(MusicScene::GAME_OVER);
-        // Echo: stop recording and play ghost
         if (echoSystem) {
             echoSystem->stopRecording();
             echoSystem->play();
         }
+        SavegameManager::remove();
         return;
     }
 
@@ -481,10 +486,12 @@ void Game::update(float dt) {
     }
 
     // Rebuild spatial hash for collision detection
-    spatialHash->clear();
-    for (int i = 0; i < (int)bots.size(); i++) {
-        if (bots[i].alive) {
-            spatialHash->insert(i, bots[i].pos.x, bots[i].pos.z);
+    if (spatialHash) {
+        spatialHash->clear();
+        for (int i = 0; i < (int)bots.size(); i++) {
+            if (bots[i].alive) {
+                spatialHash->insert(i, bots[i].pos.x, bots[i].pos.z);
+            }
         }
     }
     
@@ -764,10 +771,12 @@ void Game::checkCollisions() {
 }
 
 void Game::handleMouse() {
+    if (fabsf(mouseX) > 80.0f) mouseX = 0.0f;
+    if (fabsf(mouseY) > 80.0f) mouseY = 0.0f;
     if (mouseX != 0 || mouseY != 0) {
         player.yaw += mouseX * mouseSensitivity;
         player.pitch -= mouseY * mouseSensitivity;
-        player.pitch = fmaxf(-1.5f, fminf(1.5f, player.pitch));
+        player.pitch = fmaxf(-1.2f, fminf(1.2f, player.pitch));
     }
     mouseX = 0;
     mouseY = 0;
@@ -835,6 +844,7 @@ void Game::render() {
         renderLightning(*this);
 
         renderer_->endFrame();
+        renderer_->beginOverlay();
 
         renderUpgradeMenu(*this);
         return;
@@ -847,8 +857,6 @@ void Game::render() {
 
     if (state == GameState::GAME_OVER) {
         renderGameOver();
-        // Delete savegame on game over — "Continue" should not load a dead player
-        SavegameManager::remove();
         return;
     }
 
@@ -899,6 +907,7 @@ void Game::render() {
     renderSpecialEffects(*this);
 
     renderer_->endFrame();
+    renderer_->beginOverlay();
 
     renderHUD(*this);
 

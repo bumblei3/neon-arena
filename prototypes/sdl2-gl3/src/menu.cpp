@@ -25,6 +25,7 @@ void Game::renderMenu() {
     renderArena();
 
     renderer_->endFrame();
+    renderer_->beginOverlay();
 
     // Overlay box (drawn after post-processing)
     float cx = 0.0f, cy = 0.0f;
@@ -96,6 +97,7 @@ void Game::renderPauseMenu() {
     renderLightning(*this);
 
     renderer_->endFrame();
+    renderer_->beginOverlay();
 
     // Dark overlay (drawn after post-processing)
     float cx = 0.0f, cy = 0.0f;
@@ -133,6 +135,7 @@ void Game::renderOptions() {
     renderArena();
 
     renderer_->endFrame();
+    renderer_->beginOverlay();
 
     // Overlay box (drawn after post-processing)
     Vertex box[] = {
@@ -203,6 +206,7 @@ void Game::renderGameOver() {
     renderLightning(*this);
 
     renderer_->endFrame();
+    renderer_->beginOverlay();
 
     // Red overlay (drawn after post-processing)
     float cx = 0.0f, cy = 0.0f;

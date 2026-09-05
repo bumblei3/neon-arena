@@ -24,12 +24,7 @@ static const char* lineFragSrc = R"(
     in vec3 vColor;
     out vec4 FragColor;
     void main() {
-        // Circular point with soft edge
-        vec2 coord = gl_PointCoord - vec2(0.5);
-        float dist = length(coord);
-        if (dist > 0.5) discard;
-        float alpha = 1.0 - smoothstep(0.3, 0.5, dist);
-        FragColor = vec4(vColor, alpha);
+        FragColor = vec4(vColor, 1.0);
     }
 )";
 
@@ -369,6 +364,10 @@ void Renderer::shutdown() {
 
     glDeleteFramebuffers(1, &fbo);
     glDeleteTextures(1, &fboTexture);
+    if (fboDepth) {
+        glDeleteRenderbuffers(1, &fboDepth);
+        fboDepth = 0;
+    }
     glDeleteFramebuffers(1, &brightFbo);
     glDeleteTextures(1, &brightTexture);
     glDeleteFramebuffers(3, blurFbo);
@@ -457,6 +456,11 @@ void Renderer::setupBloom() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture, 0);
 
+    glGenRenderbuffers(1, &fboDepth);
+    glBindRenderbuffer(GL_RENDERBUFFER, fboDepth);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width_, height_);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, fboDepth);
+
     // Bright pass framebuffer
     glGenFramebuffers(1, &brightFbo);
     glBindFramebuffer(GL_FRAMEBUFFER, brightFbo);
@@ -503,6 +507,10 @@ void Renderer::resize(int w, int h) {
     // Recreate framebuffers at new size
     glDeleteFramebuffers(1, &fbo);
     glDeleteTextures(1, &fboTexture);
+    if (fboDepth) {
+        glDeleteRenderbuffers(1, &fboDepth);
+        fboDepth = 0;
+    }
     glDeleteFramebuffers(1, &brightFbo);
     glDeleteTextures(1, &brightTexture);
     glDeleteFramebuffers(3, blurFbo);
@@ -514,12 +522,24 @@ void Renderer::resize(int w, int h) {
 
 void Renderer::beginFrame() {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glViewport(0, 0, width_, height_);
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Renderer::beginOverlay() {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
+    glViewport(0, 0, width_, height_);
+    view = Mat4(true);
+    projection = Mat4::ortho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 }
 
 void Renderer::endFrame() {
     float time = SDL_GetTicks() / 1000.0f;
-    
+    glDisable(GL_DEPTH_TEST);
+
     // Bright pass
     glBindFramebuffer(GL_FRAMEBUFFER, brightFbo);
     glViewport(0, 0, width_ / 2, height_ / 2);

@@ -147,6 +147,7 @@ public:
     bool init(SDL_Window* window);
     void shutdown();
     void run();
+    void startNewRun(Loadout kit);
 
     void handleInput(float dt);
     void update(float dt);
@@ -249,7 +250,6 @@ private:
     void handleMenuInput(SDL_Event& event);
     void updateMenuItems();
     void resetGame();
-    void startNewRun(Loadout kit);
 
     void handleMouse();
 

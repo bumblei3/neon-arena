@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <unordered_set>
 
 AudioManager* g_audio = nullptr;
 
@@ -37,23 +38,35 @@ void AudioManager::shutdown() {
     stopMusic();
     stopAllSFX();
 
-    for (auto& chunk : sfxChunks) {
-        if (chunk) Mix_FreeChunk(chunk);
+    std::unordered_set<Mix_Chunk*> generated(generatedChunks.begin(), generatedChunks.end());
+
+    // File-loaded chunks (Mix_LoadWAV) — Mix_FreeChunk is the matching free.
+    for (Mix_Chunk* chunk : sfxChunks) {
+        if (!chunk || generated.count(chunk)) continue;
+        Mix_FreeChunk(chunk);
     }
     sfxChunks.clear();
     sfxMap.clear();
+
+    // Generated Mix_Chunks were allocated with new/new[] — Mix_FreeChunk
+    // would SDL_free() those and then we delete[] the same sample buffer.
+    for (Mix_Chunk* chunk : generatedChunks) {
+        if (!chunk) continue;
+        chunk->allocated = 0;
+        chunk->abuf = nullptr;
+        delete chunk;
+    }
+    generatedChunks.clear();
+
+    for (short* buf : generatedBuffers) {
+        delete[] buf;
+    }
+    generatedBuffers.clear();
 
     for (auto& music : musicTracks) {
         if (music) Mix_FreeMusic(music);
     }
     musicTracks.clear();
-
-    // Cleanup generated buffers
-    for (auto& buf : generatedBuffers) {
-        delete[] buf;
-    }
-    generatedBuffers.clear();
-    generatedChunks.clear();
 
     activeChannels.clear();
 
