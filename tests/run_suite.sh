@@ -1031,8 +1031,8 @@ dispatch_test() {
     58) run_test 58 "boss-hp-wave-scaling" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_bosstype 2 +set g_neonwave_autokill 1 ;;
     59) run_test 59 "wave-select" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 7 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     60) run_test 60 "coop-spectator" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_coopmock 1 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
-    61) run_test 61 "bot-slayer-ach" 180 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 +set g_neonwave_maxwave 20 ;;
-    62) run_test 62 "bot-annihilator-ach" 240 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 +set g_neonwave_maxwave 20 ;;
+    61) run_test 61 "bot-slayer-ach" 300 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 +set g_neonwave_maxwave 50 ;;
+    62) run_test 62 "bot-annihilator-ach" 600 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 1 +set g_neonwave_maxwave 50 ;;
     63) run_test 63 "wave5-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_failrun 1 ;;
     64) run_test 64 "wave10-ach" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
     65) run_test 65 "wave30-ach" 120 +set g_neonwave_autostart 1 +set g_neonwave_startwave 30 +set g_neonwave_failrun 1 ;;
