@@ -21,7 +21,7 @@ openarena +set fs_game neonarena +g_gametype 14 +set g_neonwave_ghost 1 +map oa_
 Binds in `assets/autoexec.cfg`: **J** cloak · **H** emp · **K** lockdown · **N** nuke · **RMB** zoom.
 
 Spawn: Railgun (30 Slugs) — das ist die Sniper. Keine Lightning Gun, kein Gauntlet.
-Hip-Fire: normales Rail-Crosshair. **RMB** (`+zoom`, `cg_zoomfov 28`): Cyan-Fadenkreuz + Scope-Vignette, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
+Hip-Fire: normales Rail-Crosshair. **RMB** (`+zoom`, `cg_zoomfov 28`): runde Cyan-Blende + Fadenkreuz, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
 
 Sounds (OA-Stock): Cloak `protect3` / aus `wearoff` · EMP `hyprbf1a` · Lock `lg_hit` · Nuke-Paint `bfg_fire` · Ambush `hit`.
 
@@ -57,7 +57,7 @@ Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist. Cloak-Toggle-Aus kostet
 - J an (25 Energy), J nochmal aus. Drain 8 Energy/s, kein Regen solange cloaked. 0 Energy = auto-decloak.
 - Bricht bei Schuss (`FireWeapon`), EMP, Lockdown, eingehendem Schaden und im Detector-Cone.
 - Nach jedem Break: 2 s **Ambush** — nächster Rail 2× Schaden (`AMBUSH`), goldener Rail-Trail + Hit-Cue.
-- Solange cloaked: kühle Cyan-Vignette auf dem eigenen Bildschirm.
+- Solange cloaked: kühle Cyan-Vignette auf dem eigenen Bildschirm; andere sehen eine Cyan-Shell (kein volles Stock-Invis).
 - Bricht auch eine laufende Nuke-Designation (`NUKE CANCELLED`).
 - HUD-Status `CLOAKED` / `AMBUSH`.
 

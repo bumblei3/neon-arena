@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Ghost G5:** RMB-Zoom ist eine runde Blende statt Letterbox-Balken; Cloak zeigt eine Cyan-Shell statt Stock-Invis.
+
 ## [0.71] - 2026-09-05
 
 ### Added

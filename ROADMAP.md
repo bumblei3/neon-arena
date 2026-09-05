@@ -20,6 +20,7 @@ Referenz: [docs/GHOST_REFERENCE.md](docs/GHOST_REFERENCE.md) · Plan: [docs/GHOS
 | HUD + Tells | Energy/CDs in `ps.stats` (Coop); J/H/K/N-Pips; Lockdown-Cyan; Detector-Scan 800 ms vor Swarm | ✅ |
 | Ghost-Snipe ADS | RMB `+zoom`, Cyan-Fadenkreuz + Vignette im Scope, kein extra Rail-Delay | ✅ |
 | Ghost-Feedback | Cloak-Sicht, OA-Sounds pro Verb, goldener Ambush-Trail | ✅ |
+| G5 Cosmetic | Runde Scope-Blende; Cyan-Cloak-Shell | ✅ |
 
 **G1–G4 ✅** Energy 55, Lockdown-Bolt, Detector-Kurve, Tests 73–75. Details: [GHOST_ROADMAP](docs/GHOST_ROADMAP.md).
 
@@ -164,7 +165,7 @@ Mär 2027  Release v0.80 (Multiplayer-Ready)
 
 ## 🚧 Blocked / Warteliste
 
-- **Ghost:** Kit + Snipe + Feedback sitzen. Nächster Hebel wäre Balance nach einer Runde (Drain/Start-Energy).
+- **Ghost:** Kit + Snipe + G5 (runde Blende, Cyan-Shell) sitzen. Nächster Hebel wäre Balance nach einer Runde.
 - **Netzwerk-Coop:** Erst nach lokalem Coop implementieren (M4 erledigt ✅)
 - **Modding-Support:** Benötigt stabile API (erst nach M7 ✅)
 - **Achievements:** Benötigt Savegame-Erweiterung (erledigt ✅)

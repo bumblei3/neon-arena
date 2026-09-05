@@ -3,7 +3,7 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-05 · Kit in **v0.71**
+> Letztes Update: 2026-09-05 · Kit in **v0.71** · G5 Cosmetic
 
 ## Stand
 
@@ -23,6 +23,7 @@ Keine neuen Verben, bis eine echte Runde sagt, dass eines fehlt. Nächster Hebel
 | HUD + Tells | `STAT_GHOST_*` (Coop); J/H/K/N-Pips; Lock-Cyan; Scan 800 ms |
 | Snipe ADS | RMB `+zoom`, Cyan-Fadenkreuz, Vignette; Rail bleibt 1500 ms |
 | Feedback | Cloak-Sicht, OA-Sounds, goldener Ambush-Trail |
+| G5 Cosmetic | Runde Scope-Blende; Cyan-Cloak-Shell statt Stock-Invis |
 
 ## Lücken vs StarCraft Ghost
 
@@ -30,11 +31,11 @@ Keine neuen Verben, bis eine echte Runde sagt, dass eines fehlt. Nächster Hebel
 |-------|--------|-------------|------|
 | Cloak-Länge am Start | 55 Energy, Cloak 25, Drain 8/s → ~3.7 s | G1 ✅; weiter nur nach Playtest | — |
 | Lockdown | Raketen-Bolt, Miss-Refund | G2 ✅ | — |
-| Detector | einer ab Welle 8 | später mehr Jagd (Turm / zweiter Detector) | 2 |
-| Tests | keine OA-Suite für Ghost | Log-Marker + CVar-Hooks wie Boss/Perk | 2 |
-| Cloak für andere | `PW_INVIS` = voll unsichtbar | SC-Schimmer | 3 (Q3-Renderer) |
+| Detector | 1 ab W8, 2 ab W12 | Turm später | 3 |
+| Tests | 73–75 | mehr Ability-Hooks nach Play | 3 |
+| Cloak für andere | Cyan-Shell (`neonarena/ghostCloak`) | SC-Schimmer | G5 ✅ |
 | Sounds | OA-Stock, funktional | eigene Cues | 3 |
-| Modell | Sarge + Rail | Ghost-Skin | 3 |
+| Modell | Sarge + Cyan-Shell cloaked | eigener Skin | 3 |
 | Nuke-Inbound | 4 s | SC ~20 s | nicht — Arena |
 
 ## Nächste Slices (Reihenfolge)
@@ -59,11 +60,11 @@ Welle 8–11: 1 Detector. Ab Welle 12: 2. Skill = Wellen-Skill + 1 (cap 5). Name
 
 Tests 73–75 in `tests/run_suite.sh`: Ghost an ohne Detector (W1), ein Detector (W8), zwei Detectoren (W12). Marker `GHOST kit active` / `DETECTOR spawned (wave N, C`.
 
-### G5 — Cosmetic (nur wenn G1–G4 sitzen)
+### G5 — Cosmetic ✅
 
-- Eigene Short-Sounds statt Stock (PK3).
-- Scope: runde Blende statt Balken.
-- Ghost-Player-Model / Cyan-Shell solange cloaked (lokal schon Vignette).
+- Scope: runde Blende (`gfx/2d/ghost_scope`) statt Letterbox-Balken.
+- Cloak: Cyan-Shell (`neonarena/ghostCloak`) statt Stock-Invis; lokal Vignette ohne Balken.
+- Sounds bleiben OA-Stock (eigene Cues später, nicht in dieser Slice).
 
 ## Nicht geplant
 

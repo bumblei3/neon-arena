@@ -592,6 +592,31 @@ neonarena/flare
 	}
 }
 
+neonarena/ghostCloak
+{
+	deformVertexes wave 100 sin 0.35 0 0 0
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.42 0.50 )
+		tcGen environment
+		tcMod scroll 0.10 0.05
+		tcMod scale 3 3
+	}
+}
+
+gfx/2d/ghost_scope
+{
+	nopicmip
+	nomipmaps
+	{
+		clampmap gfx/2d/ghost_scope.tga
+		blendFunc GL_SRC_ALPHA GL_ONE_MINUS_SRC_ALPHA
+		rgbGen identity
+		alphaGen vertex
+	}
+}
+
 gfx/2d/neon_vignette
 {
 	nopicmip

@@ -307,6 +307,32 @@ def blood_screen(size=256):
     return size, size, out
 
 
+def ghost_scope(size=512):
+    """Circular sniper iris: transparent hole, opaque black outside, cyan ring."""
+    cx = cy = (size - 1) / 2.0
+    r_clear = size * 0.40
+    r_ring = size * 0.42
+    r_dark = size * 0.46
+    out = []
+    for y in range(size):
+        for x in range(size):
+            d = math.sqrt((x - cx) ** 2 + (y - cy) ** 2)
+            if d < r_clear:
+                a = 0.0
+            elif d < r_dark:
+                t = (d - r_clear) / (r_dark - r_clear)
+                a = t * t
+            else:
+                a = 1.0
+            ring = math.exp(-((d - r_ring) ** 2) / ((size * 0.012) ** 2))
+            r = 12 * a + 40 * ring
+            g = 8 * a + 220 * ring
+            b = 10 * a + 255 * ring
+            alpha = max(a * 235, ring * 200)
+            out.append((_clamp(r), _clamp(g), _clamp(b), _clamp(alpha)))
+    return size, size, out
+
+
 def hud_bar(w=256, h=32):
     out = []
     for y in range(h):
@@ -371,6 +397,10 @@ def main():
     w, h, p = hud_bar()
     write_tga(os.path.join(ROOT, "gfx/2d/neon_bar.tga"), w, h, p, True)
     jobs.append("hud-bar")
+
+    w, h, p = ghost_scope()
+    write_tga(os.path.join(ROOT, "gfx/2d/ghost_scope.tga"), w, h, p, True)
+    jobs.append("ghost-scope")
 
     print("wrote:", ", ".join(jobs))
 
