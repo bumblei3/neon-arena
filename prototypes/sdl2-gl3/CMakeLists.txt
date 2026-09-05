@@ -44,6 +44,7 @@ add_executable(neon-arena
     src/map_validator.cpp
     src/replay_recorder.cpp
     src/perf_profiler.cpp
+    src/achievements.cpp
     src/score.cpp
     src/powerups.cpp
     src/specials.cpp

@@ -158,5 +158,14 @@ echo ""
 echo "=== Running Perf Profiler Tests ==="
 ./test_perf_profiler
 
+# --- 16. Achievement System Tests ---
+echo ""
+echo "=== Building Achievement Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_achievements test_achievements.cpp ../src/achievements.cpp
+
+echo ""
+echo "=== Running Achievement Tests ==="
+./test_achievements
+
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_wave_editor test_map_validator test_replay_recorder test_perf_profiler
+rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_wave_editor test_map_validator test_replay_recorder test_perf_profiler test_achievements
