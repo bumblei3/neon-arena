@@ -48,6 +48,13 @@ void AudioManager::shutdown() {
     }
     musicTracks.clear();
 
+    // Cleanup generated buffers
+    for (auto& buf : generatedBuffers) {
+        delete[] buf;
+    }
+    generatedBuffers.clear();
+    generatedChunks.clear();
+
     activeChannels.clear();
 
     Mix_CloseAudio();
@@ -59,6 +66,8 @@ Mix_Chunk* AudioManager::generateSound(int type, float duration, float freqStart
     int sampleRate = 44100;
     int numSamples = sampleRate * duration;
     short* samples = new short[numSamples];
+    // Track for cleanup
+    generatedBuffers.push_back(samples);
 
     for (int i = 0; i < numSamples; i++) {
         float t = (float)i / sampleRate;
@@ -88,6 +97,8 @@ Mix_Chunk* AudioManager::generateSound(int type, float duration, float freqStart
     }
 
     Mix_Chunk* chunk = new Mix_Chunk();
+    // Track for cleanup
+    generatedChunks.push_back(chunk);
     chunk->allocated = 1;
     chunk->abuf = (Uint8*)samples;
     chunk->alen = numSamples * sizeof(short);

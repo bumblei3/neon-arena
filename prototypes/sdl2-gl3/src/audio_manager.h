@@ -68,6 +68,8 @@ private:
     std::vector<Mix_Chunk*> sfxChunks;
     std::vector<Mix_Music*> musicTracks;
     std::vector<int> activeChannels;
+    std::vector<short*> generatedBuffers;  // Track for cleanup
+    std::vector<Mix_Chunk*> generatedChunks; // Track for cleanup
 
     // Procedural sound handles
     SoundHandle sndShoot = INVALID_SOUND;
