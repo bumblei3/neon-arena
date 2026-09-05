@@ -718,6 +718,86 @@ assert_60() {
   report $ok "coop-spectator"
 }
 
+# TEST 61: BOT SLAYER achievement (100 kills)
+assert_61() {
+  local ok=0
+  check "$1" "ACHIEVEMENT BOT SLAYER";                  [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "bot-slayer-ach"
+}
+
+# TEST 62: BOT ANNIHILATOR achievement (1000 kills)
+assert_62() {
+  local ok=0
+  check "$1" "ACHIEVEMENT BOT ANNIHILATOR";             [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "bot-annihilator-ach"
+}
+
+# TEST 63: WAVE 5 achievement (survive to wave 5)
+assert_63() {
+  local ok=0
+  check "$1" "ACHIEVEMENT GETTING STARTED";             [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "wave5-ach"
+}
+
+# TEST 64: WAVE 10 achievement (survive to wave 10)
+assert_64() {
+  local ok=0
+  check "$1" "ACHIEVEMENT VETERAN";                     [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "wave10-ach"
+}
+
+# TEST 65: WAVE 30 achievement (survive to wave 30)
+assert_65() {
+  local ok=0
+  check "$1" "ACHIEVEMENT ENDURANCE";                   [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "wave30-ach"
+}
+
+# TEST 66: WAVE 50 achievement (survive to wave 50)
+assert_66() {
+  local ok=0
+  check "$1" "ACHIEVEMENT MARATHON";                    [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "wave50-ach"
+}
+
+# TEST 67: PERFECT WAVE achievement (clear wave without damage)
+assert_67() {
+  local ok=0
+  check "$1" "ACHIEVEMENT UNTOUCHABLE";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "perfect-wave-ach"
+}
+
+# TEST 68: TRIPLE KILL achievement (3 kills in 1 second)
+assert_68() {
+  local ok=0
+  check "$1" "ACHIEVEMENT TRIPLE KILL";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "triple-kill-ach"
+}
+
+# TEST 69: PENTAKILL achievement (5 kills in 1 second)
+assert_69() {
+  local ok=0
+  check "$1" "ACHIEVEMENT PENTAKILL";                   [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "pentakill-ach"
+}
+
+# TEST 70: MAXED OUT achievement (max all upgrades)
+assert_70() {
+  local ok=0
+  check "$1" "ACHIEVEMENT MAXED OUT";                   [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "maxed-out-ach"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -880,12 +960,22 @@ dispatch_test() {
     58) run_test 58 "boss-hp-wave-scaling" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_bosstype 2 +set g_neonwave_autokill 1 ;;
     59) run_test 59 "wave-select" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 7 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
     60) run_test 60 "coop-spectator" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_coopmock 1 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    61) run_test 61 "bot-slayer-ach" 180 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 +set g_neonwave_maxwave 20 ;;
+    62) run_test 62 "bot-annihilator-ach" 240 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 20 +set g_neonwave_maxwave 20 ;;
+    63) run_test 63 "wave5-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_failrun 1 ;;
+    64) run_test 64 "wave10-ach" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_failrun 1 ;;
+    65) run_test 65 "wave30-ach" 120 +set g_neonwave_autostart 1 +set g_neonwave_startwave 30 +set g_neonwave_failrun 1 ;;
+    66) run_test 66 "wave50-ach" 180 +set g_neonwave_autostart 1 +set g_neonwave_startwave 50 +set g_neonwave_failrun 1 ;;
+    67) run_test 67 "perfect-wave-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    68) run_test 68 "triple-kill-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 3 +set g_neonwave_botasplayer 1 +set g_neonwave_failrun 1 ;;
+    69) run_test 69 "pentakill-ach" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 2 +set g_neonwave_fakecombo 5 +set g_neonwave_botasplayer 1 +set g_neonwave_failrun 1 ;;
+    70) run_test 70 "maxed-out-ach" 120 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 10 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70"
 
   case "$MODE" in
   all)
