@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.71] - 2026-09-05
+
 ### Added
 - **StarCraft Ghost-Kit** (`g_neonwave_ghost 1`, Start: `scripts/start-quake3e.sh --ghost`) — optionaler Loadout für GT_NEONWAVE:
   - Spawn: Railgun (30), Energy 55/100, +3/s (kein Regen während Cloak), +15 pro Kill
@@ -188,7 +190,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Modifier system (15 modifiers, 2 slots with synergy)
 
-[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.70...HEAD
+[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.71...HEAD
+[0.71]: https://github.com/bumblei3/neon-arena/compare/v0.70...v0.71
 [0.70]: https://github.com/bumblei3/neon-arena/compare/v0.60...v0.70
 [0.60]: https://github.com/bumblei3/neon-arena/compare/v0.54...v0.60
 [0.54]: https://github.com/bumblei3/neon-arena/compare/v0.53...v0.54

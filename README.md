@@ -57,7 +57,7 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Cloak, EMP, Lockdown, Nuke, Detector)
 - [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — nächste Slices (Balance, Lock-Round, Detector, Tests)
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
-- [Test-Suite](tests/TESTS.md) — 56 Tests mit CVar-Hooks
+- [Test-Suite](tests/TESTS.md) — Headless-Suite (inkl. Ghost 73–75)
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
 
 ## Schnellstart (Spieler)
@@ -241,4 +241,4 @@ Jede Rückmeldung hilft, NeonArena besser zu machen. Egal ob Bug-Bericht, Balanc
 
 ---
 
-**Version:** v0.70 | **Letzte Aktualisierung:** 2026-09-05
+**Version:** v0.71 | **Letzte Aktualisierung:** 2026-09-05
