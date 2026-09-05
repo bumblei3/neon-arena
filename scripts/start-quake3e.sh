@@ -30,7 +30,7 @@ Usage:
 Optionen:
   --daily         Daily Challenge (g_neonwave_daily 1); wählt die Tages-Map
   --hardcore      Hardcore-Lauf (g_neonwave_hardcore 1)
-  --ghost         StarCraft Ghost kit (g_neonwave_ghost 1): Rail-Snipe, Cloak, EMP, Nuke
+  --ghost         StarCraft Ghost kit (g_neonwave_ghost 1): Rail, Cloak, EMP, Lockdown, Nuke
   --wayland       SDL2 native Wayland backend (kein X11-Compat-Layer)
   --map NAME      Map (Default: oa_shine; mit --daily überschreibt die Tages-Map)
   --help          diese Hilfe
@@ -121,7 +121,7 @@ if [ "$HARDCORE" -eq 1 ]; then
 fi
 if [ "$GHOST" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_ghost 1)
-  echo "Ghost kit: cloak/emp/nuke  (bind j cloak, h emp, n nuke)"
+  echo "Ghost kit: cloak/emp/lockdown/nuke  (J/H/K/N)  RMB zoom/snipe"
 fi
 
 exec "$ENGINE_BIN" \

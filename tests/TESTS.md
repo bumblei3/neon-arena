@@ -76,6 +76,9 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 58 | boss-hp-wave-scaling | autostart, startwave 15, bosstype 2, autokill | `boss spawned:.*hc` | keine Fatal-Warnung |
 | 59 | wave-select | autostart, startwave 7, autokill, fastbreak | `starting wave 7` | keine Fatal-Warnung |
 | 60 | coop-spectator | autostart, startwave 5, coopmock 1, botasplayer 1, autokill, fastbreak | `starting wave 5` | keine Fatal-Warnung |
+| 73 | ghost-kit-w1 | ghost 1, autostart, startwave 1, failrun | `GHOST kit active (wave 1)` | `DETECTOR spawned` |
+| 74 | ghost-detector-w8 | ghost 1, startwave 8, failrun | `DETECTOR spawned (wave 8, 1` | `wave 8, 2` |
+| 75 | ghost-detector-w12 | ghost 1, startwave 12, failrun | `DETECTOR spawned (wave 12, 2` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 

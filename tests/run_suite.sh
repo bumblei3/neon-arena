@@ -39,11 +39,17 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --parallel)
       PARALLEL_N="$2"
+      MODE="parallel"
       shift
       ;;
 
     --quick) MODE="quick" ;;
-    --test) MODE="parallel"; SELECTED="$2"; shift ;;
+    --test)
+      SELECTED="$2"
+      if [ -z "${PARALLEL_N:-}" ]; then
+        MODE="single"
+      fi
+      shift ;;
     --list) MODE="list" ;;
     --real-window)
       REAL=1
@@ -807,6 +813,35 @@ assert_72() {
   report $ok "shield-mod"
 }
 
+# TEST 73: Ghost kit active on wave 1 (no detector)
+assert_73() {
+  local ok=0
+  check "$1" "GHOST kit active (wave 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "starting wave 1 ("; [ $LAST_RESULT -eq 0 ] || ok=1
+  assert_no_pattern "$1" "DETECTOR spawned" || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "ghost-kit-w1"
+}
+
+# TEST 74: one Detector on ghost wave 8
+assert_74() {
+  local ok=0
+  check "$1" "GHOST kit active (wave 8)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "DETECTOR spawned (wave 8, 1"; [ $LAST_RESULT -eq 0 ] || ok=1
+  assert_no_pattern "$1" "wave 8, 2," || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "ghost-detector-w8"
+}
+
+# TEST 75: two Detectors on ghost wave 12
+assert_75() {
+  local ok=0
+  check "$1" "GHOST kit active (wave 12)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "DETECTOR spawned (wave 12, 2"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$1" || ok=1
+  report $ok "ghost-detector-w12"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -981,12 +1016,15 @@ dispatch_test() {
     70) run_test 70 "maxed-out-ach" 120 +set g_neonwave_autostart 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_startwave 10 ;;
     71) run_test 71 "healer-boss" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 17 +set g_neonwave_bosstype 8 +set g_neonwave_fastbreak 1 ;;
     72) run_test 72 "shield-mod" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 15 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
+    73) run_test 73 "ghost-kit-w1" 60 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_startwave 1 +set g_neonwave_failrun 1 ;;
+    74) run_test 74 "ghost-detector-w8" 90 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_startwave 8 +set g_neonwave_failrun 1 ;;
+    75) run_test 75 "ghost-detector-w12" 90 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_failrun 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75"
 
   case "$MODE" in
   all)

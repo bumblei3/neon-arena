@@ -10,14 +10,18 @@
 ## Ghost-Kit (StarCraft)
 
 Optionaler Loadout: `scripts/start-quake3e.sh --ghost` / `g_neonwave_ghost 1`.
-Referenz: [docs/GHOST_REFERENCE.md](docs/GHOST_REFERENCE.md).
+Referenz: [docs/GHOST_REFERENCE.md](docs/GHOST_REFERENCE.md) · Plan: [docs/GHOST_ROADMAP.md](docs/GHOST_ROADMAP.md).
 
 | Slice | Inhalt | Status |
 |-------|--------|--------|
 | v1 | Energy, Cloak 5 s, EMP-Stun-Blase, Nuke-Paint, Rail-Spawn, HUD-CVars | ✅ |
 | Calldown + Detector | Nuke Sky-Laser, 4-3-2-1, Bots fliehen, BFG-FX, custom Dmg; Detector Welle 8; Swarm; Boss Phase 2 sieht Cloak | ✅ |
-| Drain + EMP-Round + Lockdown | Cloak Toggle/Drain + Ambush 2×; EMP als Plasma-Bolt (Armor-Strip); Lockdown vs Boss/Detector; Gauntlet raus | 🔜 nächste Slice |
-| HUD-Polish | Energy/CDs live (ggf. Configstring statt CVar-Poll) | später |
+| Drain + EMP-Round + Lockdown | Cloak Toggle/Drain + Ambush 2×; EMP als Plasma-Bolt (Armor-Strip); Lockdown vs Boss/Detector; Gauntlet raus | ✅ |
+| HUD + Tells | Energy/CDs in `ps.stats` (Coop); J/H/K/N-Pips; Lockdown-Cyan; Detector-Scan 800 ms vor Swarm | ✅ |
+| Ghost-Snipe ADS | RMB `+zoom`, Cyan-Fadenkreuz + Vignette im Scope, kein extra Rail-Delay | ✅ |
+| Ghost-Feedback | Cloak-Sicht, OA-Sounds pro Verb, goldener Ambush-Trail | ✅ |
+
+**G1–G4 ✅** Energy 55, Lockdown-Bolt, Detector-Kurve, Tests 73–75. Details: [GHOST_ROADMAP](docs/GHOST_ROADMAP.md).
 
 Nicht geplant: extra Rail-Feuerverzögerung (Q3-Rail ist schon 1500 ms). Scanner ist Comsat, nicht Ghost.
 
@@ -160,7 +164,7 @@ Mär 2027  Release v0.80 (Multiplayer-Ready)
 
 ## 🚧 Blocked / Warteliste
 
-- **Ghost Slice 2:** Cloak-Drain, EMP-Projektil, Lockdown — empfohlen, nicht blockiert
+- **Ghost:** Kit + Snipe + Feedback sitzen. Nächster Hebel wäre Balance nach einer Runde (Drain/Start-Energy).
 - **Netzwerk-Coop:** Erst nach lokalem Coop implementieren (M4 erledigt ✅)
 - **Modding-Support:** Benötigt stabile API (erst nach M7 ✅)
 - **Achievements:** Benötigt Savegame-Erweiterung (erledigt ✅)

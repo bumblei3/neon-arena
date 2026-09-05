@@ -20,6 +20,7 @@ neon-arena/
 │   ├── MODIFIER_REFERENCE.md  # Alle 14 Modifier
 │   ├── PERK_REFERENCE.md  # Perk-System
 │   ├── GHOST_REFERENCE.md # StarCraft Ghost-Kit
+│   ├── GHOST_ROADMAP.md   # Nächste Ghost-Slices
 │   └── CI-engine-quake3e.md   # Engine-Build-Dokumentation
 ├── oa-gamecode/           # Submodule: bumblei3/oa-gamecode
 │   └── code/
@@ -46,7 +47,7 @@ neon-arena/
 | `g_main.c` | CVar-Registrierungen, Spielinitialisierung |
 | `g_combat.c` | Damage-Hooks (Vampiric Heal, Mirror; Ghost Cloak-Break) |
 | `g_weapon.c` | Fire-Hooks (Ghost Cloak-Break) |
-| `g_client.c` | Client-Persistenz; Ghost-Spawn (Rail+Gauntlet); Detector-Flag |
+| `g_client.c` | Client-Persistenz; Ghost-Spawn (Rail only); Detector-Flag |
 | `g_bot.c` | Bot-Handling; `neonwave_detector` Userinfo |
 | `ai_dmq3.c` | Bot-Sicht: `NW_GhostSeesInvis` überspringt Cloak |
 
@@ -98,7 +99,8 @@ NW_Cache()                   → Single-Pass-Aggregation aller Client-Stats
 | `g_ghost_cloakms` | 0 | HUD: Cloak-Rest ms (ROM) |
 | `g_ghost_empcd` | 0 | HUD: EMP-Cooldown ms (ROM) |
 | `g_ghost_nukecd` | 0 | HUD: Nuke-Cooldown ms (ROM) |
-| `g_ghost_status` | `""` | HUD: DESIGNATING / NUKE N / DETECTED / CLOAKED (ROM) |
+| `g_ghost_lockcd` | 0 | HUD: Lockdown-Cooldown ms (ROM) |
+| `g_ghost_status` | `""` | HUD-Debugspiegel (ROM); Live-HUD ist `STAT_GHOST_*` |
 
 ### Test-Hooks (Headless/CI)
 

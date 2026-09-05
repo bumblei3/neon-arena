@@ -13,8 +13,8 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - **Waffen-Identität:** Spawn mit Railgun + Lightning Gun + Gauntlet. Andere
   Waffen-Pickups werden ignoriert – Rail/LG-Pickups dienen als Ammo-Nachschub.
 - **Ghost-Kit** (optional, `g_neonwave_ghost 1` / `--ghost`): StarCraft-inspirierter
-  Loadout — Rail-Snipe, Cloak, EMP, Tac-Nuke-Calldown, Detector ab Welle 8.
-  Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md).
+  Loadout — Rail-Snipe, Cloak-Drain, EMP-Round, Lockdown, Tac-Nuke-Calldown,
+  Detector ab Welle 8. Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md).
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
 - **Wellen-Modifier** (ab Welle 5, auch in Boss-Wellen): 14 Modifier mit
   Synergie-/Anti-Synergie-System (ab Welle 8). Siehe [Modifier-Reference](docs/MODIFIER_REFERENCE.md).
@@ -54,7 +54,8 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 - [Boss-Reference](docs/BOSS_REFERENCE.md) — Alle 7 Boss-Typen mit Phase-2-Verhalten
 - [Modifier-Reference](docs/MODIFIER_REFERENCE.md) — Alle 14 Modifier + Synergien
 - [Perk-Reference](docs/PERK_REFERENCE.md) — Perk-System mit allen 6 Perks
-- [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Cloak, EMP, Nuke, Detector)
+- [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Cloak, EMP, Lockdown, Nuke, Detector)
+- [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — nächste Slices (Balance, Lock-Round, Detector, Tests)
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
 - [Test-Suite](tests/TESTS.md) — 56 Tests mit CVar-Hooks
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation

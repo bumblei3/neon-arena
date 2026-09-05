@@ -6,6 +6,8 @@ Aktiv mit `g_neonwave_ghost 1`. Arena-Loadout (Rail + Lightning) bleibt der Defa
 > **Produkt ist der OpenArena-Mod.** Der SDL2-GL3-Prototyp unter `prototypes/sdl2-gl3`
 > ist nur eine Skizze — Zahlen und Loop dort nicht als Quelle nehmen.
 >
+> Nächste Slices: [GHOST_ROADMAP](GHOST_ROADMAP.md).
+>
 > **Feedback willkommen!** Siehe [README](../README.md#feedback).
 
 ## Start
@@ -16,47 +18,63 @@ scripts/start-quake3e.sh --ghost
 openarena +set fs_game neonarena +g_gametype 14 +set g_neonwave_ghost 1 +map oa_shine
 ```
 
-Binds in `assets/autoexec.cfg`: **J** cloak · **H** emp · **N** nuke.
+Binds in `assets/autoexec.cfg`: **J** cloak · **H** emp · **K** lockdown · **N** nuke · **RMB** zoom.
 
-Spawn: Railgun (30 Slugs) + Gauntlet. Keine Lightning Gun.
+Spawn: Railgun (30 Slugs) — das ist die Sniper. Keine Lightning Gun, kein Gauntlet.
+Hip-Fire: normales Rail-Crosshair. **RMB** (`+zoom`, `cg_zoomfov 28`): Cyan-Fadenkreuz + Scope-Vignette, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
+
+Sounds (OA-Stock): Cloak `protect3` / aus `wearoff` · EMP `hyprbf1a` · Lock `lg_hit` · Nuke-Paint `bfg_fire` · Ambush `hit`.
 
 ## Loop
 
-Energy farmen (Start 40, Nuke braucht 80) → Cloak → reposition → Rail →
-Kill gibt Energy → EMP in den Klumpen → Nuke als Calldown (stehen bleiben,
-Laser, 4-3-2-1, Bots fliehen). Ab Welle 8 jagt ein Detector den Cloak.
+Energy farmen (Start 55, Nuke braucht 80) → Cloak (Drain) → reposition →
+RMB-Zoom → Rail (Ambush 2×) → Kill gibt Energy → EMP-Bolt in den Klumpen →
+Lockdown auf Boss/Detector → Nuke als Calldown. Ab Welle 8 jagt ein Detector
+den Cloak.
 
 ## Energy
 
 | | Wert |
 |---|---|
 | Maximum | 100 |
-| Spawn | 40 |
-| Regen | +3 / s (auch während Cloak) |
+| Spawn | 55 |
+| Regen | +3 / s (nicht während Cloak) |
 | Kill (Human) | +15 |
 
-Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist oder Cloak schon aktiv ist.
+Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist. Cloak-Toggle-Aus kostet nichts.
 
 ## Fähigkeiten
 
 | Taste | Command | Cost | Cooldown | Effekt |
 |-------|---------|------|----------|--------|
-| J | `cloak` | 40 | — (5 s Duration) | `PW_INVIS`. Bots sehen dich nicht jenseits von 80 u, außer Detector / Swarm / Boss Phase 2. |
-| H | `emp` | 35 | 25 s | Instant 400 u Radius: Bots 1.5 s Stun (`PMF_TIME_KNOCKBACK`). |
+| J | `cloak` | 25 | — (Drain 8/s) | Toggle `PW_INVIS`. Bots sehen dich nicht jenseits von 80 u, außer Detector / Swarm / Boss Phase 2. |
+| H | `emp` | 35 | 25 s | Plasma-Bolt: 400 u Armor auf 0 + 1.5 s Stun. |
+| K | `lockdown` | 50 | 20 s | Raketen-Bolt (900 u/s). Nur Boss/Detector; Miss refundet Energy, kein CD. |
 | N | `nuke` | 80 | 45 s | Calldown: 1.5 s stehen + 4 s inbound. |
 
 ### Cloak
 
-- 5 s Unsichtbarkeit nach einmaligem 40-Energy-Kauf. Kein Toggle-Aus, kein Drain.
-- Bricht bei Schuss (`FireWeapon`), bei eingehendem Schaden (`G_Damage`) und im Detector-Cone.
+- J an (25 Energy), J nochmal aus. Drain 8 Energy/s, kein Regen solange cloaked. 0 Energy = auto-decloak.
+- Bricht bei Schuss (`FireWeapon`), EMP, Lockdown, eingehendem Schaden und im Detector-Cone.
+- Nach jedem Break: 2 s **Ambush** — nächster Rail 2× Schaden (`AMBUSH`), goldener Rail-Trail + Hit-Cue.
+- Solange cloaked: kühle Cyan-Vignette auf dem eigenen Bildschirm.
 - Bricht auch eine laufende Nuke-Designation (`NUKE CANCELLED`).
-- HUD-Status `CLOAKED`.
+- HUD-Status `CLOAKED` / `AMBUSH`.
 
 ### EMP
 
-- Self-AoE um den Spieler, kein Projektil.
-- Trifft nur Bots. Stun 1500 ms, Velocity 0.
-- Sound: `sound/weapons/plasma/plasmx1a.wav`.
+- Plasma-Bolt (1600 u/s), kein Self-AoE. Explodiert am Treffer oder nach 3 s.
+- Bots im 400 u Radius: Armor 0 + Stun 1500 ms.
+- Decloakt den Ghost.
+
+### Lockdown
+
+- Raketen-Bolt (sichtbar, 900 u/s), kein Hitscan. Ein Bolt in der Luft.
+- Trifft nur Boss (`neonwaveBoss`) oder Detector.
+- 4 s: Velocity 0, kein `FireWeapon`, Detector scannt nicht.
+- Tell: cyan `constantLight` + vertikaler Rail-Tick, Centerprint `LOCKED`.
+- Miss / Trash / Wand: Energy zurück, kein CD (`Lockdown missed`).
+- CD 20 s nur bei Treffer. Decloakt beim Abschuss.
 
 ### Tac Nuke (Calldown)
 
@@ -75,15 +93,17 @@ Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist oder Cloak schon aktiv i
 
 ## Detector
 
-Ab Welle 8 ein extra Sarge-Bot `Detector W<n>` (120 HP, rotes `constantLight`).
+Ab Welle 8 ein extra Sarge-Bot `Detector W<n>-1` (120 HP, rotes `constantLight`).
+Ab Welle 12 ein zweiter (`W<n>-2`). Bot-Skill = Wellen-Skill + 1 (max 5).
 
 | | Wert |
 |---|---|
 | Range | 400 u |
 | Cone | Dot ≥ 0.76 (~40° Halbwinkel) |
-| On reveal | Cloak-Break + 4 s Swarm (`DETECTED`) |
+| Warn | 800 ms im Cone: roter Rail-Tick Detector → Ghost, HUD `SCANNING` |
+| On reveal | danach Cloak-Break + 4 s Swarm (`DETECTED`) |
 
-Während Swarm sehen **alle** Bots den Cloak. Ohne Swarm sieht nur der Detector selbst (plus Boss ab Phase 2).
+Cone verlassen vor 800 ms setzt den Timer zurück. Während Swarm sehen **alle** Bots den Cloak. Ohne Swarm sieht nur der Detector selbst (plus Boss ab Phase 2).
 
 Spawn-Pfad: `g_neonwave_nextdetector 1` → `addbot` setzt Userinfo `neonwave_detector` → `pers.neonwaveDetector`.
 
@@ -99,17 +119,15 @@ Gehookt in `BotEntityVisible` und `BotFindEnemy` (`ai_dmq3.c`). Unsichtbare Spie
 
 ## HUD
 
-Client liest ROM-CVars (Server synct ~alle 200 ms):
+Pro-Client über `playerState.stats` (lokal und Coop). `g_ghost_*` CVars bleiben Debug-Spiegel.
 
-| CVar | Inhalt |
+| Stat | Inhalt |
 |------|--------|
-| `g_ghost_energy` | 0–100 |
-| `g_ghost_cloakms` | Rest-Cloak in ms |
-| `g_ghost_empcd` | EMP-Cooldown ms |
-| `g_ghost_nukecd` | Nuke-Cooldown ms |
-| `g_ghost_status` | `DESIGNATING` / `NUKE N` / `DETECTED` / `CLOAKED` / leer |
+| `STAT_GHOST_ENERGY` | 0–100 |
+| `STAT_GHOST_CDS` | empSec \| lockSec<<8 \| nukeSec<<16 \| cloakSec<<24 |
+| `STAT_GHOST_ST` | Status 1 Cloak / 2 Ambush / 3 Scanning / 4 Detected / 5 Designating / 6 Nuke; Nuke-Countdown in Bits 8–15 |
 
-Leiste unten links + Zeile `GHOST <energy>  J cloak  H emp  N nuke`. Status zentriert.
+Leiste unten links, Pips **J H K N** (cyan bereit, orange + Sekunden auf CD). Status zentriert.
 
 ## CVars
 
@@ -125,32 +143,28 @@ Leiste unten links + Zeile `GHOST <energy>  J cloak  H emp  N nuke`. Status zent
 |-------|---------------|
 | `oa-gamecode/code/game/g_ghost.c` | Energy, Fähigkeiten, Nuke-Calldown, Detector-Think, HUD-Sync |
 | `g_neonwave.c` | `NW_GhostFrame` / `NW_GhostOnKill`; Detector-Spawn ab Welle 8 |
-| `g_client.c` | Ghost-Spawn (Rail+Gauntlet); Detector-HP 120 |
-| `g_weapon.c` / `g_combat.c` | Cloak-Break bei Fire / Damage |
+| `g_client.c` | Ghost-Spawn (Rail only); Detector-HP 120 |
+| `g_weapon.c` / `g_combat.c` | Cloak-Break bei Fire / Damage; Ambush-Rail; Lock blockt Fire |
+| `g_missile.c` | EMP-Bolt Impact |
 | `ai_dmq3.c` | Cloak vs Bot-Sicht |
-| `g_cmds.c` | Commands `cloak` / `emp` / `nuke` |
+| `g_cmds.c` | Commands `cloak` / `emp` / `lockdown` / `nuke` |
 | `g_bot.c` | Userinfo `neonwave_detector` |
-| `cgame/cg_draw.c` | Ghost-HUD in `CG_DrawNeonWave` |
+| `cgame/cg_draw.c` | Ghost-HUD aus `ps.stats` |
+| `bg_public.h` | `STAT_GHOST_ENERGY` / `_CDS` / `_ST` |
 
 `g_ghost.o` steht in beiden Makefile-Objektlisten (`BASEGAME` und `MISSIONPACK`). Alles hinter `NEONARENA_MOD`.
 
 ## Log-Marker
 
 ```
-NeonWave: DETECTOR spawned (wave N)
+NeonWave: GHOST kit active (wave N)
+NeonWave: DETECTOR spawned (wave N, C, skill S)
 Ghost: detector revealed client N
 Ghost: nuke detonated by <name>
 ```
 
-Centerprints: `CLOAKED`, `EMP`, `DESIGNATING — STAND STILL`, `NUKE INBOUND`, `NUKE N`, `NUCLEAR STRIKE`, `NUKE CANCELLED`, `DETECTED`.
+Centerprints: `CLOAKED`, `DECLOAKED`, `AMBUSH`, `EMP`, `LOCKED`, `SCANNING`, `DESIGNATING — STAND STILL`, `NUKE INBOUND`, `NUKE N`, `NUCLEAR STRIKE`, `NUKE CANCELLED`, `DETECTED`.
 
-## Geplant (nächste Slice)
+Log: `Ghost: lockdown on <name>`
 
-Noch nicht im OA-Mod — nur die empfohlene Richtung:
-
-1. **Cloak als Toggle + Drain** — 25 Energy an, ~8/s Drain, J nochmal aus, 0 = auto-decloak. Kein Regen während Cloak. Erster Rail nach Break = Ambush 2×.
-2. **EMP als Projektil** — Plasma-Bolt, Armor auf 0 im Radius + kurzer Stun (kein Self-AoE).
-3. **Lockdown (K)** — Trace auf Boss/Detector: 4 s kein Move/Fire. 50 Energy, 20 s CD.
-4. Gauntlet aus dem Ghost-Spawn.
-
-Nicht geplant: extra Rail-Feuerverzögerung (Q3-Rail hat schon 1500 ms). Scanner Sweep ist Comsat/Orbital, kein Ghost. Psionic Storm ist High Templar.
+Weiter: [GHOST_ROADMAP](GHOST_ROADMAP.md). Nicht geplant: extra Rail-Feuerverzögerung, Scanner Sweep, Psionic Storm.

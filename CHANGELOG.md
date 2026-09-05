@@ -9,18 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **StarCraft Ghost-Kit** (`g_neonwave_ghost 1`, Start: `scripts/start-quake3e.sh --ghost`) — optionaler Loadout für GT_NEONWAVE:
-  - Spawn: Railgun (30) + Gauntlet, Energy 40/100, +3/s, +15 pro Kill
-  - **Cloak** (J, 40 Energy, 5 s `PW_INVIS`) — Bots sehen unsichtbar nicht jenseits 80 u; bricht bei Schuss, Schaden, Detector
-  - **EMP** (H, 35 Energy, 25 s CD) — 400 u Stun 1.5 s auf Bots
+  - Spawn: Railgun (30), Energy 55/100, +3/s (kein Regen während Cloak), +15 pro Kill
+  - **Cloak** (J, 25 Energy toggle) — Drain 8/s, kein Regen solange cloaked, J nochmal / 0 Energy = aus; bricht bei Schuss, Schaden, Detector; erster Rail in 2 s = Ambush 2×
+  - **EMP** (H, 35 Energy, 25 s CD) — Plasma-Bolt, 400 u Armor-Strip + Stun 1.5 s
+  - **Lockdown** (K, 50 Energy, 20 s CD) — Raketen-Bolt; nur Boss/Detector, Miss refundet Energy
   - **Tac Nuke** (N, 80 Energy, 45 s CD) — Calldown: 1.5 s stehen (Cancel bei Bewegung/Schaden), 4 s inbound mit Sky-Laser und Countdown, Bots fliehen, BFG-FX; Trash instakill, Boss 40 % maxHealth, Selbst 40
-  - **Detector** ab Welle 8 (120 HP, 400 u / ~40° Cone) — Cloak-Break + 4 s Swarm; Boss Phase 2 sieht Cloak
-  - HUD: Energy-Leiste + Status (`CLOAKED` / `DESIGNATING` / `NUKE N` / `DETECTED`)
-  - Binds in `assets/autoexec.cfg`: J/H/N
+  - **Detector** ab Welle 8 (120 HP, 400 u / ~40° Cone); ab Welle 12 zwei; Skill +1 — Cloak-Break nach 800 ms Scan + 4 s Swarm; Boss Phase 2 sieht Cloak
+  - HUD: Energy + J/H/K/N-CDs über `STAT_GHOST_*` (Coop-tauglich); Status `CLOAKED` / `AMBUSH` / `SCANNING` / `DETECTED` / `DESIGNATING` / `NUKE N`
+  - Detector: 800 ms `SCANNING` (roter Rail-Tick) bevor Cloak bricht
+  - Lockdown-Tell: cyan Light + Rail-Tick, Centerprint `LOCKED`
+  - Binds in `assets/autoexec.cfg`: J/H/K/N, RMB `+zoom` (Ghost-Snipe: Cyan-Fadenkreuz + Vignette, `cg_zoomfov 28`)
+  - Tests 73–75: Ghost kit W1 / Detector W8×1 / Detector W12×2
+  - Feedback: Cloak-Vignette, eigene Sounds (Cloak/EMP/Lock/Nuke/Zoom), Ambush-Rail gold
   - Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md)
 
 ### CVars Added
 - `g_neonwave_ghost` — Ghost-Kit an/aus (ARCHIVE, SERVERINFO)
-- `g_ghost_energy`, `g_ghost_cloakms`, `g_ghost_empcd`, `g_ghost_nukecd`, `g_ghost_status` — HUD-Spiegel (ROM)
+- `g_ghost_energy`, `g_ghost_cloakms`, `g_ghost_empcd`, `g_ghost_nukecd`, `g_ghost_lockcd`, `g_ghost_status` — HUD-Spiegel (ROM)
 
 ## [0.70] - 2026-09-05
 
