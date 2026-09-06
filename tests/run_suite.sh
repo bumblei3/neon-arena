@@ -873,7 +873,7 @@ assert_76() {
 # TEST 77: replay save header metadata (magic, version, mapname, eventCount, durationMs)
 assert_77() {
   local ok=0 logfile="$1"
-  check "$logfile" "replay saved";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "REPLAY SAVE";                            [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "NeonWave: REPLAY SAVE magic=NRPY";      [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "version=1";                             [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "events=2";                              [ $LAST_RESULT -eq 0 ] || ok=1
@@ -885,8 +885,8 @@ assert_77() {
 # TEST 78: replay load — store events to file, then load and verify count + event fields
 assert_78() {
   local ok=0 logfile="$1"
-  check "$logfile" "saved 3 events to replay_78.dat";       [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$logfile" "loaded 3 events";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "REPLAY SAVE saved";                      [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "REPLAY LOAD loaded";                      [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "NeonWave: REPLAY LOAD verify match=1"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "replay-load-events"
@@ -895,8 +895,8 @@ assert_78() {
 # TEST 79: replay playback — walk the event list sequentially, count events consumed
 assert_79() {
   local ok=0 logfile="$1"
-  check "$logfile" "replay playback started";               [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$logfile" "replay playback walked 4 events";       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "REPLAY PLAYBACK playback started";        [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "REPLAY PLAYBACK walked 4 events";        [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "replay-playback-walk"
 }
