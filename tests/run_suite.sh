@@ -1087,10 +1087,10 @@ dispatch_test() {
     74) run_test 74 "ghost-detector-w8" 90 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_startwave 8 +set g_neonwave_failrun 1 ;;
     75) run_test 75 "ghost-detector-w12" 90 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_failrun 1 ;;
     76) run_test 76 "replay-roundtrip" 60 +set g_neonwave_replaytest 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    77) run_test 77 "replay-save-header" 60 +set g_neonwave_replaytest77 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    78) run_test 78 "replay-load-events" 60 +set g_neonwave_replaytest78 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    79) run_test 79 "replay-playback-walk" 60 +set g_neonwave_replaytest79 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    80) run_test 80 "replay-overflow" 60 +set g_neonwave_replaytest80 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    77) run_test 77 "replay-save-header" 60 +set g_neonwave_replaytest 77 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    78) run_test 78 "replay-load-events" 60 +set g_neonwave_replaytest 78 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    79) run_test 79 "replay-playback-walk" 60 +set g_neonwave_replaytest 79 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    80) run_test 80 "replay-overflow" 90 +set g_neonwave_replaytest 80 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
