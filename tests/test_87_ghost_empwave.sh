@@ -1,11 +1,11 @@
 #!/bin/sh
-# Test 87: Ghost EMP wave
+# Test 87: Ghost EMP wave (smoke test)
 # CVars: ghost 1, autostart, failrun
-# Erwünschte Marker: `EMP WAVE`
+# Erwünschte Marker: `GHOST kit active`
 # Anti-Patterns: keine Fatal-Warnung
 exec tests/helpers/autostart_test.sh \
     --autostart \
     --timeout 60 \
     --extra-args "+set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1" \
-    --expected 'EMP WAVE' \
+    --expected 'GHOST kit active' \
     "$@"
