@@ -156,6 +156,25 @@ def cmd_list(args):
 
     configs = [f for f in os.listdir(CONFIGS_DIR) if f.endswith(".json")]
 
+    # Auch Arena-Konfigurationen anzeigen
+    arenas_dir = os.path.join(CONFIGS_DIR, "arenas")
+    if os.path.exists(arenas_dir):
+        arenas = [f for f in os.listdir(arenas_dir) if f.endswith(".json")]
+        if arenas:
+            print("\nAvailable arenas:")
+            print("=" * 40)
+            for cfg in sorted(arenas):
+                filepath = os.path.join(arenas_dir, cfg)
+                with open(filepath, "r") as f:
+                    data = json.load(f)
+                name = data.get("name", cfg)
+                desc = data.get("description", "")
+                diff = data.get("difficulty", "?")
+                rec = "★" if data.get("recommended") else " "
+                print(f"  {rec} {cfg:<30} [{diff}] {name}")
+                if desc:
+                    print(f"    {desc}")
+
     if not configs:
         print("No configs found.")
         return 0

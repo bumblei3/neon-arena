@@ -1,0 +1,14 @@
+{
+  "name": "Ironman",
+  "map": "oa_minia",
+  "description": "Niemals sterben — kein Respawn, keine zweite Chance",
+  "settings": {
+    "g_neonwave_maxwave": 20,
+    "g_neonwave_modifier": 0,
+    "g_neonwave_bosstype": 0,
+    "g_neonwave_hardcore": 1,
+    "g_momentum": 1
+  },
+  "difficulty": 4,
+  "recommended": false
+}

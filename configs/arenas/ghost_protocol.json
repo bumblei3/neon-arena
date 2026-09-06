@@ -1,0 +1,17 @@
+{
+  "name": "Ghost Protocol",
+  "map": "oa_shine",
+  "description": "Ghost-Kit nur — testen Sie alle neuen Waffen",
+  "settings": {
+    "g_neonwave_maxwave": 20,
+    "g_neonwave_ghost": 1,
+    "g_ghost_energy_start": 75,
+    "g_ghost_energy_max": 150,
+    "g_ghost_regen_amt": 6,
+    "g_neonwave_modifier": 0,
+    "g_neonwave_bosstype": 0,
+    "g_momentum": 1
+  },
+  "difficulty": 2,
+  "recommended": true
+}
