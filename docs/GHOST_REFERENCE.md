@@ -18,7 +18,7 @@ scripts/start-quake3e.sh --ghost
 openarena +set fs_game neonarena +g_gametype 14 +set g_neonwave_ghost 1 +map oa_shine
 ```
 
-Binds in `assets/autoexec.cfg`: **J** cloak · **H** emp · **K** lockdown · **N** nuke · **RMB** zoom.
+Binds in `assets/ghost-binds.cfg` (cgame exec't das File wenn das Kit an ist; `--ghost` kopiert es nach `~/.openarena/neonarena/`): **J** cloak · **H** emp · **K** lockdown · **N** nuke · **RMB** zoom.
 
 Spawn: Railgun (30 Slugs) — das ist die Sniper. Keine Lightning Gun, kein Gauntlet.
 Hip-Fire: normales Rail-Crosshair + Cyan/Gold Hit-Confirm. **RMB** (`+zoom`, `cg_zoomfov 28`): runde Cyan-Blende + Fadenkreuz, Hit-Confirm im Iris, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
@@ -57,7 +57,8 @@ Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist. Cloak-Toggle-Aus kostet
 - J an (25 Energy), J nochmal aus. Drain 5 Energy/s, kein Regen solange cloaked. 0 Energy = auto-decloak.
 - Bricht bei Schuss (`FireWeapon`), EMP, Lockdown, eingehendem Schaden und im Detector-Cone.
 - Nach jedem Break: 2 s **Ambush** — nächster Rail 2× Schaden (`AMBUSH`), goldener Rail-Trail + Hit-Cue.
-- Solange cloaked: kühle Cyan-Vignette auf dem eigenen Bildschirm; andere sehen eine Cyan-Shell (kein volles Stock-Invis).
+- Solange cloaked: kühle Cyan-Vignette auf dem eigenen Bildschirm; andere sehen eine schwache Cyan-Shell (G5, kein volles Stock-Invis).
+- Uncloaked (G10): stärkere Cyan-Shell auf Körper und Rail — kein Sarge-Look.
 - Bricht auch eine laufende Nuke-Designation (`NUKE CANCELLED`).
 - HUD-Status `CLOAKED` / `AMBUSH`.
 

@@ -7,18 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-- Headless CI wave-clear: autostart counts as a living human; bot-as-player is not a drone.
-- SHIELD modifier can be forced (`g_neonwave_modifier 15`); HEALER test uses wave 10 (hc 300).
-- Perk offers, OVERCHARGE rank, MIMIC, VAMPIRE lifesteal, and fakecombo multikills work without a real client.
-- Parallel suite: unique `net_port`, isolated `HOME_DIR`, no nested xvfb on dedicated; fail logs are printed.
-
 ### Added
+- **Ghost G10:** Cyan-Shell uncloaked on human model + weapon (`neonarena/ghostShell`). Cloak stays the faint G5 shell.
 - **Arena Hit-Confirm:** Cyan-Ecken am Fadenkreuz ~150 ms bei Treffer (`PERS_HITS`); Gold ~220 ms bei Kill.
 - **Ghost G6:** derselbe Marker im runden Scope-Iris; CI-Chunks laufen Ghost-Tests 73–75 mit echten Asserts.
 - **Ghost G7:** ortsfester Detector-Turm ab Welle 8 (Rail-Ping, 800 ms Scan, Lockdown-Ziel). Tests 74–75 erwarten `DETECTOR turret`.
 - **Ghost G9:** eigene Short-Sounds im PK3 (`ghost_cloak_on/off`, `ghost_emp`, `ghost_lock`, `ghost_nuke`, `ghost_scan`).
 - **Auto-GFX:** `scripts/start-quake3e.sh` probed GPU/Vulkan/VRAM einmal, schreibt `gfx-auto.cfg` (low/med/high). `--gfx-reset` neu probe. Manuelle Datei wird nicht überschrieben.
+
+### Fixed
+- Ghost binds (J/H/K/N, RMB zoom) load via `ghost-binds.cfg` from cgame and `--ghost` (engine skips `autoexec.cfg` inside a pk3).
+- Headless CI wave-clear: autostart counts as a living human; bot-as-player is not a drone.
+- SHIELD modifier can be forced (`g_neonwave_modifier 15`); HEALER test uses wave 10 (hc 300).
+- Perk offers, OVERCHARGE rank, MIMIC, VAMPIRE lifesteal, and fakecombo multikills work without a real client.
+- Parallel suite: unique `net_port`, isolated `HOME_DIR`, no nested xvfb on dedicated; fail logs are printed.
 
 ### Changed
 - **Ghost G8:** Cloak-Drain 8 → **5**/s (Start 55 bleibt). Welle-1-Play: Tarnung ~6 s.

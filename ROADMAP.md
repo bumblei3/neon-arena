@@ -1,7 +1,7 @@
 # NeonArena Roadmap
 
-> Letztes Update: 2026-09-05
-> Stand: v0.71 Ghost-Kit, 506 Prototyp-Tests, 75 Haupt-Mod-Tests (73–75 Ghost)
+> Letztes Update: 2026-09-06
+> Stand: v0.71 Ghost-Kit G1–G10, 506 Prototyp-Tests, 76 Haupt-Mod-Tests
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
 
@@ -25,9 +25,9 @@ Referenz: [docs/GHOST_REFERENCE.md](docs/GHOST_REFERENCE.md) · Plan: [docs/GHOS
 | G7 Detector-Turm | Ortsfester Scanner, sichtbarer Hunt | ✅ |
 | G8 eine Balance-Zahl | Drain 8 → 5/s (Play Welle 1) | ✅ |
 | G9 eigene Cues | Short-Sounds statt OA-Stock | ✅ |
-| G10 Ghost-Look | Cyan-Shell / Skin uncloaked | später |
+| G10 Ghost-Look | Cyan-Shell uncloaked (Waffe + Modell) | ✅ |
 
-**G1–G9 ✅.** Nächster Ghost-Hebel: G10 Look, oder eine weitere Zahl nach der nächsten Runde. Keine neuen Verben.
+**G1–G10 ✅.** Nächster Hebel: eine Zahl nach einer Runde bis Detector (Welle 8+). Keine neuen Verben.
 
 Nicht geplant: extra Rail-Feuerverzögerung (Q3-Rail ist schon 1500 ms). Scanner Sweep ist Comsat, nicht Ghost.
 

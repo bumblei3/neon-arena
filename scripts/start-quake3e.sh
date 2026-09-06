@@ -123,8 +123,10 @@ fi
 if [ "$HARDCORE" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_hardcore 1)
 fi
+AFTER_MAP=()
 if [ "$GHOST" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_ghost 1)
+  AFTER_MAP+=(+exec ghost-binds.cfg)
   echo "Ghost kit: cloak/emp/lockdown/nuke  (J/H/K/N)  RMB zoom/snipe"
 fi
 
@@ -132,6 +134,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DETECT="$ROOT/scripts/detect-gfx.sh"
 GFX_AUTO="$HOME_PATH/$GAME/gfx-auto.cfg"
 mkdir -p "$HOME_PATH/$GAME"
+# Loose cfgs: quake3e does not exec autoexec.cfg out of a pk3.
+for cfg in autoexec.cfg ghost-binds.cfg neon-look.cfg neon-gfx.cfg; do
+  if [ -f "$ROOT/assets/$cfg" ]; then
+    cp "$ROOT/assets/$cfg" "$HOME_PATH/$GAME/$cfg"
+  fi
+done
 if [ "$GFX_RESET" -eq 1 ] && [ -f "$GFX_AUTO" ]; then
   rm -f "$GFX_AUTO"
   echo "gfx-auto.cfg reset"
@@ -163,4 +171,5 @@ exec "$ENGINE_BIN" \
   +set g_gametype "$GAME_TYPE" \
   "${MODE_CVARS[@]}" \
   "${EXTRA_CVARS[@]}" \
-  +map "$MAP"
+  +map "$MAP" \
+  "${AFTER_MAP[@]}"

@@ -171,7 +171,7 @@ jobs:
           mkdir -p ~/.openarena/neonarena/vm
           cp "$OUT/vm/"*.qvm ~/.openarena/neonarena/vm/
           cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
-          (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts textures gfx env sound autoexec.cfg neon-look.cfg)
+          (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts textures gfx env sound autoexec.cfg ghost-binds.cfg neon-look.cfg neon-gfx.cfg gfx-auto.cfg && cp autoexec.cfg ghost-binds.cfg neon-look.cfg neon-gfx.cfg ~/.openarena/neonarena/)
           chmod +x tests/run_suite.sh
 
       - name: Run chunk ${{ matrix.chunk_id }} (${{ matrix.chunk_tests }})

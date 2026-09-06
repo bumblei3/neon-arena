@@ -605,6 +605,20 @@ neonarena/ghostCloak
 	}
 }
 
+// G10: uncloaked Ghost — stronger cyan than cloak, not the drone shell
+neonarena/ghostShell
+{
+	deformVertexes wave 100 sin 1.1 0 0 0
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.18 0.95 1.25 )
+		tcGen environment
+		tcMod scroll 0.12 0.06
+		tcMod scale 2 2
+	}
+}
+
 gfx/2d/ghost_scope
 {
 	nopicmip

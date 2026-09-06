@@ -3,7 +3,7 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-05 · Kit in **v0.71** · G8 Drain 5/s
+> Letztes Update: 2026-09-06 · Kit in **v0.71** · G10 Shell uncloaked
 
 ## Stand
 
@@ -35,6 +35,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 | G7 | Ortsfester Detector-Turm ab Welle 8; Lockdown zählt |
 | G9 | Eigene Short-Sounds (Cloak/EMP/Lock/Nuke/Scan) |
 | G8 | Drain 8 → 5/s nach Welle-1-Play |
+| G10 | Cyan-Shell uncloaked (Modell + Waffe); `ghost-binds.cfg` |
 
 ## Lücken vs StarCraft Ghost
 
@@ -44,7 +45,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 | Detector | Bot + Turm ab W8 (Rail-Ping, 800 ms) | SC Missile Turret analog | G7 ✅ |
 | Balance | 55 Start, Drain 5/s, ~6 s Cloak | eine Zahl nach einer Runde | G8 ✅ |
 | Sounds | PK3 `ghost_*.wav` | eigene Short-Cues | G9 ✅ |
-| Modell | Sarge + Cyan-Shell cloaked | Ghost-Look auch uncloaked | **G10** |
+| Modell | Sarge + Cyan-Shell cloaked | Ghost-Look auch uncloaked | G10 ✅ |
 | Tests in CI | Chunk 4: 73–75 single (echte Asserts) | 61–72 weiter nur lokal | G6 ✅ |
 | Nuke-Inbound | 4 s | SC ~20 s | nicht — Arena |
 | Scanner / Storm | — | Comsat / High Templar | nicht |
@@ -71,9 +72,9 @@ Weitere Zahlen erst nach der nächsten Runde.
 
 `assets/sound/ghost_{cloak_on,cloak_off,emp,lock,nuke,scan}.wav`. Scan spielt einmal beim Cone-Eintritt (`SCANNING`). Ambush bleibt OA `hit`. Generator: `assets/gen_ghost_sounds.py`.
 
-### G10 — Ghost-Look
+### G10 — Ghost-Look ✅
 
-Uncloaked: Cyan-Shell oder eigenes Player-Model, damit es kein Sarge mit Rail ist. Cloaked bleibt die schwache Cyan-Shell aus G5. Kein voller SC-Schimmer (Q3-Renderer).
+Uncloaked: Cyan-Shell (`neonarena/ghostShell`) auf Human-Modell und Waffe. Cloaked bleibt die schwache Cyan-Shell aus G5. Kein voller SC-Schimmer (Q3-Renderer). Binds: `ghost-binds.cfg` (cgame + `--ghost`), weil die Engine `autoexec.cfg` nicht aus dem PK3 exec't.
 
 ## Nicht geplant
 
