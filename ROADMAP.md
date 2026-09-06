@@ -1,7 +1,7 @@
 # NeonArena Roadmap
 
 > Letztes Update: 2026-09-06
-> Stand: v0.72 Ghost-Kit G1–G10, 506 Prototyp-Tests, 81 Haupt-Mod-Tests
+> Stand: v1.0 Ghost-Kit G1–G10, 11 Bosse, 84 Haupt-Mod-Tests
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
 
@@ -123,7 +123,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 | **M8 Replay-Recorder** | ✅ Done | Bug-Fixing | Low | **Q4 2026** |
 | **M9 Modding-Support** | ✅ Done | Community | Medium | Q4 2026 |
 | **M10 Netzwerk-Coop** | 🟠 Niedrig | Multiplayer | High | Q1 2027 |
-| **M11 Neue Content** | 🟠 Niedrig | Variety | Medium | Q1 2027 |
+| **M11 Neue Content** | ✅ Done | Variety | Medium | Q4 2026 |
 
 ---
 
