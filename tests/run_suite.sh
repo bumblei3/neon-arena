@@ -967,6 +967,33 @@ assert_87() {
   report $ok "ghost-empwave"
 }
 
+# TEST 88: HEALER boss enters PHASE 2 (g_neonwave_phaseforce 1)
+assert_88() {
+  local ok=0 logfile="$1"
+  check "$logfile" "boss spawned: HEALER"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "HEALER ENTERS PHASE 2"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "boss-healer-phase2"
+}
+
+# TEST 89: SNIPER ELITE boss enters PHASE 2 (g_neonwave_phaseforce 1)
+assert_89() {
+  local ok=0 logfile="$1"
+  check "$logfile" "boss spawned: SNIPER ELITE"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "SNIPER ELITE ENTERS PHASE 2"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "boss-snipelite-phase2"
+}
+
+# TEST 90: DEMOLISHER boss enters PHASE 2 (g_neonwave_phaseforce 1)
+assert_90() {
+  local ok=0 logfile="$1"
+  check "$logfile" "boss spawned: DEMOLISHER"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "DEMOLISHER ENTERS PHASE 2"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "boss-demolisher-phase2"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -1157,10 +1184,15 @@ dispatch_test() {
     86) run_test 86 "ghost-cluster" 60 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     87) run_test 87 "ghost-empwave" 60 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
 
+    # Phase-2 boss tests (test 82 pattern: startwave + bosstype + fastbreak + phaseforce + autokill)
+    88) run_test 88 "boss-healer-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 8 +set g_neonwave_fastbreak 1 +set g_neonwave_phaseforce 1 +set g_neonwave_autokill 1 ;;
+    89) run_test 89 "boss-snipelite-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 19 +set g_neonwave_bosstype 10 +set g_neonwave_fastbreak 1 +set g_neonwave_phaseforce 1 +set g_neonwave_autokill 1 ;;
+    90) run_test 90 "boss-demolisher-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 20 +set g_neonwave_bosstype 11 +set g_neonwave_fastbreak 1 +set g_neonwave_phaseforce 1 +set g_neonwave_autokill 1 ;;
+
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90"
 QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81"
 
   case "$MODE" in

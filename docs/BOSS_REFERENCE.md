@@ -1,6 +1,6 @@
 # Boss-Reference
 
-Alle 7 Boss-Typen in NeonArena. Bosse spawnen ab Welle 10, einer pro Welle.
+Alle 11 Boss-Typen in NeonArena. Bosse spawnen ab Welle 10, einer pro Welle.
 Rotation: `(wave / 10 + dailyOffset) % NW_BOSS_COUNT`.
 
 > **Feedback willkommen!** Siehe [README](../README.md#feedback).
@@ -16,6 +16,10 @@ Rotation: `(wave / 10 + dailyOffset) % NW_BOSS_COUNT`.
 | 5 | WARDEN | 500 (5×) | MG | Teleportiert in Spielerzone + Armor-Phase (3 s) | Kürzere Strike-Intervalle |
 | 6 | BERSERKER | 700 (7×) | MG | Langsam, massiv — enrages below 30 % HP | RAGE-Modus (schnellere Angriffe) |
 | 7 | TELEPORTER | 350 (3.5×) | MG | Teleportiert weg bei Treffer (evasiv) | Häufigere Blinks |
+| 8 | HEALER | 300 (3×) | none | Heilt nahe Bots, fragil | Heilt öfter und mehr HP |
+| 9 | SHIELDER | 500 (5×) | energy shield | Deploys shield vs projectiles | Shield drops bei niedrigem HP |
+| 10 | SNIPER ELITE | 450 (4.5×) | Railgun | Schneller Rail-Schuss + Tarnung | Schnellere Feuerrate |
+| 11 | DEMOLISHER | 600 (6×) | rockets | Rocketsplash-Schaden | Mehr Rockets pro Salve |
 
 ## HP-Skalierung
 
@@ -54,16 +58,22 @@ Phase-2-Marker im Log: `NeonWave: <NAME> ENTERS PHASE 2`
 - **WARDEN:** Strike-Intervall von 4 s auf 2 s
 - **BERSERKER:** RAGE-Modus — Angriffsgeschwindigkeit +50 %, Bewegung +30 %
 - **TELEPORTER:** Blink-Cooldown von 3 s auf 1.5 s
-
-## Test-Hooks
+- **HEALER:** Heilt öfter (Cooldown halbiert) und mehr HP pro Heilung (+50%)
+- **SHIELDER:** Shield-Cycle kürzer, aber Shield-Dauer sinkt — bei <25 % HP fällt Shield
+- **SNIPER ELITE:** Feuerrate +50 %, Tarn-Cooldown halbiert, schneller Rail-Schuss
+- **DEMODISHER:** Mehr Rockets pro Salve (+33 %), kürzere Salven-Intervalle
 
 | CVar | Beschreibung |
 |------|-------------|
-| `g_neonwave_bosstype N` | Erzwingt Boss-Typ N (1-7) |
+| `g_neonwave_bosstype N` | Erzwingt Boss-Typ N (1-11) |
 | `g_neonwave_phaseforce 1` | Erzwingt Phase-2-Trigger sofort |
 | `g_neonwave_rageforce 1` | Erzwingt Berserker-Rage |
 | `g_neonwave_wardenforce 1` | Erzwingt Warden-Strike |
 | `g_neonwave_dashforce N` | Erzwingt Sniper-Dash alle N ms |
+| `g_neonwave_healforce 1` | Erzwingt Healer-Heilung |
+| `g_neonwave_shieldforce 1` | Erzwingt Shielder-Shield |
+| `g_neonwave_cloakforce 1` | Erzwingt Sniper-Elite-Tarnung |
+| `g_neonwave_barrageforce 1` | Erzwingt Demolisher-Rocket-Barrage |
 
 ## Log-Marker
 
@@ -79,4 +89,9 @@ NeonWave: WARDEN strikes the player zone
 NeonWave: WARDEN raises armor
 NeonWave: SNIPER dashes to new position
 NeonWave: GLASS CANNON summons support drone
+NeonWave: HEALER heals nearby bots for N HP
+NeonWave: SHIELDER deploys energy shield
+NeonWave: SHIELDER shield drops
+NeonWave: SNIPER ELITE rapid rail
+NeonWave: DEMOLISHER fires rocket barrage
 ```

@@ -3,7 +3,7 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-06 · Kit in **v0.71** · G10 Shell uncloaked
+> Letztes Update: 2026-09-07 · Kit in **v0.71** · G11 Multiscan
 
 ## Stand
 
@@ -36,6 +36,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 | G9 | Eigene Short-Sounds (Cloak/EMP/Lock/Nuke/Scan) |
 | G8 | Drain 8 → 5/s nach Welle-1-Play |
 | G10 | Cyan-Shell uncloaked (Modell + Waffe); `ghost-binds.cfg` |
+| G11 | Multiscan: `multiscan` Command, 30 Energy, 3 s CD, 500 u Radius, Cloak-Reveal + 2 s Damage-Bonus |
 
 ## Lücken vs StarCraft Ghost
 
