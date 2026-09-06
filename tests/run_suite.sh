@@ -1150,7 +1150,7 @@ dispatch_test() {
     79) run_test 79 "replay-playback-walk" 60 +set g_neonwave_replaytest 79 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     80) run_test 80 "replay-overflow" 90 +set g_neonwave_replaytest 80 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     81) run_test 81 "ghost-balance-cvars" 60 +set g_neonwave_ghost 1 +set g_ghost_energy_start 60 +set g_ghost_energy_max 100 +set g_ghost_regen_amt 4 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    82) run_test 82 "boss-shielder" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 18 +set g_neonwave_bosstype 9 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
+    82) run_test 82 "boss-shielder" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 18 +set g_neonwave_bosstype 9 +set g_neonwave_fastbreak 1 +set g_neonwave_phaseforce 1 +set g_neonwave_autokill 1 ;;
     83) run_test 83 "boss-snipelite" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 19 +set g_neonwave_bosstype 10 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
     84) run_test 84 "boss-demolisher" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 20 +set g_neonwave_bosstype 11 +set g_neonwave_fastbreak 1 +set g_neonwave_autokill 1 ;;
     85) run_test 85 "ghost-beam" 60 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
