@@ -909,6 +909,15 @@ assert_80() {
   report $ok "replay-overflow"
 }
 
+# TEST 81: Ghost balance CVars
+assert_81() {
+  local ok=0 logfile="$1"
+  check "$logfile" "GHOST"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "ghost-balance-cvars"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -1091,12 +1100,13 @@ dispatch_test() {
     78) run_test 78 "replay-load-events" 60 +set g_neonwave_replaytest 78 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     79) run_test 79 "replay-playback-walk" 60 +set g_neonwave_replaytest 79 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     80) run_test 80 "replay-overflow" 90 +set g_neonwave_replaytest 80 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    81) run_test 81 "ghost-balance-cvars" 60 +set g_neonwave_ghost 1 +set g_ghost_energy_start 60 +set g_ghost_energy_max 100 +set g_ghost_regen_amt 4 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81"
 
   case "$MODE" in
   all)
