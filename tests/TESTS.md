@@ -79,8 +79,8 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 58 | boss-hp-wave-scaling | autostart, startwave 15, bosstype 2, autokill | `boss spawned:.*hc` | keine Fatal-Warnung |
 | 59 | wave-select | autostart, startwave 7, autokill, fastbreak | `starting wave 7` | keine Fatal-Warnung |
 | 60 | coop-spectator | autostart, startwave 5, coopmock 1, botasplayer 1, autokill, fastbreak | `starting wave 5` | keine Fatal-Warnung |
-| 61 | bot-slayer-ach | (100 kills) | `ACHIEVEMENT BOT SLAYER` | keine Fatal-Warnung |
-| 62 | bot-annihilator-ach | (1000 kills) | `ACHIEVEMENT BOT ANNIHILATOR` | keine Fatal-Warnung |
+| 61 | bot-slayer-ach | fakekills 100, failrun | `ACHIEVEMENT BOT SLAYER` | keine Fatal-Warnung |
+| 62 | bot-annihilator-ach | fakekills 1000, failrun | `ACHIEVEMENT BOT ANNIHILATOR` | keine Fatal-Warnung |
 | 63 | wave5-ach | startwave 5 | `ACHIEVEMENT GETTING STARTED` | keine Fatal-Warnung |
 | 64 | wave10-ach | startwave 10 | `ACHIEVEMENT VETERAN` | keine Fatal-Warnung |
 | 65 | wave30-ach | startwave 30 | `ACHIEVEMENT ENDURANCE` | keine Fatal-Warnung |
@@ -89,7 +89,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 68 | triple-kill-ach | 3 kills / 1 s | `ACHIEVEMENT TRIPLE KILL` | keine Fatal-Warnung |
 | 69 | pentakill-ach | 5 kills / 1 s | `ACHIEVEMENT PENTAKILL` | keine Fatal-Warnung |
 | 70 | maxed-out-ach | startwave 10, autokill, fastbreak | `starting wave 10`, `ACHIEVEMENT VETERAN` | keine Fatal-Warnung |
-| 71 | healer-boss | startwave 17, bosstype 8 | `boss spawned: HEALER (hc 300` | keine Fatal-Warnung |
+| 71 | healer-boss | startwave 10, bosstype 8 | `boss spawned: HEALER (hc 300` | keine Fatal-Warnung |
 | 72 | shield-mod | startwave 6, modifier 15 | `starting wave 6.*\[SHIELD\]` | keine Fatal-Warnung |
 | 73 | ghost-kit-w1 | ghost 1, autostart, startwave 1, failrun | `GHOST kit active (wave 1)` | `DETECTOR spawned`, `DETECTOR turret` |
 | 74 | ghost-detector-w8 | ghost 1, startwave 8, failrun | `DETECTOR spawned (wave 8, 1`, `DETECTOR turret (wave 8)` | `wave 8, 2` |

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Headless CI wave-clear: autostart counts as a living human; bot-as-player is not a drone.
+- SHIELD modifier can be forced (`g_neonwave_modifier 15`); HEALER test uses wave 10 (hc 300).
+- Perk offers, OVERCHARGE rank, MIMIC, VAMPIRE lifesteal, and fakecombo multikills work without a real client.
+- Parallel suite: unique `net_port`, isolated `HOME_DIR`, no nested xvfb on dedicated; fail logs are printed.
+
 ### Added
 - **Arena Hit-Confirm:** Cyan-Ecken am Fadenkreuz ~150 ms bei Treffer (`PERS_HITS`); Gold ~220 ms bei Kill.
 - **Ghost G6:** derselbe Marker im runden Scope-Iris; CI-Chunks laufen Ghost-Tests 73–75 mit echten Asserts.
