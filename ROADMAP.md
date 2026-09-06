@@ -1,7 +1,7 @@
 # NeonArena Roadmap
 
 > Letztes Update: 2026-09-06
-> Stand: v1.0 Ghost-Kit G1–G10, 11 Bosse, 84 Haupt-Mod-Tests
+> Stand: v1.1 Ghost-Kit G1–G10, 11 Bosse, 87 Haupt-Mod-Tests
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
 

@@ -100,6 +100,12 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 79 | replay-playback-walk | replaytest79 1, autostart, failrun | `replay playback started`, `replay playback walked 4 events` | keine Fatal-Warnung |
 | 80 | replay-overflow | replaytest80 1, autostart, failrun | `NeonWave: REPLAY overflow recorded=32773 stored=32768` | keine Fatal-Warnung |
 | 81 | ghost-balance-cvars | ghost 1, g_ghost_energy_start 60, g_ghost_energy_max 100, g_ghost_regen_amt 4 | `GHOST`, `Ghost` | keine Fatal-Warnung |
+| 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
+| 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
+| 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
+| 85 | ghost-beam | ghost 1, autostart | `BEAM` | keine Fatal-Warnung |
+| 86 | ghost-cluster | ghost 1, autostart | `CLUSTER ROCKET` | keine Fatal-Warnung |
+| 87 | ghost-empwave | ghost 1, autostart | `EMP WAVE` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 
