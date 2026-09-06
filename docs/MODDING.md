@@ -88,6 +88,9 @@ ghost_cloak      # Cloak ein/aus (25 Energy + 5/s Drain)
 ghost_emp        # EMP-Blase (35 Energy, 25s CD)
 ghost_lockdown   # Lockdown (50 Energy, 20s CD, 4s Stun)
 ghost_nuke       # Nuke (80 Energy, 45s CD)
+ghost_beam       # Beam (20 Energy + 8/s, durchgehend)
+ghost_cluster    # Cluster Rocket (45 Energy, 30s CD)
+ghost_empwave    # EMP Wave (60 Energy, 35s CD, 2.5s Stun)
 ```
 
 ### Replay
