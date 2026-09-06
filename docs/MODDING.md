@@ -177,7 +177,23 @@ set g_neonwave_bosstype 0
 
 ---
 
-## Config-Beispiele
+## Arena-Presets
+
+Vordefinierte Spielmodi für verschiedene Herausforderungen:
+
+| Arena | Map | Beschreibung | Schwierigkeit |
+|-------|-----|--------------|---------------|
+| Neon Arena | oa_shine | Standard Gameplay | ★☆☆☆ |
+| Ghost Protocol | oa_shine | Ghost-Kit nur, mehr Energy | ★★☆☆ |
+| Boss Rush | oa_pulse | Jede Welle ein Boss | ★★★☆ |
+| Ironman | oa_minia | Hardcore, kein Respawn | ★★★★ |
+
+### Arena laden
+
+```bash
+./tools/wave_editor.py list
+./tools/wave_editor.py show neon_arena
+```
 
 ### Klassischer Run (20 Wellen)
 ```cfg
