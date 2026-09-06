@@ -99,6 +99,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 78 | replay-load-events | replaytest78 1, autostart, failrun | `saved . events to replay_78.dat`, `loaded . events`, `NeonWave: REPLAY LOAD verify match=1` | keine Fatal-Warnung |
 | 79 | replay-playback-walk | replaytest79 1, autostart, failrun | `replay playback started`, `replay playback walked 4 events` | keine Fatal-Warnung |
 | 80 | replay-overflow | replaytest80 1, autostart, failrun | `NeonWave: REPLAY overflow recorded=32773 stored=32768` | keine Fatal-Warnung |
+| 81 | ghost-balance-cvars | ghost 1, g_ghost_energy_start 60, g_ghost_energy_max 100, g_ghost_regen_amt 4 | `GHOST`, `Ghost` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 
@@ -156,7 +157,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **80 Tests** (1–80 inkl. 9b). Der vollständige Katalog
+Die Suite umfasst **81 Tests** (1–81 inkl. 9b). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:
