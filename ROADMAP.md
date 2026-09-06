@@ -121,7 +121,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 | Milestone | Priority | Impact | Risk | When |
 |-----------|----------|--------|------|------|
 | **M8 Replay-Recorder** | ✅ Done | Bug-Fixing | Low | **Q4 2026** |
-| **M9 Modding-Support** | 🟡 Mittel | Community | Medium | Q4 2026 |
+| **M9 Modding-Support** | ✅ Done | Community | Medium | Q4 2026 |
 | **M10 Netzwerk-Coop** | 🟠 Niedrig | Multiplayer | High | Q1 2027 |
 | **M11 Neue Content** | 🟠 Niedrig | Variety | Medium | Q1 2027 |
 
