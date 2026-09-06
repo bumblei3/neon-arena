@@ -3,6 +3,8 @@
 Headless-Suite `tests/run_suite.sh`, ausgeführt als ioq3ded (dedicated), mit
 Test-Hooks via `g_neonwave_*` Cvars.
 
+**Neuer Runner:** `python3 test_runner.py --parallel 4 --test "1,2,3"`
+
 ## Konventionen
 
 - Jeder Test erzeugt ein Log `testN.log` in `/tmp/nw-suite-*/`.
