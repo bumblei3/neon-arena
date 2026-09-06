@@ -870,6 +870,45 @@ assert_76() {
   report $ok "replay-roundtrip"
 }
 
+# TEST 77: replay save header metadata (magic, version, mapname, eventCount, durationMs)
+assert_77() {
+  local ok=0 logfile="$1"
+  check "$logfile" "replay saved";                          [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "NeonWave: REPLAY SAVE magic=NRPY";      [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "version=1";                             [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "events=2";                              [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "durationMs=.*";                         [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "replay-save-header"
+}
+
+# TEST 78: replay load — store events to file, then load and verify count + event fields
+assert_78() {
+  local ok=0 logfile="$1"
+  check "$logfile" "saved 3 events to replay_78.dat";       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "loaded 3 events";                       [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "NeonWave: REPLAY LOAD verify match=1"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "replay-load-events"
+}
+
+# TEST 79: replay playback — walk the event list sequentially, count events consumed
+assert_79() {
+  local ok=0 logfile="$1"
+  check "$logfile" "replay playback started";               [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "replay playback walked 4 events";       [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "replay-playback-walk"
+}
+
+# TEST 80: replay overflow — record past REPLAY_MAX_EVENTS, verify truncation + counter
+assert_80() {
+  local ok=0 logfile="$1"
+  check "$logfile" "NeonWave: REPLAY overflow recorded=32773 stored=32768"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "replay-overflow"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -1048,11 +1087,15 @@ dispatch_test() {
     74) run_test 74 "ghost-detector-w8" 90 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_startwave 8 +set g_neonwave_failrun 1 ;;
     75) run_test 75 "ghost-detector-w12" 90 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_failrun 1 ;;
     76) run_test 76 "replay-roundtrip" 60 +set g_neonwave_replaytest 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    77) run_test 77 "replay-save-header" 60 +set g_neonwave_replaytest77 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    78) run_test 78 "replay-load-events" 60 +set g_neonwave_replaytest78 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    79) run_test 79 "replay-playback-walk" 60 +set g_neonwave_replaytest79 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    80) run_test 80 "replay-overflow" 60 +set g_neonwave_replaytest80 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80"
 QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76"
 
   case "$MODE" in
