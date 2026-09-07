@@ -8,15 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **5 new arenas (M12):** Frostbite, Skybridge, Underhive, Reactor, Overgrowth — ice, vertical, close-quarters, industrial, nature themes
-- **3 new Bot-Types:** Healer (green, heals nearby bots), Shielder (blue, gives shields), Elite (red, fast dash)
-- **Seasonal Rotation** (`g_neonwave_seasonal`): weekly modifier offset for replayability
-- **Bot type force CVar:** `g_neonwave_forcebot` (1=Healer, 2=Shielder, 3=Elite) for deterministic tests
-- **Performance stress test** (Test 101): validates 20-drone cap and no fatal warnings
+- **Controller Support (M13):** `ui_controller_active` CVar, `[JOY]` HUD indicator in Ghost kit
+- **Test 102:** controller-active validation
 
 ### Changed
-- **GAMEVERSION:** 0.71 → **0.80** (M12 Content-Complete)
-- **Test suite:** 102 tests (was 90), all green
+- **GAMEVERSION:** 0.80 → **0.81** (M13 Controller QVM-Complete)
+- **Test suite:** 103 tests, all green
+
+## [0.80] - 2026-09-07
+
+### Added
+- **5 new arenas (M12):** Frostbite, Skybridge, Underhive, Reactor, Overgrowth
+- **3 new Bot-Types:** Healer, Shielder, Elite
+- **Seasonal Rotation** (`g_neonwave_seasonal`)
+- **Bot type force CVar:** `g_neonwave_forcebot`
+- **Performance stress test** (Test 101)
+
+### Changed
+- **GAMEVERSION:** 0.71 → **0.80**
+- **Test suite:** 102 tests (was 90)
 
 ## [0.71] - 2026-09-07
 

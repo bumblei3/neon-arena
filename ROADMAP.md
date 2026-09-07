@@ -101,17 +101,18 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 > *Ziel: Gamepad-Steuerung mit Aim-Assist*
 
 **Was:**
-- ✅ CVar-Registrierung (`in_joystick`, `joy_sensitivity`, `joy_assist`, `joy_deadzone`)
+- ✅ CVar-Registrierung (`in_joystick`, `joy_sensitivity`, `joy_assist`, `joy_deadzone`, `ui_controller_active`)
 - ✅ Standard-Binds in `autoexec.cfg`
 - ✅ Aim-Assist-Logik in `g_active.c` (Magnetwirkung für Controller-Spieler)
+- ✅ `[JOY]` HUD-Indikator im Ghost-Kit
 - ⏳ Controller-Input-Verarbeitung (SDL2-Integration in Quake3e erforderlich)
 - ⏳ UI-Navigation mit Gamepad (Quake3e UI-Layer)
 
-**Aufwand:** ~2 Tage (Tag 1: CVars + Binds + Aim-Assist ✅, Tag 2: SDL2-Integration in Quake3e)
+**Aufwand:** ~2 Tage (Tag 1: CVars + Binds + Aim-Assist + HUD ✅, Tag 2: SDL2-Integration in Quake3e)
 **Priorität:** Medium
-**When:** Q4 2026
+**When:** Q4 2026 (QVM-seitig abgeschlossen)
 
-**Hinweis:** Die Analog-Stick-Steuerung und UI-Navigation erfordern SDL2-Integration im Quake3e-Engine. Die QVM-seitige Basis (CVars, Binds, Aim-Assist) ist implementiert.
+**Hinweis:** Die Analog-Stick-Steuerung und UI-Navigation erfordern SDL2-Integration im Quake3e-Engine. Die QVM-seitige Basis (CVars, Binds, Aim-Assist, HUD) ist implementiert.
 
 ---
 
@@ -140,7 +141,7 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 102 | 105+ |
+| Haupt-Mod Tests | 103 | 105+ |
 | Build Time | ~45s | <60s |
 | Bot Types | 11 | 12 |
 | Waffen | 5 | 6 |
