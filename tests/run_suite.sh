@@ -1021,7 +1021,7 @@ assert_94() {
 }
 assert_95() {
   local ok=0 logfile="$1"
-  check "$logfile" "NeonWave over"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "starting wave 3"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "arena-bleed"
 }
