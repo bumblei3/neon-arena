@@ -10,6 +10,7 @@ GAME="${FS_GAME:-neonarena}"
 GAME_TYPE="${GAME_TYPE:-14}"
 MAP="${MAP:-oa_shine}"
 MAP_FORCED=0
+ARENA=""
 RENDERER="${RENDERER:-auto}"
 BLOOM="${BLOOM:-auto}"
 # Wayland: run SDL2's native Wayland backend instead of the X11 compat layer.
@@ -69,6 +70,14 @@ while [ $# -gt 0 ]; do
       fi
       MAP="$2"
       MAP_FORCED=1
+      shift 2
+      ;;
+    --arena)
+      if [ $# -lt 2 ]; then
+        echo "usage: --arena <name>" >&2
+        exit 2
+      fi
+      ARENA="$2"
       shift 2
       ;;
     +set|-set)
@@ -131,6 +140,47 @@ if [ "$GHOST" -eq 1 ]; then
 fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# --- Arena config loading ---
+if [ -n "$ARENA" ]; then
+  ARENA_DIR="$ROOT/configs/arenas"
+  ARENA_FILE=""
+  # Try exact match first, then case-insensitive
+  for f in "$ARENA_DIR/$ARENA.json" "$ARENA_DIR/${ARENA,,}.json"; do
+    if [ -f "$f" ]; then
+      ARENA_FILE="$f"
+      break
+    fi
+  done
+  if [ -z "$ARENA_FILE" ]; then
+    echo "Arena nicht gefunden: $ARENA" >&2
+    echo "Verfügbare Arenas:" >&2
+    for f in "$ARENA_DIR"/*.json; do
+      [ -f "$f" ] && echo "  - $(basename "$f" .json)" >&2
+    done
+    exit 2
+  fi
+  echo "Arena: $ARENA ($ARENA_FILE)"
+  # Parse JSON and set CVars
+  while IFS='=' read -r key value; do
+    # Remove quotes and whitespace
+    value=$(echo "$value" | sed 's/^ *"//;s/" *$//')
+    case "$key" in
+      map) MAP="$value"; MAP_FORCED=1 ;;
+      g_neonwave_maxwave|g_neonwave_modifier|g_neonwave_bosstype|g_neonwave_startwave|g_momentum|g_momentum_decay|g_momentum_kill|g_neonwave_drone_hp_scale|g_neonwave_drone_damage_scale|g_neonwave_drone_count_scale|g_neonwave_drone_speed_scale|g_neonwave_gravity_scale|g_neonwave_ghost|g_ghost_energy_start|g_ghost_energy_max|g_ghost_regen_amt|g_neonwave_hardcore)
+        MODE_CVARS+=(+set "$key" "$value")
+        ;;
+    esac
+  done < <(python3 -c "
+import json,sys
+with open('$ARENA_FILE') as f:
+    data = json.load(f)
+settings = data.get('settings', {})
+for k,v in settings.items():
+    print(f'{k}={v}')
+")
+fi
+
 DETECT="$ROOT/scripts/detect-gfx.sh"
 GFX_AUTO="$HOME_PATH/$GAME/gfx-auto.cfg"
 mkdir -p "$HOME_PATH/$GAME"
