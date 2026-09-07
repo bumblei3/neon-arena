@@ -1,7 +1,7 @@
 # NeonArena Roadmap
 
-> Letztes Update: 2026-09-06
-> Stand: v1.1 Ghost-Kit G1–G10, 11 Bosse, 87 Haupt-Mod-Tests
+> Letztes Update: 2026-09-07
+> Stand: v0.71 Ghost-Kit G1–G11 (Multiscan), 11 Bosse, 90+ Haupt-Mod-Tests
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
 
@@ -26,8 +26,9 @@ Referenz: [docs/GHOST_REFERENCE.md](docs/GHOST_REFERENCE.md) · Plan: [docs/GHOS
 | G8 eine Balance-Zahl | Drain 8 → 5/s (Play Welle 1) | ✅ |
 | G9 eigene Cues | Short-Sounds statt OA-Stock | ✅ |
 | G10 Ghost-Look | Cyan-Shell uncloaked (Waffe + Modell) | ✅ |
+| G11 Multiscan | `multiscan` Command, 30 Energy, 3 s CD, 500 u Radius, Cloak-Reveal + 2 s Damage-Bonus | ✅ |
 
-**G1–G10 ✅.** Nächster Hebel: eine Zahl nach einer Runde bis Detector (Welle 8+). Keine neuen Verben.
+**G1–G11 ✅.** Nächster Hebel: Playtest-Daten sammeln für Fein-Balance. Keine neuen Verben.
 
 Nicht geplant: extra Rail-Feuerverzögerung (Q3-Rail ist schon 1500 ms). Scanner Sweep ist Comsat, nicht Ghost.
 
@@ -43,7 +44,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 ---
 
-## ✅ Erledigt (v0.60)
+## ✅ Erledigt (v0.71)
 
 | Feature | Status | Tests |
 |---------|--------|-------|
@@ -55,39 +56,15 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 | M6 Audio-Polish | ✅ Fertig | 5 |
 | M7 Tools & Editor | ✅ Fertig | 148 |
 | Achievement System | ✅ Fertig | 46 |
-| **Gesamt** | | **506** |
+| M8 Replay-Recorder | ✅ Fertig | 5 |
+| M9 Modding-Support | ✅ Fertig | — |
+| M11 Neue Waffen & Bot-Typen | ✅ Fertig | 10 |
+| Ghost-Kit G1–G11 | ✅ Fertig | 12 |
+| **Gesamt** | | **310+** |
 
 ---
 
-## 🗺️ Roadmap v0.70
-
-### M8: Replay-Recorder & Bug-Reporting 🔜
-> *Ziel: Spielbarkeit verbessern durch Community-Feedback*
-
-**Was:**
-- ✅ Replay-Recorder: Inputs aufzeichnen → Wiedergabe für Bug-Reports
-- Automatische Crash-Reports mit Replay-Anhang
-- Community-Bug-Tracker Integration
-
-**Status:** Replay-Recorder implementiert, Tests ausstehend
-**Aufwand:** ~2 Tage
-**Tests:** +10 (Roundtrip, Export, Import)
-
----
-
-### M9: Modding-Support 🛠️
-> *Ziel: Community kann eigene Inhalte erstellen*
-
-**Was:**
-- API-Dokumentation für Module
-- Wave-Editor als externes Tool (CLI)
-- Map-Validator als externes Tool
-- Workshop-Support für User-generated Content
-
-**Aufwand:** ~4 Tage
-**Tests:** +15 (API-Stabilität, Tool-Integration)
-
----
+## 🗺️ Nächste Milestones
 
 ### M10: Netzwerk-Coop 🌐
 > *Ziel: Online-Multiplayer*
@@ -100,19 +77,39 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 **Aufwand:** ~6 Tage
 **Tests:** +20 (Netcode, Sync, Latenz)
+**Priorität:** Niedrig (technisch anspruchsvoll, lokales Coop läuft)
+**When:** Q1 2027
 
 ---
 
-### M11: Neue Waffen & Bot-Typen 🎮
-> *Ziel: Mehr Content, mehr Variety*
+### M12: Content-Erweiterung 🎮
+> *Ziel: Mehr Variety, frische Herausforderungen*
 
 **Was:**
-- **Neue Waffen:** Rocket Launcher, Beam Laser, EMP
-- **Neue Bot-Typen:** Healer, Shielder, Sniper-Elite
-- **Neue Arenas:** 5 neue Maps mit unterschiedlichen Themen
+- 5 neue Arenas (Konzepte/Layouts fehlen noch)
+- Neue Bot-Typen (Healer, Shielder, Sniper-Elite — Balance testen)
+- Seasonal Challenges / Rotating Modifiers
 
 **Aufwand:** ~5 Tage
-**Tests:** +25 (Waffen-Balance, Bot-Verhalten)
+**Tests:** +15 (Arena-Validation, Bot-Verhalten)
+**Priorität:** Medium
+**When:** Q4 2026
+
+---
+
+### M13: Polish & Performance 🔧
+> *Ziel: Saubereres, schnelleres Produkt*
+
+**Was:**
+- Mac M1+ Builds in CI
+- Load-Time Optimierung (PK3 Streaming)
+- Controller-Support (Community-Wunsch)
+- Bug-Reporting Workflow verfeinern (Replay-Export verbessern)
+
+**Aufwand:** ~3 Tage
+**Tests:** +5 (Build-Targets, Input-Handling)
+**Priorität:** Low
+**When:** Q4 2026 / Q1 2027
 
 ---
 
@@ -120,10 +117,9 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 | Milestone | Priority | Impact | Risk | When |
 |-----------|----------|--------|------|------|
-| **M8 Replay-Recorder** | ✅ Done | Bug-Fixing | Low | **Q4 2026** |
-| **M9 Modding-Support** | ✅ Done | Community | Medium | Q4 2026 |
+| **M12 Content-Erweiterung** | 🟡 Medium | Variety | Medium | Q4 2026 |
+| **M13 Polish & Performance** | 🟠 Low | Quality | Low | Q4 2026 |
 | **M10 Netzwerk-Coop** | 🟠 Niedrig | Multiplayer | High | Q1 2027 |
-| **M11 Neue Content** | ✅ Done | Variety | Medium | Q4 2026 |
 
 ---
 
@@ -133,47 +129,46 @@ Jedes Milestone ist fertig wenn:
 - [ ] Feature implemented
 - [ ] Tests geschrieben (mindestens 10 neue Tests)
 - [ ] CI grün (Build + alle Tests)
-- `CHANGELOG.md` aktualisiert
-- Code-Review durch (Community/PR)
+- [ ] `CHANGELOG.md` aktualisiert
+- [ ] Code-Review durch (Community/PR)
 
 ---
 
 ## 📈 Metrics
 
-| Metric | Current | v0.70 Target |
-|--------|---------|--------------|
-| Prototyp Tests | 506 | 550+ |
-| Haupt-Mod Tests | 70 | 100+ |
+| Metric | Current | Next Target |
+|--------|---------|-------------|
+| Haupt-Mod Tests | 90+ | 100+ |
 | Build Time | ~45s | <60s |
-| Bot Types | 5 | 8 |
-| Waffen | 3 | 5 |
+| Bot Types | 8 | 10 |
+| Waffen | 5 | 6 |
 | Arenas | 8 | 13 |
+| Ghost Slices | G1–G11 | G11 + Balance |
 
 ---
 
 ## 🗓️ Timeline
 
 ```
-Sep 2026  v0.60 released ✅
-          M8 Replay-Recorder Start
-Okt 2026  M8 Abschluss
-          M9 Modding-Support Start
-Nov 2026  M9 Abschluss
-Dez 2026  Release v0.70 (Community-Ready)
+Sep 2026  v0.71 released ✅ (Ghost-Kit G1–G11)
+          M12 Content-Erweiterung Start
+Okt 2026  M12 Abschluss
+          M13 Polish & Performance Start
+Nov 2026  M13 Abschluss
+Dez 2026  Release v0.80 (Content-Complete)
 Jan 2027  M10 Netzwerk-Coop Start
-          M11 Neue Waffen & Bot-Typen
 Feb 2027  M10 Abschluss
-Mär 2027  Release v0.80 (Multiplayer-Ready)
+Mär 2027  Release v0.90 (Multiplayer-Ready)
 ```
 
 ---
 
 ## 🚧 Blocked / Warteliste
 
-- **Ghost:** G1–G9. Drain 5/s. Nächster Hebel G10 Look. Plan: [docs/GHOST_ROADMAP.md](docs/GHOST_ROADMAP.md).
+- **Ghost:** G1–G11 ✅. Nächster Hebel: Playtest-Daten für Fein-Balance. Plan: [docs/GHOST_ROADMAP.md](docs/GHOST_ROADMAP.md).
 - **Netzwerk-Coop:** Erst nach lokalem Coop implementieren (M4 erledigt ✅)
-- **Modding-Support:** Benötigt stabile API (erst nach M7 ✅)
-- **Achievements:** Benötigt Savegame-Erweiterung (erledigt ✅)
+- **Modding-Support:** M9 erledigt — Wave-Editor und Map-Validator nutzbar
+- **Achievements:** Savegame-Erweiterung erledigt ✅
 - **Linux/Mac Builds:** CI hat nur Windows/Linux — fehlt Mac M1+
 - **Controller-Support:** Nicht priorisiert, Gamepad-Integration komplex
 - **Mobile/Touch:** Nicht priorisiert
