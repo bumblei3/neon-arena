@@ -1,0 +1,22 @@
+{
+  "name": "Reactor",
+  "map": "oa_reactor",
+  "description": "Zentraler Reaktor strahlt periodisch Schaden ab. Positionierung und Timing sind entscheidend.",
+  "settings": {
+    "g_neonwave_maxwave": 20,
+    "g_neonwave_modifier": 0,
+    "g_neonwave_bosstype": 0,
+    "g_momentum": 1,
+    "g_momentum_decay": 5,
+    "g_momentum_kill": 15,
+    "g_neonwave_drone_hp_scale": 1.0,
+    "g_neonwave_drone_damage_scale": 1.0,
+    "g_neonwave_drone_speed_scale": 1.0,
+    "g_neonwave_gravity_scale": 1.0,
+    "g_neonwave_ghost": 0
+  },
+  "difficulty": 2,
+  "recommended": false,
+  "theme": "industrial",
+  "notes": "Reaktor-Schaden alle 10s im Zentrum. Shielder-Bots helfen gegen AoE."
+}

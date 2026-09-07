@@ -107,6 +107,9 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 93 | arena-node | autostart, drone_count_scale 1.1 | `arena drone count scale 1.10` | keine Fatal-Warnung |
 | 94 | arena-desert | autostart, drone_speed_scale 1.1 | `spd=1.10` | keine Fatal-Warnung |
 | 95 | arena-bleed | autostart, ghost 0, autokill | `NeonWave over` | keine Fatal-Warnung |
+| 96 | bot-healer | autostart, forcebot 1, startwave 10, autokill | `HEALER` | keine Fatal-Warnung |
+| 97 | bot-shielder | autostart, forcebot 2, startwave 12, autokill | `SHIELD` | keine Fatal-Warnung |
+| 98 | bot-elite | autostart, forcebot 3, startwave 14, autokill | `ELITE` | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |

@@ -1,0 +1,22 @@
+{
+  "name": "Skybridge",
+  "map": "oa_skybridge",
+  "description": "Schwebende Plattformen über dem Abgrund. Fall-Schaden ist real, Railgun dominiert die Langdistanz.",
+  "settings": {
+    "g_neonwave_maxwave": 20,
+    "g_neonwave_modifier": 0,
+    "g_neonwave_bosstype": 0,
+    "g_momentum": 1,
+    "g_momentum_decay": 5,
+    "g_momentum_kill": 15,
+    "g_neonwave_drone_hp_scale": 1.0,
+    "g_neonwave_drone_damage_scale": 1.0,
+    "g_neonwave_drone_speed_scale": 1.0,
+    "g_neonwave_gravity_scale": 0.8,
+    "g_neonwave_ghost": 0
+  },
+  "difficulty": 3,
+  "recommended": false,
+  "theme": "vertical",
+  "notes": "Fall-Schaden aktiv, niedrige Gravity. Railgun-Elite-Bots besonders gefährlich."
+}
