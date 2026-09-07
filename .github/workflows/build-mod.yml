@@ -30,21 +30,21 @@ jobs:
           echo "gamecode commit: $(git rev-parse HEAD)"
           git log --oneline -1
 
-      - name: Build mod (macOS)
+      - name: Build mod (macOS x86_64)
         run: |
           cp Makefile.local oa-gamecode/
-          cd oa-gamecode && make ARCH=x86_64 PLATFORM=darwin CFLAGS="-arch x86_64"
+          cd oa-gamecode && make ARCH=x86_64 PLATFORM=darwin
 
       - name: Verify artifacts
         run: |
           set -e
-          OUT=oa-gamecode/build/release-darwin-universal/neonarena
+          OUT=oa-gamecode/build/release-darwin-x86_64/neonarena
           ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
           echo "macOS mod build OK"
 
       - name: Package QVMs
         run: |
-          OUT=oa-gamecode/build/release-darwin-universal/neonarena
+          OUT=oa-gamecode/build/release-darwin-x86_64/neonarena
           mkdir -p dist/neonarena-macos
           cp "$OUT/vm/"*.qvm dist/neonarena-macos/
           cd dist && zip -r neonarena-macos-qvm.zip neonarena-macos
