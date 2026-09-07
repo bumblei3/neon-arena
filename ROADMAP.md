@@ -140,11 +140,11 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 98 | 100+ |
+| Haupt-Mod Tests | 102 | 105+ |
 | Build Time | ~45s | <60s |
-| Bot Types | 8 | 11 |
+| Bot Types | 11 | 12 |
 | Waffen | 5 | 6 |
-| Arenas | 8 | 13 |
+| Arenas | 13 | 15 |
 | Ghost Slices | G1–G11 | G11 + Balance |
 
 ---

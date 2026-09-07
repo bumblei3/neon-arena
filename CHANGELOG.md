@@ -8,32 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- **5 new arenas:** Catacombs (oa_rpg3dm2), Bleed Chamber (oa_bleed), Node Control (oa_node), Desert Storm (oa_desert), Vortex Ring (oa_vortex) — each with unique themes and gameplay modifiers
-- **5 new arenas (M12):** Frostbite (oa_frostbite), Skybridge (oa_skybridge), Underhive (oa_underhive), Reactor (oa_reactor), Overgrowth (oa_overgrowth) — ice, vertical, close-quarters, industrial, nature themes
-- **Arena scaling CVars:** `g_neonwave_drone_count_scale`, `g_neonwave_gravity_scale` (plus `g_neonwave_drone_hp_scale`, `g_neonwave_drone_damage_scale`, `g_neonwave_drone_speed_scale` for future use)
-- **`--arena` flag** in `start-quake3e.sh` — loads arena JSON configs and sets all CVars automatically
+- **5 new arenas (M12):** Frostbite, Skybridge, Underhive, Reactor, Overgrowth — ice, vertical, close-quarters, industrial, nature themes
+- **3 new Bot-Types:** Healer (green, heals nearby bots), Shielder (blue, gives shields), Elite (red, fast dash)
+- **Seasonal Rotation** (`g_neonwave_seasonal`): weekly modifier offset for replayability
 - **Bot type force CVar:** `g_neonwave_forcebot` (1=Healer, 2=Shielder, 3=Elite) for deterministic tests
-- **Ghost G10:** Cyan-Shell uncloaked on human model + weapon (`neonarena/ghostShell`). Cloak stays the faint G5 shell.
-- **Arena Hit-Confirm:** Cyan-Ecken am Fadenkreuz ~150 ms bei Treffer (`PERS_HITS`); Gold ~220 ms bei Kill.
-- **Ghost G6:** derselbe Marker im runden Scope-Iris; CI-Chunks laufen Ghost-Tests 73–75 mit echten Asserts.
-- **Ghost G7:** ortsfester Detector-Turm ab Welle 8 (Rail-Ping, 800 ms Scan, Lockdown-Ziel). Tests 74–75 erwarten `DETECTOR turret`.
-- **Ghost G9:** eigene Short-Sounds im PK3 (`ghost_cloak_on/off`, `ghost_emp`, `ghost_lock`, `ghost_nuke`, `ghost_scan`).
-- **Auto-GFX:** `scripts/start-quake3e.sh` probed GPU/Vulkan/VRAM einmal, schreibt `gfx-auto.cfg` (low/med/high). `--gfx-reset` neu probe. Manuelle Datei wird nicht überschrieben.
-
-### Fixed
-- Ghost binds (J/H/K/N, RMB zoom) load via `ghost-binds.cfg` from cgame and `--ghost` (engine skips `autoexec.cfg` inside a pk3).
-- Headless CI wave-clear: autostart counts as a living human; bot-as-player is not a drone.
-- SHIELD modifier can be forced (`g_neonwave_modifier 15`); HEALER test uses wave 10 (hc 300).
-- Perk offers, OVERCHARGE rank, MIMIC, VAMPIRE lifesteal, and fakecombo multikills work without a real client.
-- Parallel suite: unique `net_port`, isolated `HOME_DIR`, no nested xvfb on dedicated; fail logs are printed.
+- **Performance stress test** (Test 101): validates 20-drone cap and no fatal warnings
 
 ### Changed
-- **Ghost G8:** Cloak-Drain 8 → **5**/s (Start 55 bleibt). Welle-1-Play: Tarnung ~6 s.
-- **FROST-Log** nur wenn der Modifier wirklich aktiv ist (vorher immer `FROST slowed to 320`).
-- **Tests:** `--parallel` führt echte `assert_N` aus (isoliertes Homepath). CI-Chunks 0–5 (inkl. 61–75) fallen bei FAIL durch; Catalog verlangt `assert_N` für jede ALL_TESTS-Nummer.
-- **Ghost G5:** RMB-Zoom ist eine runde Blende statt Letterbox-Balken; Cloak zeigt eine Cyan-Shell statt Stock-Invis.
+- **GAMEVERSION:** 0.71 → **0.80** (M12 Content-Complete)
+- **Test suite:** 102 tests (was 90), all green
 
-## [0.71] - 2026-09-05
+## [0.71] - 2026-09-07
 
 ### Added
 - **StarCraft Ghost-Kit** (`g_neonwave_ghost 1`, Start: `scripts/start-quake3e.sh --ghost`) — optionaler Loadout für GT_NEONWAVE:
