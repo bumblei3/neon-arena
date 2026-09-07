@@ -103,13 +103,15 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 **Was:**
 - ✅ CVar-Registrierung (`in_joystick`, `joy_sensitivity`, `joy_assist`, `joy_deadzone`)
 - ✅ Standard-Binds in `autoexec.cfg`
-- ⏳ Aim-Assist-Logik in `bg_pmove.c` / `g_active.c`
-- ⏳ Controller-Input-Verarbeitung (SDL2)
-- ⏳ UI-Navigation mit Gamepad
+- ✅ Aim-Assist-Logik in `g_active.c` (Magnetwirkung für Controller-Spieler)
+- ⏳ Controller-Input-Verarbeitung (SDL2-Integration in Quake3e erforderlich)
+- ⏳ UI-Navigation mit Gamepad (Quake3e UI-Layer)
 
-**Aufwand:** ~2 Tage (Tag 1: CVars + Binds ✅, Tag 2: Aim-Assist + Testing)
+**Aufwand:** ~2 Tage (Tag 1: CVars + Binds + Aim-Assist ✅, Tag 2: SDL2-Integration in Quake3e)
 **Priorität:** Medium
 **When:** Q4 2026
+
+**Hinweis:** Die Analog-Stick-Steuerung und UI-Navigation erfordern SDL2-Integration im Quake3e-Engine. Die QVM-seitige Basis (CVars, Binds, Aim-Assist) ist implementiert.
 
 ---
 
