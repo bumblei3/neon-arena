@@ -16,7 +16,47 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-macos:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Gamecode version under test
+        run: |
+          cd oa-gamecode
+          echo "gamecode commit: $(git rev-parse HEAD)"
+          git log --oneline -1
+
+      - name: Build mod (macOS)
+        run: |
+          cp Makefile.local oa-gamecode/
+          cd oa-gamecode && make
+
+      - name: Verify artifacts
+        run: |
+          set -e
+          OUT=oa-gamecode/build/release-darwin-universal/neonarena
+          ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
+          echo "macOS mod build OK"
+
+      - name: Package QVMs
+        run: |
+          OUT=oa-gamecode/build/release-darwin-universal/neonarena
+          mkdir -p dist/neonarena-macos
+          cp "$OUT/vm/"*.qvm dist/neonarena-macos/
+          cd dist && zip -r neonarena-macos-qvm.zip neonarena-macos
+          ls -la neonarena-macos-qvm.zip
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: neonarena-mod-macos
+          path: dist/neonarena-macos-qvm.zip
+
+  build-linux:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -103,7 +143,7 @@ jobs:
       # Chunk 3: tests 26, 27, 28, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 (18 tests)
 
   test:
-    needs: build
+    needs: build-linux
     runs-on: ubuntu-latest
     timeout-minutes: 35
     strategy:
@@ -237,13 +277,23 @@ jobs:
             dist/neonarena-qvm.pk3
             oa-gamecode/build/release-linux-x86_64/neonarena/vm/*.qvm
 
-      # ---- Release on tag push ----
-      - name: Create release (tags only)
-        if: startsWith(github.ref, 'refs/tags/')
+  release:
+    needs: [build-linux, build-macos]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create release
         continue-on-error: true
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            dist/neonarena.pk3
-            dist/neonarena-qvm.pk3
+            artifacts/neonarena-mod/*.pk3
+            artifacts/neonarena-mod-macos/*.zip
           generate_release_notes: true
