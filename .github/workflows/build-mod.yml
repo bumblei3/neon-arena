@@ -33,7 +33,7 @@ jobs:
       - name: Build mod (macOS)
         run: |
           cp Makefile.local oa-gamecode/
-          cd oa-gamecode && make
+          cd oa-gamecode && make ARCH=arm64
 
       - name: Verify artifacts
         run: |
