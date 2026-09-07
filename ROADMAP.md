@@ -97,19 +97,19 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 ---
 
-### M13: Polish & Performance 🔧
-> *Ziel: Saubereres, schnelleres Produkt*
+### M13: Controller-Support 🎮
+> *Ziel: Gamepad-Steuerung mit Aim-Assist*
 
 **Was:**
-- Mac M1+ Builds in CI
-- Load-Time Optimierung (PK3 Streaming)
-- Controller-Support (Community-Wunsch)
-- Bug-Reporting Workflow verfeinern (Replay-Export verbessern)
+- ✅ CVar-Registrierung (`in_joystick`, `joy_sensitivity`, `joy_assist`, `joy_deadzone`)
+- ✅ Standard-Binds in `autoexec.cfg`
+- ⏳ Aim-Assist-Logik in `bg_pmove.c` / `g_active.c`
+- ⏳ Controller-Input-Verarbeitung (SDL2)
+- ⏳ UI-Navigation mit Gamepad
 
-**Aufwand:** ~3 Tage
-**Tests:** +5 (Build-Targets, Input-Handling)
-**Priorität:** Low
-**When:** Q4 2026 / Q1 2027
+**Aufwand:** ~2 Tage (Tag 1: CVars + Binds ✅, Tag 2: Aim-Assist + Testing)
+**Priorität:** Medium
+**When:** Q4 2026
 
 ---
 
