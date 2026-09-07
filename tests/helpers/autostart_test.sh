@@ -37,10 +37,14 @@ while [ $# -gt 0 ]; do
 done
 
 # ---- build command ----
+# na_root: resolve homepath (allow override, else default)
+na_root() { echo "${TEST_HOMEPATH:-$HOME/.openarena}"; }
 CMDLINE="+set dedicated 1"
 CMDLINE="$CMDLINE +set fs_homepath \"$(na_root)\""
 CMDLINE="$CMDLINE +set sv_maxclients 24"
 CMDLINE="$CMDLINE +set fs_game neonarena +set g_gametype 14 +map oa_shine"
+# OA_EXTRA: additional engine args (e.g., +set com_basegame baseoa +set fs_basepath /usr/lib/openarena)
+CMDLINE="$CMDLINE ${OA_EXTRA:-}"
 if [ "$AUTOSTART" -eq 1 ]; then
   CMDLINE="$CMDLINE +set g_neonwave_autostart 1"
 fi
