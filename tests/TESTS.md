@@ -110,6 +110,8 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 96 | bot-healer | autostart, forcebot 1, startwave 10, autokill | `HEALER` | keine Fatal-Warnung |
 | 97 | bot-shielder | autostart, forcebot 2, startwave 12, autokill | `SHIELD` | keine Fatal-Warnung |
 | 98 | bot-elite | autostart, forcebot 3, startwave 14, autokill | `ELITE` | keine Fatal-Warnung |
+| 99 | seasonal-rotation | autostart, seasonal 1, startwave 6, autokill | `SEASONAL rotation` | keine Fatal-Warnung |
+| 100 | arena-validation | autostart, ghost 1, startwave 6, autokill | `arena drone scaling` | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
