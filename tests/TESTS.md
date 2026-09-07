@@ -113,6 +113,9 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 85 | ghost-beam | ghost 1, autostart | `BEAM` | keine Fatal-Warnung |
 | 86 | ghost-cluster | ghost 1, autostart | `CLUSTER ROCKET` | keine Fatal-Warnung |
 | 87 | ghost-empwave | ghost 1, autostart | `EMP WAVE` | keine Fatal-Warnung |
+| 88 | boss-healer-phase2 | startwave 10, bosstype 8, phaseforce 1 | `boss spawned: HEALER`, `HEALER ENTERS PHASE 2` | keine Fatal-Warnung |
+| 89 | boss-snipelite-phase2 | startwave 19, bosstype 10, phaseforce 1 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE ENTERS PHASE 2` | keine Fatal-Warnung |
+| 90 | boss-demolisher-phase2 | startwave 20, bosstype 11, phaseforce 1 | `boss spawned: DEMOLISHER`, `DEMOLISHER ENTERS PHASE 2` | keine Fatal-Warnung |
 
 ### Tabelle-Notizen
 

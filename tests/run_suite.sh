@@ -994,6 +994,38 @@ assert_90() {
   report $ok "boss-demolisher-phase2"
 }
 
+# Arena scaling tests (v0.80)
+assert_91() {
+  local ok=0 logfile="$1"
+  check "$logfile" "arena drone scaling hp=0.85 dmg=1.15"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "arena-catacombs"
+}
+assert_92() {
+  local ok=0 logfile="$1"
+  check "$logfile" "g_gravity"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "arena-vortex"
+}
+assert_93() {
+  local ok=0 logfile="$1"
+  check "$logfile" "arena drone count scale 1.10"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "arena-node"
+}
+assert_94() {
+  local ok=0 logfile="$1"
+  check "$logfile" "spd=1.10"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "arena-desert"
+}
+assert_95() {
+  local ok=0 logfile="$1"
+  check "$logfile" "NeonWave over"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "arena-bleed"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -1188,6 +1220,13 @@ dispatch_test() {
     88) run_test 88 "boss-healer-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 10 +set g_neonwave_bosstype 8 +set g_neonwave_fastbreak 1 +set g_neonwave_phaseforce 1 +set g_neonwave_autokill 1 ;;
     89) run_test 89 "boss-snipelite-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 19 +set g_neonwave_bosstype 10 +set g_neonwave_fastbreak 1 +set g_neonwave_phaseforce 1 +set g_neonwave_autokill 1 ;;
     90) run_test 90 "boss-demolisher-phase2" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 20 +set g_neonwave_bosstype 11 +set g_neonwave_fastbreak 1 +set g_neonwave_phaseforce 1 +set g_neonwave_autokill 1 ;;
+
+    # Arena scaling tests (v0.80)
+    91) run_test 91 "arena-catacombs" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_drone_hp_scale 0.85 +set g_neonwave_drone_damage_scale 1.15 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
+    92) run_test 92 "arena-vortex" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_gravity_scale 0.7 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 ;;
+    93) run_test 93 "arena-node" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_drone_count_scale 1.1 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
+    94) run_test 94 "arena-desert" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_drone_speed_scale 1.1 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
+    95) run_test 95 "arena-bleed" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
