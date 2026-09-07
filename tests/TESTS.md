@@ -112,6 +112,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 98 | bot-elite | autostart, forcebot 3, startwave 14, autokill | `ELITE` | keine Fatal-Warnung |
 | 99 | seasonal-rotation | autostart, seasonal 1, startwave 6, autokill | `SEASONAL rotation` | keine Fatal-Warnung |
 | 100 | arena-validation | autostart, ghost 1, startwave 6, autokill | `arena drone scaling` | keine Fatal-Warnung |
+| 101 | performance-stress | autostart, drone_count_scale 2.0, startwave 15, autokill | `arena drone count scale 2.00` | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
