@@ -6,7 +6,23 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 > Spielen: `scripts/start-quake3e.sh` · Daily: `--daily` · Ghost: `--ghost` · Arena: `--arena <name>`  
 > oder: `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
 
-## Features (Mod `neonarena`, Gametype 14 „Neon Wave Survival")
+## Arenas (v0.80)
+
+NeonArena hat 9 Arenas mit unterschiedlichen Themen und Spielstilen:
+
+| Arena | Map | Beschreibung | Schwierigkeit |
+|-------|-----|--------------|---------------|
+| **Neon Arena** | oa_shine | Standard Arena — ausgeglichenes Gameplay | ⭐ |
+| **Boss Rush** | oa_pulse | Nur Bosse — jede Welle ein Boss | ⭐⭐⭐ |
+| **Ghost Protocol** | oa_shine | Ghost-Kit nur — testen Sie alle neuen Waffen | ⭐⭐ |
+| **Ironman** | oa_minia | Niemals sterben — kein Respawn, keine zweite Chance | ⭐⭐⭐⭐ |
+| **Catacombs** | oa_rpg3dm2 | Enge Gänge und dunkle Ecken — kurze Reichweite, hoher Schaden | ⭐⭐⭐ |
+| **Bleed Chamber** | oa_bleed | Dunkle Kammer mit rotem Neon-Akzent — Sichtbarkeit ist die Herausforderung | ⭐⭐ |
+| **Node Control** | oa_node | Multi-Level Arena mit Plattformen und Brücken — vertikales Gameplay | ⭐⭐⭐ |
+| **Desert Storm** | oa_desert | Offene Wüste mit Sandsturm-Perioden — Long-Range Combat | ⭐⭐ |
+| **Vortex Ring** | oa_vortex | Kreisförmige Arena mit Gravitations-Effekten — LOWGRAV-Modifier zentral | ⭐⭐⭐⭐ |
+
+Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`)
 
 - **Wave-Survival:** Bis zu 20 Wellen; Welle N spawnt N+1 Bots. Ein Leben —
   tot ist tot. 12 s Pause zwischen Wellen.
