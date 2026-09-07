@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **5 new arenas:** Catacombs (oa_rpg3dm2), Bleed Chamber (oa_bleed), Node Control (oa_node), Desert Storm (oa_desert), Vortex Ring (oa_vortex) — each with unique themes and gameplay modifiers
+- **Arena scaling CVars:** `g_neonwave_drone_count_scale`, `g_neonwave_gravity_scale` (plus `g_neonwave_drone_hp_scale`, `g_neonwave_drone_damage_scale`, `g_neonwave_drone_speed_scale` for future use)
+- **`--arena` flag** in `start-quake3e.sh` — loads arena JSON configs and sets all CVars automatically
 - **Ghost G10:** Cyan-Shell uncloaked on human model + weapon (`neonarena/ghostShell`). Cloak stays the faint G5 shell.
 - **Arena Hit-Confirm:** Cyan-Ecken am Fadenkreuz ~150 ms bei Treffer (`PERS_HITS`); Gold ~220 ms bei Kill.
 - **Ghost G6:** derselbe Marker im runden Scope-Iris; CI-Chunks laufen Ghost-Tests 73–75 mit echten Asserts.

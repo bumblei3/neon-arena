@@ -3,7 +3,7 @@
 **Wave-Survival-Shooter auf OpenArena-Basis** – Railgun & Lightning Gun gegen
 steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 
-> Spielen: `scripts/start-quake3e.sh` · Daily: `--daily` · Ghost: `--ghost`  
+> Spielen: `scripts/start-quake3e.sh` · Daily: `--daily` · Ghost: `--ghost` · Arena: `--arena <name>`  
 > oder: `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
 
 ## Features (Mod `neonarena`, Gametype 14 „Neon Wave Survival")
