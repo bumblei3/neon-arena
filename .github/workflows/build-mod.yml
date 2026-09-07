@@ -16,46 +16,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-macos:
-    runs-on: macos-13
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          submodules: true
-
-      - name: Gamecode version under test
-        run: |
-          cd oa-gamecode
-          echo "gamecode commit: $(git rev-parse HEAD)"
-          git log --oneline -1
-
-      - name: Build mod (macOS x86_64)
-        run: |
-          cp Makefile.local oa-gamecode/
-          cd oa-gamecode && make ARCH=x86_64 PLATFORM=darwin
-
-      - name: Verify artifacts
-        run: |
-          set -e
-          OUT=oa-gamecode/build/release-darwin-x86_64/neonarena
-          ls -la "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm"
-          echo "macOS mod build OK"
-
-      - name: Package QVMs
-        run: |
-          OUT=oa-gamecode/build/release-darwin-x86_64/neonarena
-          mkdir -p dist/neonarena-macos
-          cp "$OUT/vm/"*.qvm dist/neonarena-macos/
-          cd dist && zip -r neonarena-macos-qvm.zip neonarena-macos
-          ls -la neonarena-macos-qvm.zip
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: neonarena-mod-macos
-          path: dist/neonarena-macos-qvm.zip
-
   build-linux:
     runs-on: ubuntu-latest
     timeout-minutes: 90
@@ -278,7 +238,7 @@ jobs:
             oa-gamecode/build/release-linux-x86_64/neonarena/vm/*.qvm
 
   release:
-    needs: [build-linux, build-macos]
+    needs: build-linux
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
