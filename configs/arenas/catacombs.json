@@ -1,0 +1,19 @@
+{
+  "name": "Catacombs",
+  "map": "oa_rpg3dm2",
+  "description": "Enge Gänge und dunkle Ecken — kurze Reichweite, hoher Schaden. Perfekt für Lightning Gun und Railgun-Reflexe.",
+  "settings": {
+    "g_neonwave_maxwave": 18,
+    "g_neonwave_modifier": 0,
+    "g_neonwave_bosstype": 0,
+    "g_momentum": 1,
+    "g_momentum_decay": 4,
+    "g_momentum_kill": 12,
+    "g_neonwave_drone_hp_scale": 0.85,
+    "g_neonwave_drone_damage_scale": 1.15
+  },
+  "difficulty": 3,
+  "recommended": false,
+  "theme": "dark",
+  "notes": "Enge Gänge — Drones haben weniger HP, machen aber mehr Schaden. Kein Boss-Rush geeignet."
+}
