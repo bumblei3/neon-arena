@@ -102,6 +102,11 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 79 | replay-playback-walk | replaytest79 1, autostart, failrun | `replay playback started`, `replay playback walked 4 events` | keine Fatal-Warnung |
 | 80 | replay-overflow | replaytest80 1, autostart, failrun | `NeonWave: REPLAY overflow recorded=32773 stored=32768` | keine Fatal-Warnung |
 | 81 | ghost-balance-cvars | ghost 1, g_ghost_energy_start 60, g_ghost_energy_max 100, g_ghost_regen_amt 4 | `GHOST`, `Ghost` | keine Fatal-Warnung |
+| 91 | arena-catacombs | autostart, drone_hp_scale 0.85, drone_damage_scale 1.15 | `arena drone scaling hp=0.85 dmg=1.15` | keine Fatal-Warnung |
+| 92 | arena-vortex | autostart, gravity_scale 0.7 | `g_gravity` | keine Fatal-Warnung |
+| 93 | arena-node | autostart, drone_count_scale 1.1 | `arena drone count scale 1.10` | keine Fatal-Warnung |
+| 94 | arena-desert | autostart, drone_speed_scale 1.1 | `spd=1.10` | keine Fatal-Warnung |
+| 95 | arena-bleed | autostart, ghost 0, autokill | `NeonWave over` | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
