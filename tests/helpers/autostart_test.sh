@@ -42,7 +42,7 @@ na_root() { echo "${TEST_HOMEPATH:-$HOME/.openarena}"; }
 CMDLINE="+set dedicated 1"
 CMDLINE="$CMDLINE +set fs_homepath \"$(na_root)\""
 CMDLINE="$CMDLINE +set sv_maxclients 24"
-CMDLINE="$CMDLINE +set fs_game neonarena +set g_gametype 14 +map oa_shine"
+CMDLINE="$CMDLINE +set fs_game neonarena +set g_gametype 14"
 # OA_EXTRA: additional engine args (e.g., +set com_basegame baseoa +set fs_basepath /usr/lib/openarena)
 CMDLINE="$CMDLINE ${OA_EXTRA:-}"
 if [ "$AUTOSTART" -eq 1 ]; then
@@ -53,6 +53,7 @@ if [ "$STARTWAVE" -gt 0 ]; then
 fi
 CMDLINE="$CMDLINE $CVARS"
 CMDLINE="$CMDLINE $EXTRA_ARGS"
+CMDLINE="$CMDLINE +map oa_shine"
 
 # ---- run ----
 LOGDIR="${LOGDIR:-/tmp/nw-suite-$(date +%Y%m%d-%H%M%S)}"

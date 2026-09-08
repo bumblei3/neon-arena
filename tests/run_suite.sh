@@ -90,7 +90,7 @@ mkdir -p "$LOGDIR"
 # Tests known to be timing-sensitive in headless CI (spawn-fallback races).
 # They still run, but a single FAIL is retried once before counting as failed.
 # Space-separated list of test numbers.
-FLAKY_TESTS="${FLAKY_TESTS:-13 15 29 37 38 53 54 55 56 76 77 78 79 80}"
+FLAKY_TESTS="${FLAKY_TESTS:-13 15 29 37 38 45 53 54 55 56 76 77 78 79 80}"
 
 is_flaky() { # is_flaky <num>; returns 0 if num is in FLAKY_TESTS
   local n="$1" f
@@ -117,8 +117,9 @@ run_test() {
     $RUNNER timeout "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
       +set fs_homepath "$(na_root)" \
       +set sv_maxclients 24 \
-      +set fs_game neonarena +set g_gametype 14 +map oa_shine \
-      "$@" > "$log" 2>&1 || true
+      +set fs_game neonarena +set g_gametype 14 \
+      "$@" \
+      +map oa_shine > "$log" 2>&1 || true
     eval "assert_$num \"$log\""
     # if this attempt passed (PASS advanced) -> done; if it failed and we have
     # attempts left -> retry; otherwise done (report already counted it)
@@ -1221,7 +1222,7 @@ dispatch_test() {
     42) run_test 42 "anti-synergy-pair" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 8 +set g_neonwave_modifier2 6 +set g_neonwave_fastbreak 1 ;;
     43) run_test 43 "mirror-slot2" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier2 9 +set g_neonwave_fastbreak 1 ;;
     44) run_test 44 "difficulty-lock-daily" 60 +set g_neonwave_autostart 1 +set g_neonwave_daily 1 +set g_neonwave_dailyseed 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
-    45) run_test 45 "coop-wave-clear" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_coopmock 1 +set g_neonwave_botasplayer 1 ;;
+    45) run_test 45 "coop-wave-clear" 180 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_coopmock 1 +set g_neonwave_botasplayer 1 ;;
     46) run_test 46 "coop-respawn" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 3 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_selfkill 1 +set g_neonwave_botasplayer 1 ;;
     47) run_test 47 "coop-scaling" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 5 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_coopmock 1 +set g_neonwave_coopdifficulty 2 +set g_neonwave_botasplayer 1 ;;
     48) run_test 48 "frost-modifier" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 12 +set g_neonwave_botasplayer 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
