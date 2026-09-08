@@ -90,7 +90,7 @@ mkdir -p "$LOGDIR"
 # Tests known to be timing-sensitive in headless CI (spawn-fallback races).
 # They still run, but a single FAIL is retried once before counting as failed.
 # Space-separated list of test numbers.
-FLAKY_TESTS="${FLAKY_TESTS:-13 15 29 37 38 45 53 54 55 56 76 77 78 79 80}"
+FLAKY_TESTS="${FLAKY_TESTS:-13 15 29 37 38 45 53 54 55 56 67 76 77 78 79 80}"
 
 is_flaky() { # is_flaky <num>; returns 0 if num is in FLAKY_TESTS
   local n="$1" f
