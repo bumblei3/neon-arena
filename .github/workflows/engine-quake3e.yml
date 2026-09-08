@@ -56,6 +56,12 @@ jobs:
       - name: Clone Quake3e
         run: git clone --depth 1 https://github.com/ec-/quake3e.git /tmp/quake3e
 
+      - name: Apply Controller Patch
+        run: |
+          cd /tmp/quake3e
+          git apply ${{ github.workspace }}/patches/quake3e-controller.patch
+          echo "Controller patch applied successfully"
+
       - name: Apply OpenArena compatibility (BASEGAME=baseoa)
         run: |
           perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' /tmp/quake3e/code/qcommon/q_shared.h
