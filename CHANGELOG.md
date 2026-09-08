@@ -5,32 +5,28 @@ All notable changes to NeonArena will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.82] - 2026-09-08
+## [Unreleased]
+
+## [0.82] - 2026-09-09
 
 ### Added
 - **Ghost Loadouts (v1.2):**
   - 3 selectable loadouts via `loadout <0|1|2>` / `g_ghost_loadout` (ARCHIVE)
   - **Infiltrator** (0, Default): Cloak + EMP + Lockdown, 80 Start-Energy
-  - **Saboteur** (1): Cloak; EMP 25 Energy / 20 s CD; Lockdown 35 Energy; 70 Start-Energy
+  - **Saboteur** (1): Cloak; EMP 25 Energy / 22 s CD; Lockdown 35 Energy; 70 Start-Energy
   - **Spectre** (2): kein Cloak; Nuke + Multiscan; EMP + Lockdown Standardkosten; 90 Start-Energy
-- **CHRONOMANCER Boss** (Typ 12): Zeitwarp-Teleport + Slow; Basis-HP 450; Test 103
-- **VOID WALKER Boss** (Typ 13): Phaseshift-Invuln 2 s, Void-Aura, Enrage unter 30 % HP; Basis-HP 550; Test 104
-- **Seasonal Challenge System:**
-  - 16 wöchentlich rotierende Challenges (modifier-spezifische Ziele)
-  - Fortschritt + Reward-Titel, Persistenz `neonwave_seasonal.dat` + `neonwave_seasonal_leaderboard.json`
-  - HUD-CVars `ui_neonwave_seasonal_*`; Leaderboard Top 5 (`ui_neonwave_lb_0` … `_4`)
-  - Test 105
+- **Gamepad-Support (M13 Engine):**
+  - UI-Navigation mit Gamepad (A=Enter, B=Escape, DPad)
+  - Analog-Stick Deadzone/Sensitivity CVars
+  - Rumble-Support (`joy_rumble_low`, `joy_rumble_high`, `joy_rumble_duration`)
+- **Tests 106–108:** Ghost Loadout-Validierung (Infiltrator/Saboteur/Spectre)
 
 ### Changed
+- **Saboteur EMP-CD:** 20 s → 22 s (verhindert EMP+Lockdown-Spam)
+- **Spectre Nuke-Cost:** 80 → 85 (verhindert sofortigen Nuke bei Spawn)
 - **GAMEVERSION:** 0.81 → **0.82**
 - **Boss-Pool:** 11 → 13 Typen (`NW_BOSS_COUNT`)
-- **Test-Suite:** 103 Tests (1–105 inkl. 9b, ohne Stubs 85–87)
-- Dokumentation an 14 Arenas / 13 Bosse / 15 Modifier / Loadouts angeglichen
-- Installer-Version aus GAMEVERSION (`NeonArena-0.82-Setup`, Portable-Zip analog)
-- Tag-Release hängt PK3s per `artifacts/**/*.pk3`
-
-### Removed
-- Ghost-Stubs `beam` / `cluster` / `empwave` und Tests 85–87
+- **Test-Suite:** 108 Tests (1–108 inkl. 9b, ohne Stubs 85–87)
 
 ## [0.81] - 2026-09-07
 
