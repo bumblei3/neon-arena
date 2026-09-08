@@ -36,14 +36,13 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential bison flex zip xvfb openarena x11-utils
 
-      - name: Cache lcc toolchain + objects
+      - name: Cache QVMs
         uses: actions/cache@v6
         with:
-          path: oa-gamecode/build
-          key: oa-build-${{ runner.os }}-${{ hashFiles('oa-gamecode/Makefile', 'Makefile.local') }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h') }}
+          path: oa-gamecode/build/release-linux-x86_64/neonarena/vm
+          key: qvm-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
           restore-keys: |
-            oa-build-${{ runner.os }}-${{ hashFiles('oa-gamecode/Makefile', 'Makefile.local') }}-
-            oa-build-${{ runner.os }}-
+            qvm-${{ runner.os }}-
 
       - name: Build mod
         run: |
@@ -114,6 +113,14 @@ jobs:
         with:
           name: oa-build
           path: oa-gamecode/build/release-linux-x86_64/neonarena/
+
+      - name: Cache QVMs
+        uses: actions/cache@v6
+        with:
+          path: oa-gamecode/build/release-linux-x86_64/neonarena/vm
+          key: qvm-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
+          restore-keys: |
+            qvm-${{ runner.os }}-
 
       - name: Install test dependencies
         run: |
