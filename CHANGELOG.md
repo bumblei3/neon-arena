@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Ghost Loadouts (v1.2):**
+  - 3 selectable loadouts via `loadout <0|1|2>` command
+  - **Infiltrator** (0): Cloak + EMP + Lockdown, 80 start energy
+  - **Saboteur** (1): Buffed EMP (cheaper/shorter CD) + Lockdown (cheaper/longer), 70 start energy
+  - **Spectre** (2): Nuke + Multiscan, no Cloak, 90 start energy
+  - CVar: `g_ghost_loadout` (archive)
 - **Seasonal Challenge System:**
   - 15 weekly rotating challenges (modifier-specific goals)
   - Challenge completion tracking + reward titles
