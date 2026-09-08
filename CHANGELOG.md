@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.90] - 2026-09-09
+
+### Added
+- **Gamepad-Support (M13 Engine):**
+  - UI-Navigation mit Gamepad (A=Enter, B=Escape, DPad)
+  - Analog-Stick Deadzone/Sensitivity CVars (`joy_deadzone`, `joy_sensitivity`)
+  - Rumble-Support (`joy_rumble_low`, `joy_rumble_high`, `joy_rumble_duration`)
+  - Engine-Patch in CI/CD (`patches/quake3e-controller.patch`)
+- **Ghost Loadouts (v1.2):**
+  - 3 Loadouts: Infiltrator / Saboteur / Spectre
+- **Tests 106–110:** Ghost Loadout-Validierung + Controller CVars
+
+### Changed
+- **Saboteur EMP-CD:** 20s → 22s (verhindert EMP-Spam)
+- **Spectre Nuke-Cost:** 80 → 85 (verhindert sofortigen Nuke bei Spawn)
+- **GAMEVERSION:** 0.82 → **0.90**
+- **Test-Suite:** 110 Tests (1–110 inkl. 9b)
+- M13 Controller-Support als abgeschlossen markiert
+
 ## [0.82] - 2026-09-09
 
 ### Added
@@ -234,7 +253,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Modifier system (15 modifiers, 2 slots with synergy)
 
-[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.82...HEAD
+[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.90...HEAD
+[0.90]: https://github.com/bumblei3/neon-arena/compare/v0.82...v0.90
 [0.82]: https://github.com/bumblei3/neon-arena/compare/v0.81...v0.82
 [0.81]: https://github.com/bumblei3/neon-arena/compare/v0.80...v0.81
 [0.80]: https://github.com/bumblei3/neon-arena/compare/v0.71...v0.80
