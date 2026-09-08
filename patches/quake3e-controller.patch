@@ -1,7 +1,7 @@
-diff --git code/sdl/sdl_input.c code/sdl/sdl_input.c
+diff --git a/code/sdl/sdl_input.c b/code/sdl/sdl_input.c
 index e7bad2d..3f67d64 100644
---- code/sdl/sdl_input.c
-+++ code/sdl/sdl_input.c
+--- a/code/sdl/sdl_input.c
++++ b/code/sdl/sdl_input.c
 @@ -47,6 +47,12 @@ static cvar_t *in_joystick;
  static cvar_t *in_joystickThreshold;
  static cvar_t *in_joystickNo;
