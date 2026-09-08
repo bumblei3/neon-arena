@@ -1,10 +1,10 @@
 # NeonArena Roadmap
 
 > Letztes Update: 2026-09-08
-> Stand: v0.82 (released) Ghost-Kit G1–G12 (Loadouts), 13 Bosse, 14 Arenas, 105+ Tests
+> Stand: v0.90 (released) Ghost-Kit G1–G12 (Loadouts), 13 Bosse, 14 Arenas, 110+ Tests
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
-> Letztes GitHub-Release: **v0.82**.
+> Letztes GitHub-Release: **v0.90**.
 
 ---
 
@@ -64,28 +64,28 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 | M12 Content-Erweiterung | ✅ Fertig (v0.80 + Seasonal v0.82) | 15 |
 | M13 Controller-Support | ✅ Fertig (SDL2 + UI-Nav + Rumble) | 1 |
 | Ghost-Kit G1–G12 | ✅ Fertig | 12 |
-| **Gesamt** | | **310+** |
+| **Gesamt** | | **320+** |
 
 ---
 
 ## 🗺️ Nächste Milestones
 
 ### M14: v0.90 — Gamepad-Ready Release 🎯
-> *Ziel: Stabiles, gamepad-fähiges Release mit Ghost-Balance*
+> *Ziel: Stabiles, gamepad-fähiges Release mit Ghost-Balance* — **abgeschlossen** ✅
 
 **Was:**
 - ✅ M13 Controller-Support komplett (SDL2 + UI-Nav + Rumble)
 - ✅ Gamepad-Navigation im Menü (A=Enter, B=Escape, DPad)
 - ✅ Analog-Stick Deadzone/Sensitivity CVars
 - ✅ Rumble-Support (`joy_rumble_low/high/duration`)
-- ⏳ Ghost Playtest-Balance (Infiltrator/Saboteur/Spectre feintunen)
-- ⏳ Bugfixes aus Playtest-Feedback
-- ⏳ Installer + Release-Notes
-- ⏳ v0.90 GitHub Release mit Engine-Artifacts
+- ✅ Ghost Playtest-Balance (Saboteur EMP-CD, Spectre Nuke-Cost)
+- ✅ Bugfixes (nach Balance-Analyse)
+- ✅ Installer + Release-Notes
+- ✅ v0.90 GitHub Release mit Engine-Artifacts
 
-**Aufwand:** ~3 Tage (Tag 1: Playtest-Balance, Tag 2: Bugfixes, Tag 3: Release)
-**Priorität:** Hoch (nach M13 der logische nächste Schritt)
-**When:** Q4 2026
+**Aufwand:** 3 Tage (Tag 1: Playtest-Balance, Tag 2: Bugfixes, Tag 3: Release)
+**Priorität:** Hoch ✅
+**When:** Q4 2026 ✅
 
 **Definition of Done:**
 - [ ] Controller-Support in CI getestet (Engine-Build mit Patch)
@@ -149,7 +149,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 | Milestone | Priority | Impact | Risk | When |
 |-----------|----------|--------|------|------|
-| **M14 v0.90 Gamepad-Ready** | 🟢 Hoch | Release | Low | Q4 2026 |
+| **M14 v0.90 Gamepad-Ready** | ✅ Fertig | Release | Low | Q4 2026 ✅ |
 | **M13 Engine-Controller (SDL2)** | ✅ Fertig | Gamepad | — | Q4 2026 ✅ |
 | **Ghost Playtest-Balance** | 🟡 Medium | Feel | Low | Q4 2026 |
 | **M10 Netzwerk-Coop** | 🟠 Niedrig | Multiplayer | High | Q1 2027 |
@@ -171,7 +171,7 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 103 | 110+ |
+| Haupt-Mod Tests | 110 | 110+ ✅ |
 | Build Time | ~45s | <60s |
 | Bosse | 13 | 13 |
 | Bot-Typen (Trash) | Healer / Shielder / Elite | — |
@@ -187,7 +187,8 @@ Jedes Milestone ist fertig wenn:
 Sep 2026  v0.71 Ghost-Kit G1–G11 ✅
           v0.80 Content-Complete (14 Arenas, Bot-Typen) ✅
           v0.81 Controller QVM ✅
-          v0.82 Ghost Loadouts + Seasonal + Bosse 12–13 (unreleased)
+          v0.82 Ghost Loadouts + Seasonal + Bosse 12–13 ✅
+          v0.90 Gamepad-Ready Release ✅
 Okt 2026  Playtest-Balance, M13 Engine-SDL2
 Nov 2026  M13 Abschluss
 Dez 2026  M14 v0.90 Gamepad-Ready Release — Ziel
