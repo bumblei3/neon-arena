@@ -1,11 +1,13 @@
-diff --git a/code/sdl/sdl_input.c b/code/sdl/sdl_input.c
-index 67e8ae1..94c69cb 100644
---- a/code/sdl/sdl_input.c
-+++ b/code/sdl/sdl_input.c
-@@ -49,6 +49,10 @@ static cvar_t *in_joystickNo;
+diff --git code/sdl/sdl_input.c code/sdl/sdl_input.c
+index e7bad2d..3f67d64 100644
+--- code/sdl/sdl_input.c
++++ code/sdl/sdl_input.c
+@@ -47,6 +47,12 @@ static cvar_t *in_joystick;
+ static cvar_t *in_joystickThreshold;
+ static cvar_t *in_joystickNo;
  static cvar_t *in_joystickUseAnalog;
- static cvar_t *joy_deadzone;
- static cvar_t *joy_sensitivity;
++static cvar_t *joy_deadzone;
++static cvar_t *joy_sensitivity;
 +static cvar_t *joy_rumble_low;
 +static cvar_t *joy_rumble_high;
 +static cvar_t *joy_rumble_duration;
@@ -13,10 +15,14 @@ index 67e8ae1..94c69cb 100644
  
  static cvar_t *j_pitch;
  static cvar_t *j_yaw;
-@@ -607,6 +611,14 @@ static void IN_InitJoystick( void )
- 	joy_sensitivity = Cvar_Get( "joy_sensitivity", "2.0", CVAR_ARCHIVE );
- 	Cvar_SetDescription( joy_sensitivity, "Analog stick sensitivity multiplier." );
+@@ -600,6 +606,18 @@ static void IN_InitJoystick( void )
+ 	in_joystickUseAnalog = Cvar_Get( "in_joystickUseAnalog", "0", CVAR_ARCHIVE );
+ 	Cvar_SetDescription( in_joystickUseAnalog, "Do not translate joystick axis events to keyboard commands." );
  
++	joy_deadzone = Cvar_Get( "joy_deadzone", "0.12", CVAR_ARCHIVE );
++	Cvar_SetDescription( joy_deadzone, "Analog stick deadzone (0-1)." );
++	joy_sensitivity = Cvar_Get( "joy_sensitivity", "2.0", CVAR_ARCHIVE );
++	Cvar_SetDescription( joy_sensitivity, "Analog stick sensitivity multiplier." );
 +	joy_rumble_low = Cvar_Get( "joy_rumble_low", "0", CVAR_ARCHIVE );
 +	Cvar_SetDescription( joy_rumble_low, "Rumble low-frequency intensity (0-65535)." );
 +	joy_rumble_high = Cvar_Get( "joy_rumble_high", "0", CVAR_ARCHIVE );
@@ -28,7 +34,7 @@ index 67e8ae1..94c69cb 100644
  	stick = SDL_JoystickOpen( in_joystickNo->integer );
  
  	if (stick == NULL) {
-@@ -1377,10 +1389,46 @@ static void IN_Minimize( void )
+@@ -1352,10 +1370,46 @@ static void IN_Minimize( void )
  IN_Frame
  ===============
  */
