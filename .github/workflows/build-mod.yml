@@ -194,7 +194,13 @@ jobs:
         run: |
           set -e
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
-          mkdir -p dist/neonarena/vm
+          mkdir -p dist/neonarena/vm "$OUT/vm"
+          echo "artifact layout:" && find "$OUT" -name '*.qvm' -print
+          # upload-artifact@v7 of .../neonarena/vm/ unpacks QVMs at $OUT/, not $OUT/vm/
+          if [ ! -f "$OUT/vm/cgame.qvm" ] && [ -f "$OUT/cgame.qvm" ]; then
+            mv "$OUT"/*.qvm "$OUT/vm/"
+          fi
+          test -f "$OUT/vm/cgame.qvm" && test -f "$OUT/vm/qagame.qvm" && test -f "$OUT/vm/ui.qvm"
           cp "$OUT/vm/cgame.qvm" "$OUT/vm/qagame.qvm" "$OUT/vm/ui.qvm" dist/neonarena/vm/
           cp "$OUT"/cgamex86_64.so "$OUT"/qagamex86_64.so "$OUT"/uix86_64.so dist/neonarena/ 2>/dev/null || true
           cd assets && mkdir -p ../dist/neonarena-zip-tmp && zip -rq ../dist/neonarena-zip-tmp/neon-look.pk3 scripts textures gfx env sound autoexec.cfg neon-look.cfg 2>/dev/null || (
@@ -203,8 +209,7 @@ jobs:
           cd .. && cp -r assets/scripts dist/neonarena/ && cp assets/autoexec.cfg dist/neonarena/
           cp dist/neonarena-zip-tmp/neon-look.pk3 dist/neonarena/neon-look.pk3
           cd dist && zip -rq neonarena.pk3 neonarena && cd ..
-          (cd oa-gamecode/build/release-linux-x86_64/neonarena && \
-           zip -q "$GITHUB_WORKSPACE/dist/neonarena-qvm.pk3" vm/cgame.qvm vm/qagame.qvm vm/ui.qvm)
+          (cd "$OUT" && zip -q "$GITHUB_WORKSPACE/dist/neonarena-qvm.pk3" vm/cgame.qvm vm/qagame.qvm vm/ui.qvm)
           ls -la dist/neonarena.pk3 dist/neonarena-qvm.pk3
 
       - name: Upload artifacts
