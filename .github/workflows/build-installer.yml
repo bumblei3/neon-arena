@@ -23,12 +23,10 @@ jobs:
       - name: Download Engine Artifacts
         uses: actions/download-artifact@v4
         with:
-          workflow: engine-quake3e.yml
-          workflow_conclusion: success
-          branch: main
           name: neonarena-engine-windows
           path: engine-zip
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id || github.run_id }}
 
       - name: Extract Engine
         run: |
