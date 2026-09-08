@@ -1,10 +1,10 @@
 # NeonArena Roadmap
 
 > Letztes Update: 2026-09-08
-> Stand: v0.82 (unreleased) Ghost-Kit G1–G12 (Loadouts), 13 Bosse, 14 Arenas, 105+ Tests
+> Stand: v0.82 (released) Ghost-Kit G1–G12 (Loadouts), 13 Bosse, 14 Arenas, 105+ Tests
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
-> Letztes GitHub-Release: **v0.81**.
+> Letztes GitHub-Release: **v0.82**.
 
 ---
 
@@ -62,13 +62,40 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 | M9 Modding-Support | ✅ Fertig | — |
 | M11 Neue Waffen & Bot-Typen | ✅ Fertig | 10 |
 | M12 Content-Erweiterung | ✅ Fertig (v0.80 + Seasonal v0.82) | 15 |
-| M13 Controller QVM | ✅ QVM fertig; Engine-SDL2 offen | 1 |
+| M13 Controller-Support | ✅ Fertig (SDL2 + UI-Nav + Rumble) | 1 |
 | Ghost-Kit G1–G12 | ✅ Fertig | 12 |
 | **Gesamt** | | **310+** |
 
 ---
 
 ## 🗺️ Nächste Milestones
+
+### M14: v0.90 — Gamepad-Ready Release 🎯
+> *Ziel: Stabiles, gamepad-fähiges Release mit Ghost-Balance*
+
+**Was:**
+- ✅ M13 Controller-Support komplett (SDL2 + UI-Nav + Rumble)
+- ✅ Gamepad-Navigation im Menü (A=Enter, B=Escape, DPad)
+- ✅ Analog-Stick Deadzone/Sensitivity CVars
+- ✅ Rumble-Support (`joy_rumble_low/high/duration`)
+- ⏳ Ghost Playtest-Balance (Infiltrator/Saboteur/Spectre feintunen)
+- ⏳ Bugfixes aus Playtest-Feedback
+- ⏳ Installer + Release-Notes
+- ⏳ v0.90 GitHub Release mit Engine-Artifacts
+
+**Aufwand:** ~3 Tage (Tag 1: Playtest-Balance, Tag 2: Bugfixes, Tag 3: Release)
+**Priorität:** Hoch (nach M13 der logische nächste Schritt)
+**When:** Q4 2026
+
+**Definition of Done:**
+- [ ] Controller-Support in CI getestet (Engine-Build mit Patch)
+- [ ] Ghost Loadouts balanced (Drain, Cooldowns, Energy per Playtest-Daten)
+- [ ] 110+ Tests (Basis 103 + Balance-Regression-Tests)
+- [ ] CHANGELOG.md aktualisiert
+- [ ] GitHub Release v0.90 mit Engine-Artifacts
+- [ ] Installer getestet (Windows/Linux)
+
+---
 
 ### M10: Netzwerk-Coop 🌐
 > *Ziel: Online-Multiplayer*
@@ -122,6 +149,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 | Milestone | Priority | Impact | Risk | When |
 |-----------|----------|--------|------|------|
+| **M14 v0.90 Gamepad-Ready** | 🟢 Hoch | Release | Low | Q4 2026 |
 | **M13 Engine-Controller (SDL2)** | ✅ Fertig | Gamepad | — | Q4 2026 ✅ |
 | **Ghost Playtest-Balance** | 🟡 Medium | Feel | Low | Q4 2026 |
 | **M10 Netzwerk-Coop** | 🟠 Niedrig | Multiplayer | High | Q1 2027 |
@@ -162,7 +190,7 @@ Sep 2026  v0.71 Ghost-Kit G1–G11 ✅
           v0.82 Ghost Loadouts + Seasonal + Bosse 12–13 (unreleased)
 Okt 2026  Playtest-Balance, M13 Engine-SDL2
 Nov 2026  M13 Abschluss
-Dez 2026  Release v0.90 (Gamepad-ready) — Ziel
+Dez 2026  M14 v0.90 Gamepad-Ready Release — Ziel
 Jan 2027  M10 Netzwerk-Coop Start
 Mär 2027  Release v1.0 (Multiplayer-Ready) — Ziel
 ```
@@ -176,5 +204,5 @@ Mär 2027  Release v1.0 (Multiplayer-Ready) — Ziel
 - **Modding-Support:** M9 erledigt — Wave-Editor und Map-Validator nutzbar
 - **Achievements:** Savegame-Erweiterung erledigt ✅
 - **Linux/Mac Builds:** CI hat Windows/Linux — macOS-Engine-Artifact existiert; M1-Playtest offen
-- **Controller-Support:** QVM fertig; Analog-Stick + UI-Nav brauchen Quake3e-SDL2 (`patches/quake3e-controller.patch`)
+- **Controller-Support:** ✅ M13 abgeschlossen (SDL2 + UI-Nav + Rumble)
 - **Mobile/Touch:** Nicht priorisiert
