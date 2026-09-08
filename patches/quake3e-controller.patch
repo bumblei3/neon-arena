@@ -1,0 +1,94 @@
+From 1356829a2d3d52ed9ae597001a5b82697197eed9 Mon Sep 17 00:00:00 2001
+From: bumblei3 <t.berberich@gmail.com>
+Date: Mon, 7 Sep 2026 21:50:05 +0200
+Subject: [PATCH] feat: add joy_deadzone and joy_sensitivity CVars for analog
+ sticks
+
+- joy_deadzone (0.12): analog stick deadzone for both gamepad and joystick
+- joy_sensitivity (2.0): analog stick sensitivity multiplier
+- Applied to IN_GamepadMove (SDL_GameController) and IN_JoyMove (SDL_Joystick)
+- Smooth deadzone ramp with sensitivity scaling and clamping
+---
+ code/sdl/sdl_input.c | 37 +++++++++++++++++++++++++++++++------
+ 1 file changed, 31 insertions(+), 6 deletions(-)
+
+diff --git a/code/sdl/sdl_input.c b/code/sdl/sdl_input.c
+index e7bad2d..67e8ae1 100644
+--- a/code/sdl/sdl_input.c
++++ b/code/sdl/sdl_input.c
+@@ -47,6 +47,8 @@ static cvar_t *in_joystick;
+ static cvar_t *in_joystickThreshold;
+ static cvar_t *in_joystickNo;
+ static cvar_t *in_joystickUseAnalog;
++static cvar_t *joy_deadzone;
++static cvar_t *joy_sensitivity;
+ 
+ static cvar_t *j_pitch;
+ static cvar_t *j_yaw;
+@@ -600,6 +602,11 @@ static void IN_InitJoystick( void )
+ 	in_joystickUseAnalog = Cvar_Get( "in_joystickUseAnalog", "0", CVAR_ARCHIVE );
+ 	Cvar_SetDescription( in_joystickUseAnalog, "Do not translate joystick axis events to keyboard commands." );
+ 
++	joy_deadzone = Cvar_Get( "joy_deadzone", "0.12", CVAR_ARCHIVE );
++	Cvar_SetDescription( joy_deadzone, "Analog stick deadzone (0-1)." );
++	joy_sensitivity = Cvar_Get( "joy_sensitivity", "2.0", CVAR_ARCHIVE );
++	Cvar_SetDescription( joy_sensitivity, "Analog stick sensitivity multiplier." );
++
+ 	stick = SDL_JoystickOpen( in_joystickNo->integer );
+ 
+ 	if (stick == NULL) {
+@@ -771,11 +778,15 @@ static void IN_GamepadMove( void )
+ 		int axis = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_LEFTX + i);
+ 		int oldAxis = stick_state.oldaaxes[i];
+ 
+-		// Smoothly ramp from dead zone to maximum value
+-		float f = ((float)abs(axis) / 32767.0f - in_joystickThreshold->value) / (1.0f - in_joystickThreshold->value);
+-
++		// Smoothly ramp from dead zone to maximum value, apply sensitivity
++		float dead = joy_deadzone ? joy_deadzone->value : 0.12f;
++		float sens = joy_sensitivity ? joy_sensitivity->value : 2.0f;
++		float f = ((float)abs(axis) / 32767.0f - dead) / (1.0f - dead);
+ 		if (f < 0.0f)
+ 			f = 0.0f;
++		f *= sens;
++		if (f > 1.0f)
++			f = 1.0f;
+ 
+ 		axis = (int)(32767 * ((axis < 0) ? -f : f));
+ 
+@@ -1020,15 +1031,29 @@ static void IN_JoyMove( void )
+ 	total = SDL_JoystickNumAxes(stick);
+ 	if (total > 0)
+ 	{
++		float dead = joy_deadzone ? joy_deadzone->value : 0.12f;
++		float sens = joy_sensitivity ? joy_sensitivity->value : 2.0f;
+ 		if (in_joystickUseAnalog->integer)
+ 		{
+ 			if (total > MAX_JOYSTICK_AXIS) total = MAX_JOYSTICK_AXIS;
+ 			for (i = 0; i < total; i++)
+ 			{
+ 				Sint16 axis = SDL_JoystickGetAxis(stick, i);
+-				float f = ( (float) abs(axis) ) / 32767.0f;
+-				
+-				if( f < in_joystickThreshold->value ) axis = 0;
++				float f = ( (float) axis ) / 32767.0f;
++				// Apply deadzone
++				if ( f < -dead ) {
++					f = (f + dead) / (1.0f - dead);
++				} else if ( f > dead ) {
++					f = (f - dead) / (1.0f - dead);
++				} else {
++					f = 0.0f;
++				}
++				// Apply sensitivity
++				f *= sens;
++				// Clamp
++				if ( f < -1.0f ) f = -1.0f;
++				if ( f > 1.0f ) f = 1.0f;
++				axis = (Sint16)(f * 32767.0f);
+ 
+ 				if ( axis != stick_state.oldaaxes[i] )
+ 				{
+-- 
+2.53.0
+
