@@ -1079,6 +1079,46 @@ assert_105() {
   report $ok "seasonal-challenge"
 }
 
+# Test 106: Ghost Loadout Infiltrator (default)
+assert_106() {
+  local ok=0 logfile="$1"
+  check "$logfile" "Ghost: joined the Ghost team (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "ghost-loadout-infiltrator"
+}
+
+# Test 107: Ghost Loadout Saboteur
+assert_107() {
+  local ok=0 logfile="$1"
+  check "$logfile" "Ghost: joined the Ghost team (loadout 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "ghost-loadout-saboteur"
+}
+
+# Test 108: Ghost Loadout Spectre
+assert_108() {
+  local ok=0 logfile="$1"
+  check "$logfile" "Ghost: joined the Ghost team (loadout 2)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "ghost-loadout-spectre"
+}
+
+# Test 109: Ghost Loadout Infiltrator Energy
+assert_109() {
+  local ok=0 logfile="$1"
+  check "$logfile" "Ghost: joined the Ghost team (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "ghost-loadout-infiltrator-energy"
+}
+
+# Test 110: Controller CVars
+assert_110() {
+  local ok=0 logfile="$1"
+  check "$logfile" "NeonWave"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "controller-cvars"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
