@@ -14,18 +14,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
       - name: Download Engine Artifacts
-        uses: dawidd6/action-download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
+          run_id: ${{ github.run_id }}
           workflow: engine-quake3e.yml
-          workflow_conclusion: success
           branch: main
           name: neonarena-engine-windows
           path: engine-zip
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract Engine
         run: |
@@ -41,19 +42,19 @@ jobs:
       - name: Create Portable ZIP
         run: |
           cd installer/engine
-          zip -r ../../NeonArena-0.53-portable.zip .
-          ls -la ../../NeonArena-0.53-portable.zip
+          zip -r ../../NeonArena-portable.zip .
+          ls -la ../../NeonArena-portable.zip
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: neonarena-installer
-          path: NeonArena-0.53-portable.zip
+          path: NeonArena-portable.zip
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
-          files: NeonArena-0.53-portable.zip
+          files: NeonArena-portable.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
