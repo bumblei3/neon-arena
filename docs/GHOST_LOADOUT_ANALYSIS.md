@@ -10,8 +10,8 @@
 | Loadout | Start | Max | Regen | Cloak | EMP | Lockdown | Nuke | Multiscan |
 |---------|-------|-----|-------|-------|-----|----------|------|-----------|
 | **Infiltrator** | 80 | 100 | 4/s | 25 | 35 (25s) | 50 (20s) | — | 30 (3s) |
-| **Saboteur** | 70 | 100 | 4/s | 25 | 25 (20s) | 35 (20s) | — | 30 (3s) |
-| **Spectre** | 90 | 100 | 4/s | — | 35 (25s) | 50 (20s) | 80 (45s) | 30 (3s) |
+| **Saboteur** | 70 | 100 | 4/s | 25 | 25 (22s) | 35 (20s) | — | 30 (3s) |
+| **Spectre** | 90 | 100 | 4/s | — | 35 (25s) | 50 (20s) | 85 (45s) | 30 (3s) |
 
 ---
 
@@ -45,12 +45,12 @@
 ### Saboteur
 - Aktuell: Stärkste CC-Kombo
 - Risiko: EMP (25) + Lockdown (35) + Multiscan (30) = 90 → 3-Fähigkeits-Kombo
-- Empfehlung: EMP-CD von 20s auf **22s** erhöhen (verhindert Spam)
+- ✅ EMP-CD von 20s auf **22s** erhöht (verhindert Spam)
 
 ### Spectre
 - Aktuell: Nuke sofort verfügbar (80 < 90)
 - Risiko: Player spart 90 Energy, warten nur 1 Regen-Tick
-- Empfehlung: Nuke-Cost von 80 auf **85** anheben
+- ✅ Nuke-Cost von 80 auf **85** angehoben
 
 ---
 
