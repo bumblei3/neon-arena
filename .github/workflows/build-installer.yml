@@ -1,9 +1,10 @@
 name: build-installer
 
 on:
-  push:
-    branches: [main]
-    tags: ['v*']
+  workflow_run:
+    workflows: ["engine-quake3e"]
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -12,6 +13,7 @@ permissions:
 jobs:
   build-installer:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -21,8 +23,8 @@ jobs:
       - name: Download Engine Artifacts
         uses: actions/download-artifact@v4
         with:
-          run_id: ${{ github.run_id }}
           workflow: engine-quake3e.yml
+          workflow_conclusion: success
           branch: main
           name: neonarena-engine-windows
           path: engine-zip
