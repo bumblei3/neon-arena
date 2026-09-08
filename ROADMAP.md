@@ -1,9 +1,10 @@
 # NeonArena Roadmap
 
-> Letztes Update: 2026-09-07
-> Stand: v0.71 Ghost-Kit G1–G11 (Multiscan), 11 Bosse, 90+ Haupt-Mod-Tests
+> Letztes Update: 2026-09-08
+> Stand: v0.82 (unreleased) Ghost-Kit G1–G12 (Loadouts), 13 Bosse, 14 Arenas, 105+ Tests
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
+> Letztes GitHub-Release: **v0.81**.
 
 ---
 
@@ -27,8 +28,9 @@ Referenz: [docs/GHOST_REFERENCE.md](docs/GHOST_REFERENCE.md) · Plan: [docs/GHOS
 | G9 eigene Cues | Short-Sounds statt OA-Stock | ✅ |
 | G10 Ghost-Look | Cyan-Shell uncloaked (Waffe + Modell) | ✅ |
 | G11 Multiscan | `multiscan` Command, 30 Energy, 3 s CD, 500 u Radius, Cloak-Reveal + 2 s Damage-Bonus | ✅ |
+| G12 Loadouts | Infiltrator / Saboteur / Spectre (`loadout 0\|1\|2`) | ✅ |
 
-**G1–G11 ✅.** Nächster Hebel: Playtest-Daten sammeln für Fein-Balance. Keine neuen Verben.
+**G1–G12 ✅.** Nächster Hebel: Playtest-Daten sammeln für Fein-Balance. Keine neuen Tasten.
 
 Nicht geplant: extra Rail-Feuerverzögerung (Q3-Rail ist schon 1500 ms). Scanner Sweep ist Comsat, nicht Ghost.
 
@@ -44,7 +46,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 ---
 
-## ✅ Erledigt (v0.71)
+## ✅ Erledigt (v0.82)
 
 | Feature | Status | Tests |
 |---------|--------|-------|
@@ -59,7 +61,9 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 | M8 Replay-Recorder | ✅ Fertig | 5 |
 | M9 Modding-Support | ✅ Fertig | — |
 | M11 Neue Waffen & Bot-Typen | ✅ Fertig | 10 |
-| Ghost-Kit G1–G11 | ✅ Fertig | 12 |
+| M12 Content-Erweiterung | ✅ Fertig (v0.80 + Seasonal v0.82) | 15 |
+| M13 Controller QVM | ✅ QVM fertig; Engine-SDL2 offen | 1 |
+| Ghost-Kit G1–G12 | ✅ Fertig | 12 |
 | **Gesamt** | | **310+** |
 
 ---
@@ -83,17 +87,16 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 ---
 
 ### M12: Content-Erweiterung 🎮
-> *Ziel: Mehr Variety, frische Herausforderungen*
+> *Ziel: Mehr Variety, frische Herausforderungen* — **erledigt**
 
 **Was:**
-- ✅ 5 neue Arenen (Frostbite, Skybridge, Underhive, Reactor, Overgrowth)
-- ✅ Neue Bot-Typen (Healer, Shielder, Sniper-Elite) — implementiert + getestet
-- ✅ Seasonal Challenges / Rotating Modifiers — implementiert + getestet
+- ✅ 5 neue Arenen (Frostbite, Skybridge, Underhive, Reactor, Overgrowth) — v0.80
+- ✅ Neue Bot-Typen (Healer, Shielder, Sniper-Elite) — v0.80
+- ✅ Seasonal Rotation + wöchentliche Challenges + lokale Rangliste — v0.82
+- ✅ Chronomancer + Void Walker (Bosse 12–13) — v0.82
 
-**Aufwand:** ~5 Tage (3 Tage Arenen + Bot-Typen ✅, 2 Tage Seasonal ✅)
-**Tests:** +15 (Arena-Validation, Bot-Verhalten) — 3/15 ✅
-**Priorität:** Medium
-**When:** Q4 2026 (in progress)
+**Tests:** 91–105 (Arenas, Bots, Seasonal, neue Bosse)
+**When:** Q4 2026 ✅
 
 ---
 
@@ -120,8 +123,8 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 | Milestone | Priority | Impact | Risk | When |
 |-----------|----------|--------|------|------|
-| **M12 Content-Erweiterung** | 🟡 Medium | Variety | Medium | Q4 2026 |
-| **M13 Polish & Performance** | 🟠 Low | Quality | Low | Q4 2026 |
+| **M13 Engine-Controller (SDL2)** | 🟡 Medium | Gamepad | Medium | Q4 2026 |
+| **Ghost Playtest-Balance** | 🟡 Medium | Feel | Low | Q4 2026 |
 | **M10 Netzwerk-Coop** | 🟠 Niedrig | Multiplayer | High | Q1 2027 |
 
 ---
@@ -141,37 +144,38 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 103 | 105+ |
+| Haupt-Mod Tests | 103 | 110+ |
 | Build Time | ~45s | <60s |
-| Bot Types | 11 | 12 |
-| Waffen | 5 | 6 |
-| Arenas | 13 | 15 |
-| Ghost Slices | G1–G11 | G11 + Balance |
+| Bosse | 13 | 13 |
+| Bot-Typen (Trash) | Healer / Shielder / Elite | — |
+| Waffen | 5 | 5 |
+| Arenas | 14 | 14 |
+| Ghost Slices | G1–G12 | Playtest-Balance |
 
 ---
 
 ## 🗓️ Timeline
 
 ```
-Sep 2026  v0.71 released ✅ (Ghost-Kit G1–G11)
-          M12 Content-Erweiterung Start
-Okt 2026  M12 Abschluss
-          M13 Polish & Performance Start
+Sep 2026  v0.71 Ghost-Kit G1–G11 ✅
+          v0.80 Content-Complete (14 Arenas, Bot-Typen) ✅
+          v0.81 Controller QVM ✅
+          v0.82 Ghost Loadouts + Seasonal + Bosse 12–13 (unreleased)
+Okt 2026  Playtest-Balance, M13 Engine-SDL2
 Nov 2026  M13 Abschluss
-Dez 2026  Release v0.80 (Content-Complete)
+Dez 2026  Release v0.90 (Gamepad-ready) — Ziel
 Jan 2027  M10 Netzwerk-Coop Start
-Feb 2027  M10 Abschluss
-Mär 2027  Release v0.90 (Multiplayer-Ready)
+Mär 2027  Release v1.0 (Multiplayer-Ready) — Ziel
 ```
 
 ---
 
 ## 🚧 Blocked / Warteliste
 
-- **Ghost:** G1–G11 ✅. Nächster Hebel: Playtest-Daten für Fein-Balance. Plan: [docs/GHOST_ROADMAP.md](docs/GHOST_ROADMAP.md).
+- **Ghost:** G1–G12 ✅. Nächster Hebel: Playtest-Daten für Fein-Balance. Plan: [docs/GHOST_ROADMAP.md](docs/GHOST_ROADMAP.md).
 - **Netzwerk-Coop:** Erst nach lokalem Coop implementieren (M4 erledigt ✅)
 - **Modding-Support:** M9 erledigt — Wave-Editor und Map-Validator nutzbar
 - **Achievements:** Savegame-Erweiterung erledigt ✅
-- **Linux/Mac Builds:** CI hat nur Windows/Linux — fehlt Mac M1+
-- **Controller-Support:** Nicht priorisiert, Gamepad-Integration komplex
+- **Linux/Mac Builds:** CI hat Windows/Linux — macOS-Engine-Artifact existiert; M1-Playtest offen
+- **Controller-Support:** QVM fertig; Analog-Stick + UI-Nav brauchen Quake3e-SDL2 (`patches/quake3e-controller.patch`)
 - **Mobile/Touch:** Nicht priorisiert

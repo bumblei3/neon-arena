@@ -3,18 +3,18 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-07 · Kit in **v0.71** · G11 Multiscan
+> Letztes Update: 2026-09-08 · Kit in **v0.82** · G12 Loadouts
 
 ## Stand
 
-Der Kit-Loop ist **feature-complete** als Ghost-Analog:
+Der Kit-Loop ist **feature-complete** als Ghost-Analog, plus drei Loadouts:
 
-Cloak (Toggle + Drain) → RMB-Snipe (Rail, Ambush 2×) → EMP-Round → Lockdown (Boss/Detector) → Tac-Nuke-Calldown. Ab Welle 8 jagt ein Detector mit 800 ms Scan-Warnung.
+Cloak (Toggle + Drain) → RMB-Snipe (Rail, Ambush 2×) → EMP-Round → Lockdown (Boss/Detector) → Tac-Nuke-Calldown (Spectre). Ab Welle 8 jagt ein Detector mit 800 ms Scan-Warnung.
 
-Keine neuen Verben, bis eine echte Runde sagt, dass eines fehlt. Weiter geht’s mit **Jagd, Lesbarkeit, einer Balance-Zahl**.
+Keine neuen Tasten. G12 splittet den bestehenden Verb-Satz in Infiltrator / Saboteur / Spectre. Nächster Hebel: **Playtest-Daten für Fein-Balance**.
 
 Start: `scripts/start-quake3e.sh --ghost`  
-J cloak · H emp · K lockdown · N nuke · RMB zoom.
+J cloak · H emp · K lockdown · N nuke · RMB zoom · `loadout 0|1|2`.
 
 ## Erledigt
 
@@ -37,6 +37,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 | G8 | Drain 8 → 5/s nach Welle-1-Play |
 | G10 | Cyan-Shell uncloaked (Modell + Waffe); `ghost-binds.cfg` |
 | G11 | Multiscan: `multiscan` Command, 30 Energy, 3 s CD, 500 u Radius, Cloak-Reveal + 2 s Damage-Bonus |
+| G12 | Loadouts: Infiltrator / Saboteur / Spectre (`loadout`, `g_ghost_loadout`) |
 
 ## Lücken vs StarCraft Ghost
 
@@ -44,16 +45,22 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom.
 |-------|--------|-------------|-------|
 | Treffer im Scope | Cyan/Gold im Iris | Snipe zeigt Treffer | G6 ✅ |
 | Detector | Bot + Turm ab W8 (Rail-Ping, 800 ms) | SC Missile Turret analog | G7 ✅ |
-| Balance | 55 Start, Drain 5/s, ~6 s Cloak | eine Zahl nach einer Runde | G8 ✅ |
+| Balance | Drain 5/s; Loadout-Start 80/70/90 | eine Zahl nach einer Runde | G8 ✅ · G12 |
 | Sounds | PK3 `ghost_*.wav` | eigene Short-Cues | G9 ✅ |
 | Modell | Sarge + Cyan-Shell cloaked | Ghost-Look auch uncloaked | G10 ✅ |
 | Tests in CI | Chunk 4: 73–75 single (echte Asserts) | 61–72 weiter nur lokal | G6 ✅ |
 | Nuke-Inbound | 4 s | SC ~20 s | nicht — Arena |
 | Scanner / Storm | — | Comsat / High Templar | nicht |
 
+### G12 — Loadouts ✅
+
+Drei Kits, keine neuen Tasten. Default Infiltrator (`g_ghost_loadout 0`).
+Saboteur: EMP 25/20 s, Lockdown 35 Energy. Spectre: kein Cloak, Nuke + Multiscan, 90 Start.
+Zahlen: [GHOST_REFERENCE](GHOST_REFERENCE.md#loadouts-v12).
+
 ## Nächste Slices (Reihenfolge)
 
-Eine Slice nach der anderen. Keine neuen Tasten.
+Playtest, dann **eine** Balance-Zahl. Keine neuen Tasten.
 
 ### G6 — Snipe Hit-Confirm im Scope ✅
 

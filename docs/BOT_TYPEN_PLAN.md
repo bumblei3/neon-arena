@@ -1,5 +1,7 @@
 # Neue Bot-Typen Plan für NeonArena
 
+> Stand v0.80: **implementiert** — Healer / Shielder / Sniper-Elite, Tests 96–98, CVar `g_neonwave_forcebot`.
+
 ## Übersicht
 3 neue Bot-Typen für mehr Variety:
 

@@ -147,8 +147,8 @@ Submodul-Ansatz.
 
 ## Dokumentation
 
-- Neue Features mit User-Facing-Änderung gehören in die README-Abschnitte
-  "vX.X-Highlights".
+- Neue Features mit User-Facing-Änderung gehören in README, CHANGELOG und die
+  passende Reference unter `docs/`.
 - Neue Testfälle: `tests/TESTS.md` aktualisieren **und** `tests/run_suite.sh`
   (`ALL_TESTS`, `QUICK_TESTS`, `dispatch_test()`).
 - Neuen Modifier / neuen Boss / neuen Perk: sowohl in `g_neonwave.c` als auch in
@@ -164,7 +164,7 @@ ohne menschlichen Spieler. Hooks:
 - `g_neonwave_autokill 1` — tötet alle Drones jeden Frame (Auto-Durchlauf)
 - `g_neonwave_fastbreak 1` — 500 ms Pause statt 12 s
 - `g_neonwave_fakecombo N` — erzwingt Combo-Registration für Combo-Tests
-- `g_neonwave_bosstype N` — erzwingt Boss-Typ (1..5)
+- `g_neonwave_bosstype N` — erzwingt Boss-Typ (1..13)
 - `g_neonwave_modifier N` / `g_neonwave_modifier2 N` — Modifier-Slots erzwingen
 - `g_neonwave_perkforce NNN` — erzwingt Perk-Offer (3-stellige Kodierung)
 - `g_neonwave_phaseforce 1` — erzwingt Boss-Phase-2-Trigger
@@ -181,7 +181,7 @@ ohne menschlichen Spieler. Hooks:
 ```sh
 cd tests
 chmod +x run_suite.sh
-./run_suite.sh                 # alle 45 Tests (1–44 inkl. 9b)
+./run_suite.sh                 # alle Tests in ALL_TESTS (103 inkl. 9b)
 ./run_suite.sh --quick         # Quick-Subset
 ./run_suite.sh --test 3        # einzelner Test
 python3 verify_catalog.py       # Katalog-Konsistenz prüfen
@@ -205,26 +205,27 @@ Voraussetzung: QVMs in `~/.openarena/neonarena/vm/` (aus `build-mod.sh` oder CI-
 ## CI
 
 `.github/workflows/build-mod.yml`:
-- Push auf `main` → Build + Quick-Suite (4 parallele Chunks).
-- Tag `v*` oder `workflow_dispatch` → Build + **volle Suite** (alle Tests).
+- Push auf `main`, Tag `v*` und `workflow_dispatch` → Build + **volle Suite** (7 parallele Chunks).
 - `verify_catalog.py` als Pre-Flight vor der Suite.
 - Bei Tag-Push: GAMEVERSION-Gate (`NeonArena-<tag>` muss mit `g_local.h` übereinstimmen).
-- Release-Automatik: SOFTPROPS/ACTION-GH-RELEASE erstellt GitHub-Release mit PK3s.
+- Tag-Release: GitHub-Release mit `neonarena.pk3` + `neonarena-qvm.pk3`.
 
 `.github/workflows/engine-quake3e.yml`:
--_optionaler_ Quake3e-Engine-Build mit OA-Patch (kein Mod-Patch, nur Engine).
+- optionaler Quake3e-Engine-Build mit OA-Patch (kein Mod-Patch, nur Engine).
 - Artefakt `neonarena-engine` (Binary) — optional, nicht erforderlich für Mod-Betrieb.
 
-### CI-Matrix
+### CI-Matrix (`build-mod.yml`)
 
 | Chunk | Tests |
 |-------|-------|
-| 0 | 1, 3, 4, 7, 8, 9b |
-| 1 | 10, 12, 13, 17, 18 |
-| 2 | 19, 20, 21, 22, 23 |
-| 3 | 26, 27, 28, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44 |
+| 0 | 1–14 (inkl. 9b) |
+| 1 | 15–29 |
+| 2 | 30–44 |
+| 3 | 45–59 |
+| 4 | 60–74 |
+| 5 | 75–84, 88–89 |
+| 6 | 90–105 |
 
-Test 9b (swarm-rage) ist im Katalog aktiv und wird ab vX.X in Chunk 0 mitgetestet.
 Wenn ein Test als "flaky" markiert ist (`FLAKY_TESTS` in `run_suite.sh`), wird er
 einmal retryt.
 
@@ -239,27 +240,27 @@ einmal retryt.
 ### Release-Tag setzen
 
 ```sh
-# 1. GAMEVERSION in oa-gamecode/code/game/g_local.h setzen (z.B. NeonArena-0.38)
+# 1. GAMEVERSION in oa-gamecode/code/game/g_local.h setzen (z.B. NeonArena-0.82)
 cd oa-gamecode
 vim code/game/g_local.h
 git add code/game/g_local.h
-git commit -m "chore: bump GAMEVERSION to 0.38"
+git commit -m "chore: bump GAMEVERSION to 0.82"
 git push origin <branch>
 
 # 2. Parent-Repo auf neuen Submodul-Stand
 cd ../neon-arena
 git add oa-gamecode
-git commit -m "chore: pin oa-gamecode to <commit> for v0.38"
+git commit -m "chore: pin oa-gamecode to <commit> for v0.82"
 git push origin main
 
 # 3. Tag setzen (Trigger für Full-Suite + Release)
-git tag v0.38
-git push origin v0.38
+git tag v0.82
+git push origin v0.82
 ```
 
 Der Tag-Push triggert:
-- Build-Mod-Job mit FULL-Suite (alle 45 Tests).
-- GAMEVERSION-Gate: Tag `v0.38` vs `g_local.h` → muss passen.
+- Build-Mod-Job mit FULL-Suite (alle Tests in `ALL_TESTS`).
+- GAMEVERSION-Gate: Tag `v0.82` vs `g_local.h` → muss passen.
 - GitHub-Release mit `dist/neonarena.pk3` + `dist/neonarena-qvm.pk3`.
 - **Nicht** vergessen: Submodul-Repo (bumblei3/oa-gamecode) muss den Commit mit GAMEVERSION-Update bereits enthalten — der Parent-Tag triggert nur den Mod-Build aus dem gepinnten Submodul-Stand.
 

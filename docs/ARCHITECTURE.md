@@ -16,15 +16,16 @@ neon-arena/
 ├── assets/                # Look-Pack (Shader, Texturen, Sounds)
 ├── docs/                  # Dokumentation
 │   ├── ARCHITECTURE.md    # Dieses Dokument
-│   ├── BOSS_REFERENCE.md  # Alle 7 Boss-Typen
-│   ├── MODIFIER_REFERENCE.md  # Alle 14 Modifier
+│   ├── BOSS_REFERENCE.md  # Alle 13 Boss-Typen
+│   ├── MODIFIER_REFERENCE.md  # Alle 15 Modifier
 │   ├── PERK_REFERENCE.md  # Perk-System
-│   ├── GHOST_REFERENCE.md # StarCraft Ghost-Kit
-│   ├── GHOST_ROADMAP.md   # Nächste Ghost-Slices
+│   ├── GHOST_REFERENCE.md # StarCraft Ghost-Kit (Loadouts)
+│   ├── GHOST_ROADMAP.md   # Ghost-Slices G1–G12
 │   └── CI-engine-quake3e.md   # Engine-Build-Dokumentation
+├── configs/arenas/        # 14 Arena-JSONs
 ├── oa-gamecode/           # Submodule: bumblei3/oa-gamecode
 │   └── code/
-│       ├── game/          # Server-seitige Logik (g_neonwave.c, g_ghost.c)
+│       ├── game/          # Server-seitige Logik (g_neonwave.c, g_ghost.c, g_seasonal.c)
 │       └── cgame/         # Client-seitige Logik (HUD, Rendering)
 ├── prototypes/            # Skizzen (SDL2-GL3) — nicht das Produkt
 ├── references/            # Historische Referenzen
@@ -42,8 +43,9 @@ neon-arena/
 |-------|---------------|
 | `g_neonwave.c` | Wave-Survival-Hauptlogik: Modifier, Boss, Perks, Records, Coop; tickt `NW_GhostFrame` |
 | `g_neonwave.h` | Defines (NW_MOD_*, NW_BOSS_*, NW_PERK_*, NW_MAX_*) |
-| `g_ghost.c` | Ghost-Kit: Energy, Cloak/EMP/Nuke, Detector-Think, HUD-CVars |
-| `g_cmds.c` | Upgrade-Kommando (`upgrade hp\|dmg\|speed`); Ghost `cloak`/`emp`/`nuke` |
+| `g_ghost.c` | Ghost-Kit: Loadouts, Energy, Cloak/EMP/Lockdown/Nuke/Multiscan, Detector, HUD |
+| `g_seasonal.c` | Wöchentliche Challenges, Persistenz, Leaderboard-CVars |
+| `g_cmds.c` | `upgrade`, `waveselect`, Ghost `cloak`/`emp`/`lockdown`/`nuke`/`multiscan`/`loadout` |
 | `g_main.c` | CVar-Registrierungen, Spielinitialisierung |
 | `g_combat.c` | Damage-Hooks (Vampiric Heal, Mirror; Ghost Cloak-Break) |
 | `g_weapon.c` | Fire-Hooks (Ghost Cloak-Break) |
@@ -66,6 +68,7 @@ NeonWave_Frame()
   ├── NW_ApplySynergy()      → Synergie-/Anti-Synergie-Prüfung
   ├── NeonWave_StartWave()   → Bot-Spawns, Skill-Berechnung; Detector ab Welle 8
   ├── NW_SpawnBoss()         → Boss-Spawn (ab Welle 10)
+  ├── NW_SeasonalProgress()  → wöchentliche Challenge (g_neonwave_seasonal)
   └── NW_GrantUpgradePoints() → Punkte nach Wave-Clear
 
 NeonWave_OnDroneKill()
@@ -95,6 +98,8 @@ NW_Cache()                   → Single-Pass-Aggregation aller Client-Stats
 | `g_neonwave_daily` | 0 | Daily Challenge |
 | `g_neonwave_dailyseed` | 0 | Daily Seed (Test-Hook) |
 | `g_neonwave_ghost` | 0 | StarCraft Ghost-Kit (ARCHIVE, SERVERINFO) |
+| `g_ghost_loadout` | 0 | 0 Infiltrator / 1 Saboteur / 2 Spectre (ARCHIVE) |
+| `g_neonwave_seasonal` | 0 | Wöchentliche Seasonal Challenge (ARCHIVE) |
 | `g_ghost_energy` | 0 | HUD: aktuelle Energy (ROM) |
 | `g_ghost_cloakms` | 0 | HUD: Cloak-Rest ms (ROM) |
 | `g_ghost_empcd` | 0 | HUD: EMP-Cooldown ms (ROM) |
@@ -110,7 +115,7 @@ NW_Cache()                   → Single-Pass-Aggregation aller Client-Stats
 | `g_neonwave_startwave N` | Erzwingt Start bei Welle N |
 | `g_neonwave_autokill 1` | Tötet alle Drones jeden Frame |
 | `g_neonwave_fastbreak 1` | 500 ms statt 12 s Wellenpause |
-| `g_neonwave_bosstype N` | Erzwingt Boss-Typ N |
+| `g_neonwave_bosstype N` | Erzwingt Boss-Typ N (1–13) |
 | `g_neonwave_modifier N` | Erzwingt Modifier N |
 | `g_neonwave_maxwave N` | Setzt Max-Welle |
 
@@ -149,13 +154,12 @@ cd neon-arena
 | Workflow | Trigger | Beschreibung |
 |----------|---------|-------------|
 | `build-mod.yml` | Push, Tag, PR, Manual | Build + Test + Release |
-| `build-mod-matrix-test.yml` | Manual | Matrix-Test (4 Chunks) |
 | `engine-quake3e.yml` | Push, Manual | Engine-Build (Quake3e) |
 
 ### Test-Suite
 
-- 56 Tests (1-56 + 9b)
-- Verteilung auf 4 parallele Chunks
+- 103 Tests (`ALL_TESTS` in `tests/run_suite.sh`: 1–105 inkl. 9b, ohne 85–87)
+- Verteilung auf 7 parallele Chunks (0–6)
 - Headless via `ioq3ded` + `xvfb-run`
 - Assertions prüfen Log-Marker + Anti-Patterns
 

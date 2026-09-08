@@ -84,13 +84,12 @@ upgrade speed    # +25 Speed (max 400)
 
 ### Ghost-Kit
 ```
-ghost_cloak      # Cloak ein/aus (25 Energy + 5/s Drain)
-ghost_emp        # EMP-Blase (35 Energy, 25s CD)
-ghost_lockdown   # Lockdown (50 Energy, 20s CD, 4s Stun)
-ghost_nuke       # Nuke (80 Energy, 45s CD)
-ghost_beam       # Beam (20 Energy + 8/s, durchgehend)
-ghost_cluster    # Cluster Rocket (45 Energy, 30s CD)
-ghost_empwave    # EMP Wave (60 Energy, 35s CD, 2.5s Stun)
+cloak            # Cloak ein/aus (25 Energy + 5/s Drain) — nicht Spectre
+emp              # EMP-Bolt (35 Energy, 25s CD; Saboteur 25/20s)
+lockdown         # Lockdown (50 Energy, 20s CD; Saboteur 35)
+nuke             # Nuke (80 Energy, 45s CD) — nur Spectre
+multiscan        # 500 u Reveal (30 Energy, 3s CD) — nur Spectre
+loadout 0|1|2    # Infiltrator / Saboteur / Spectre
 ```
 
 ### Replay

@@ -1,6 +1,6 @@
 # Modifier-Reference
 
-Alle 14 Modifier + Synergie-/Anti-Synergie-System in NeonArena.
+Alle 15 Modifier + Synergie-/Anti-Synergie-System in NeonArena.
 
 > **Feedback willkommen!** Siehe [README](../README.md#feedback).
 
@@ -29,6 +29,7 @@ Rotation: `(wave - 5 + dailyOffset) % NW_MOD_POOL_SIZE`
 | 12 | FROST | 12 | Verlangsamter Player, frostige Drones | `g_speed 220` |
 | 13 | CHAOS | 13 | Chaotische Spawns: Random Skill + Spawn-Delay | — |
 | 14 | MIMIC | 14 | Drones kopieren zufälliges Upgrade von Human | — |
+| 15 | SHIELD | 15 | Kurze Unverwundbarkeit am Wellenstart | 3 s |
 
 ## Synergie-Paare
 
@@ -54,10 +55,10 @@ Wenn zwei bestimmte Modifier gleichzeitig aktiv sind, bilden sie ein Synergie- o
 
 ```
 [GLASS, SWARM, LOWGRAV, DOUBLEPTS, TIMEWARP, VAMPIRE, FRENZY, OVERSHIELD,
- MIRROR, REGEN, SURGE, FROST, CHAOS, MIMIC, MIMIC]
+ MIRROR, REGEN, SURGE, FROST, CHAOS, MIMIC, MIMIC, SHIELD]
 ```
 
-MIMIC kommt doppelt vor (höhere Wahrscheinlichkeit).
+16 Einträge (`NW_MOD_POOL_SIZE`). MIMIC kommt doppelt vor (höhere Wahrscheinlichkeit).
 
 ## Test-Hooks
 
@@ -66,6 +67,8 @@ MIMIC kommt doppelt vor (höhere Wahrscheinlichkeit).
 | `g_neonwave_modifier N` | Erzwingt Modifier N in Slot 1 |
 | `g_neonwave_modifier2 N` | Erzwingt Modifier N in Slot 2 |
 | `g_neonwave_maxwave N` | Setzt Max-Welle (Standard: 20) |
+| `g_neonwave_shieldactive` | SHIELD-Modifier aktiv |
+| `g_neonwave_shieldtime` | SHIELD-Dauer in ms (Default 3000) |
 
 ## Log-Marker
 
@@ -89,6 +92,7 @@ NeonWave: SURGE x3 upgrade points
 NeonWave: FROST slowed to <speed>
 NeonWave: CHAOS mode — random skill per drone
 NeonWave: MIMIC copies <Upgrade> level <N> from <Player>
+NeonWave: SHIELD active
 ```
 
 ## CVar-Liste

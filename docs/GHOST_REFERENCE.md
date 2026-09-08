@@ -2,11 +2,12 @@
 
 StarCraft-inspiriertes Ghost-Kit für NeonArena (OpenArena, Gametype 14).
 Aktiv mit `g_neonwave_ghost 1`. Arena-Loadout (Rail + Lightning) bleibt der Default.
+Drei Ghost-Kits per `loadout 0|1|2` / `g_ghost_loadout` (Default: Infiltrator).
 
 > **Produkt ist der OpenArena-Mod.** Der SDL2-GL3-Prototyp unter `prototypes/sdl2-gl3`
 > ist nur eine Skizze — Zahlen und Loop dort nicht als Quelle nehmen.
 >
-> Nächste Slices: [GHOST_ROADMAP](GHOST_ROADMAP.md).
+> Kit G1–G12 in **v0.82**. Nächster Hebel: [GHOST_ROADMAP](GHOST_ROADMAP.md) (Playtest-Balance).
 >
 > **Feedback willkommen!** Siehe [README](../README.md#feedback).
 
@@ -18,39 +19,54 @@ scripts/start-quake3e.sh --ghost
 openarena +set fs_game neonarena +g_gametype 14 +set g_neonwave_ghost 1 +map oa_shine
 ```
 
-Binds in `assets/ghost-binds.cfg` (cgame exec't das File wenn das Kit an ist; `--ghost` kopiert es nach `~/.openarena/neonarena/`): **J** cloak · **H** emp · **K** lockdown · **N** nuke · **RMB** zoom.
+Binds in `assets/ghost-binds.cfg` (cgame exec't das File wenn das Kit an ist; `--ghost` kopiert es nach `~/.openarena/neonarena/`): **J** cloak · **H** emp · **K** lockdown · **N** nuke · **RMB** zoom. Spectre-Multiscan hat **keinen Default-Bind** — `bind <taste> multiscan`.
 
 Spawn: Railgun (30 Slugs) — das ist die Sniper. Keine Lightning Gun, kein Gauntlet.
 Hip-Fire: normales Rail-Crosshair + Cyan/Gold Hit-Confirm. **RMB** (`+zoom`, `cg_zoomfov 28`): runde Cyan-Blende + Fadenkreuz, Hit-Confirm im Iris, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
 
 Sounds (PK3): Cloak `sound/ghost_cloak_on.wav` / aus `_off` · EMP `ghost_emp` · Lock-Treffer `ghost_lock` · Nuke-Paint `ghost_nuke` · Scan-Warn `ghost_scan`. Ambush bleibt `sound/feedback/hit.wav`.
 
+## Loadouts (v1.2)
+
+Konsole: `loadout` zeigt das aktuelle Kit, `loadout 0|1|2` wechselt (setzt Energy auf den Kit-Start, wenn lebend). Persistenz: `g_ghost_loadout`.
+
+| ID | Name | Start-Energy | Cloak | EMP | Lockdown | Nuke | Multiscan |
+|----|------|--------------|-------|-----|----------|------|-----------|
+| 0 | **Infiltrator** (Default) | 80 | ja | 35 / 25 s | 50 / 20 s | — | — |
+| 1 | **Saboteur** | 70 | ja | **25 / 20 s** | **35** / 20 s | — | — |
+| 2 | **Spectre** | 90 | — | 35 / 25 s | 50 / 20 s | ja | ja |
+
+Spectre: `cloak` → `CLOAK NOT AVAILABLE`. Infiltrator/Saboteur: `nuke` / `multiscan` → `NOT AVAILABLE`. Lockdown-Dauer bleibt 4 s für alle Kits (Saboteur ist nur günstiger, nicht länger).
+
 ## Loop
 
-Energy farmen (Start 55, Nuke braucht 80) → Cloak (Drain) → reposition →
-RMB-Zoom → Rail (Ambush 2×) → Kill gibt Energy → EMP-Bolt in den Klumpen →
-Lockdown auf Boss/Detector → Nuke als Calldown. Ab Welle 8 jagt ein Detector
-den Cloak.
+Infiltrator/Saboteur: Energy farmen → Cloak (Drain) → reposition → RMB-Zoom →
+Rail (Ambush 2×) → Kill gibt Energy → EMP-Bolt in den Klumpen → Lockdown auf
+Boss/Detector. Spectre: ohne Cloak, dafür Nuke-Calldown und Multiscan.
+Ab Welle 8 jagt ein Detector den Cloak.
 
 ## Energy
 
 | | Wert |
 |---|---|
-| Maximum | 100 |
-| Spawn | 55 |
-| Regen | +3 / s (nicht während Cloak) |
+| Maximum | 100 (`g_ghost_energy_max`) |
+| Spawn | Loadout-Start (sonst Fallback `g_ghost_energy_start`, Default 60) |
+| Regen | +4 / s (`g_ghost_regen_amt`; nicht während Cloak) |
 | Kill (Human) | +15 |
 
 Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist. Cloak-Toggle-Aus kostet nichts.
 
 ## Fähigkeiten
 
+Kosten/CDs gelten für Infiltrator; Saboteur/Spectre siehe Loadout-Tabelle.
+
 | Taste | Command | Cost | Cooldown | Effekt |
 |-------|---------|------|----------|--------|
-| J | `cloak` | 25 | — (Drain 5/s) | Toggle `PW_INVIS`. Bots sehen dich nicht jenseits von 80 u, außer Detector / Swarm / Boss Phase 2. |
+| J | `cloak` | 25 | — (Drain 5/s) | Toggle `PW_INVIS`. Bots sehen dich nicht jenseits von 80 u, außer Detector / Swarm / Boss Phase 2. Nicht Spectre. |
 | H | `emp` | 35 | 25 s | Plasma-Bolt: 400 u Armor auf 0 + 1.5 s Stun. |
 | K | `lockdown` | 50 | 20 s | Raketen-Bolt (900 u/s). Nur Boss/Detector; Miss refundet Energy, kein CD. |
-| N | `nuke` | 80 | 45 s | Calldown: 1.5 s stehen + 4 s inbound. |
+| N | `nuke` | 80 | 45 s | Calldown: 1.5 s stehen + 4 s inbound. Nur Spectre. |
+| — | `multiscan` | 30 | 3 s | 500 u Radius: Cloak-Reveal + 2 s Damage-Bonus. Nur Spectre. |
 
 ### Cloak
 
@@ -91,6 +107,12 @@ Kein Energy-Spend, wenn die Fähigkeit auf Cooldown ist. Cloak-Toggle-Aus kostet
 | Human (Selbst/Coop) | 40 |
 | Means of death | `MOD_BFG` |
 | Radius | 600 u |
+
+### Multiscan (Spectre)
+
+- Command `multiscan`, 30 Energy, 3 s CD, 500 u Radius.
+- Enttarnt `PW_INVIS` im Radius (`<name> DETECTED`) und gibt 2 s Damage-Bonus.
+- Kein Default-Bind.
 
 ## Detector
 
@@ -137,20 +159,24 @@ Leiste unten links, Pips **J H K N** (cyan bereit, orange + Sekunden auf CD). St
 | CVar | Flags | Default | Rolle |
 |------|-------|---------|-------|
 | `g_neonwave_ghost` | ARCHIVE \| SERVERINFO | 0 | Kit an/aus |
-| `g_ghost_*` | ROM | 0 / `""` | HUD-Spiegel (nicht setzen) |
+| `g_ghost_loadout` | ARCHIVE | 0 | 0 Infiltrator / 1 Saboteur / 2 Spectre |
+| `g_ghost_energy_start` | ARCHIVE | 60 | Fallback-Start, wenn Loadout unbekannt |
+| `g_ghost_energy_max` | ARCHIVE | 100 | Energy-Cap |
+| `g_ghost_regen_amt` | ARCHIVE | 4 | Regen / s (nicht während Cloak) |
+| `g_ghost_*` (HUD) | ROM | 0 / `""` | HUD-Spiegel (nicht setzen) |
 | `g_neonwave_nextdetector` | intern | 0 | nächster `addbot` wird Detector |
 
 ## Code
 
 | Datei | Verantwortung |
 |-------|---------------|
-| `oa-gamecode/code/game/g_ghost.c` | Energy, Fähigkeiten, Nuke-Calldown, Detector-Think, HUD-Sync |
+| `oa-gamecode/code/game/g_ghost.c` | Loadouts, Energy, Fähigkeiten, Nuke-Calldown, Detector-Think, HUD-Sync |
 | `g_neonwave.c` | `NW_GhostFrame` / `NW_GhostOnKill`; Detector-Spawn ab Welle 8 |
 | `g_client.c` | Ghost-Spawn (Rail only); Detector-HP 120 |
 | `g_weapon.c` / `g_combat.c` | Cloak-Break bei Fire / Damage; Ambush-Rail; Lock blockt Fire |
 | `g_missile.c` | EMP-Bolt Impact |
 | `ai_dmq3.c` | Cloak vs Bot-Sicht |
-| `g_cmds.c` | Commands `cloak` / `emp` / `lockdown` / `nuke` |
+| `g_cmds.c` | `cloak` / `emp` / `lockdown` / `nuke` / `multiscan` / `loadout` |
 | `g_bot.c` | Userinfo `neonwave_detector` |
 | `cgame/cg_draw.c` | Ghost-HUD aus `ps.stats` |
 | `bg_public.h` | `STAT_GHOST_ENERGY` / `_CDS` / `_ST` |
@@ -162,11 +188,12 @@ Leiste unten links, Pips **J H K N** (cyan bereit, orange + Sekunden auf CD). St
 ```
 NeonWave: GHOST kit active (wave N)
 NeonWave: DETECTOR spawned (wave N, C, skill S)
+Ghost: <name> joined the Ghost team (loadout N)
 Ghost: detector revealed client N
 Ghost: nuke detonated by <name>
 ```
 
-Centerprints: `CLOAKED`, `DECLOAKED`, `AMBUSH`, `EMP`, `LOCKED`, `SCANNING`, `DESIGNATING — STAND STILL`, `NUKE INBOUND`, `NUKE N`, `NUCLEAR STRIKE`, `NUKE CANCELLED`, `DETECTED`.
+Centerprints: `CLOAKED`, `DECLOAKED`, `AMBUSH`, `EMP`, `LOCKED`, `SCANNING`, `DESIGNATING — STAND STILL`, `NUKE INBOUND`, `NUKE N`, `NUCLEAR STRIKE`, `NUKE CANCELLED`, `DETECTED`, `LOADOUT: INFILTRATOR|SABOTEUR|SPECTRE`.
 
 Log: `Ghost: lockdown on <name>`
 

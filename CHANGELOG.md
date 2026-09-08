@@ -7,27 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.82] - 2026-09-08
+
 ### Added
 - **Ghost Loadouts (v1.2):**
-  - 3 selectable loadouts via `loadout <0|1|2>` command
-  - **Infiltrator** (0): Cloak + EMP + Lockdown, 80 start energy
-  - **Saboteur** (1): Buffed EMP (cheaper/shorter CD) + Lockdown (cheaper/longer), 70 start energy
-  - **Spectre** (2): Nuke + Multiscan, no Cloak, 90 start energy
-  - CVar: `g_ghost_loadout` (archive)
+  - 3 selectable loadouts via `loadout <0|1|2>` / `g_ghost_loadout` (ARCHIVE)
+  - **Infiltrator** (0, Default): Cloak + EMP + Lockdown, 80 Start-Energy
+  - **Saboteur** (1): Cloak; EMP 25 Energy / 20 s CD; Lockdown 35 Energy; 70 Start-Energy
+  - **Spectre** (2): kein Cloak; Nuke + Multiscan; EMP + Lockdown Standardkosten; 90 Start-Energy
+- **CHRONOMANCER Boss** (Typ 12): Zeitwarp-Teleport + Slow; Basis-HP 450; Test 103
+- **VOID WALKER Boss** (Typ 13): Phaseshift-Invuln 2 s, Void-Aura, Enrage unter 30 % HP; Basis-HP 550; Test 104
 - **Seasonal Challenge System:**
-  - 15 weekly rotating challenges (modifier-specific goals)
-  - Challenge completion tracking + reward titles
-  - Local leaderboard (Top 5 per season)
-  - Persistence via `neonwave_seasonal.dat` + `neonwave_seasonal_leaderboard.json`
-  - CVars: `ui_neonwave_seasonal_title`, `ui_neonwave_seasonal_desc`, `ui_neonwave_seasonal_target`, `ui_neonwave_seasonal_progress`, `ui_neonwave_seasonal_completed`, `ui_neonwave_seasonal_reward`, `ui_neonwave_seasonal_week`
-  - Leaderboard CVars: `ui_neonwave_lb_0_name` .. `ui_neonwave_lb_4_victory`
-- **Controller Support (M13):** `ui_controller_active` CVar, `[JOY]` HUD indicator in Ghost kit
+  - 16 wöchentlich rotierende Challenges (modifier-spezifische Ziele)
+  - Fortschritt + Reward-Titel, Persistenz `neonwave_seasonal.dat` + `neonwave_seasonal_leaderboard.json`
+  - HUD-CVars `ui_neonwave_seasonal_*`; Leaderboard Top 5 (`ui_neonwave_lb_0` … `_4`)
+  - Test 105
+
+### Changed
+- **GAMEVERSION:** 0.81 → **0.82**
+- **Boss-Pool:** 11 → 13 Typen (`NW_BOSS_COUNT`)
+- **Test-Suite:** 103 Tests (1–105 inkl. 9b, ohne Stubs 85–87)
+- Dokumentation an 14 Arenas / 13 Bosse / 15 Modifier / Loadouts angeglichen
+- Installer-Version aus GAMEVERSION (`NeonArena-0.82-Setup`, Portable-Zip analog)
+- Tag-Release hängt PK3s per `artifacts/**/*.pk3`
+
+### Removed
+- Ghost-Stubs `beam` / `cluster` / `empwave` und Tests 85–87
+
+## [0.81] - 2026-09-07
+
+### Added
+- **Controller Support (M13, QVM):** CVars `in_joystick`, `joy_sensitivity`, `joy_assist`, `joy_deadzone`, `ui_controller_active`; Standard-Binds; Aim-Assist; `[JOY]` HUD im Ghost-Kit
+- Analog-Stick und UI-Navigation bleiben Engine-seitig (Quake3e SDL2)
 - **Test 102:** controller-active validation
-- **Test 105:** seasonal challenge load + progress tracking
 
 ### Changed
 - **GAMEVERSION:** 0.80 → **0.81** (M13 Controller QVM-Complete)
-- **Test suite:** 105 tests, all green
 
 ## [0.80] - 2026-09-07
 
@@ -225,7 +240,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Modifier system (15 modifiers, 2 slots with synergy)
 
-[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.71...HEAD
+[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.82...HEAD
+[0.82]: https://github.com/bumblei3/neon-arena/compare/v0.81...v0.82
+[0.81]: https://github.com/bumblei3/neon-arena/compare/v0.80...v0.81
+[0.80]: https://github.com/bumblei3/neon-arena/compare/v0.71...v0.80
 [0.71]: https://github.com/bumblei3/neon-arena/compare/v0.70...v0.71
 [0.70]: https://github.com/bumblei3/neon-arena/compare/v0.60...v0.70
 [0.60]: https://github.com/bumblei3/neon-arena/compare/v0.54...v0.60

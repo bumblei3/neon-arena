@@ -120,9 +120,6 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
-| 85 | ghost-beam | ghost 1, autostart | `BEAM` | keine Fatal-Warnung |
-| 86 | ghost-cluster | ghost 1, autostart | `CLUSTER ROCKET` | keine Fatal-Warnung |
-| 87 | ghost-empwave | ghost 1, autostart | `EMP WAVE` | keine Fatal-Warnung |
 | 88 | boss-healer-phase2 | startwave 10, bosstype 8, phaseforce 1 | `boss spawned: HEALER`, `HEALER ENTERS PHASE 2` | keine Fatal-Warnung |
 | 89 | boss-snipelite-phase2 | startwave 19, bosstype 10, phaseforce 1 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE ENTERS PHASE 2` | keine Fatal-Warnung |
 | 90 | boss-demolisher-phase2 | startwave 20, bosstype 11, phaseforce 1 | `boss spawned: DEMOLISHER`, `DEMOLISHER ENTERS PHASE 2` | keine Fatal-Warnung |
@@ -183,7 +180,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **81 Tests** (1–81 inkl. 9b). Der vollständige Katalog
+Die Suite umfasst **103 Tests** (1–105 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:

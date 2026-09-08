@@ -6,21 +6,26 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 > Spielen: `scripts/start-quake3e.sh` · Daily: `--daily` · Ghost: `--ghost` · Arena: `--arena <name>`  
 > oder: `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
 
-## Arenas (v0.80)
+## Arenas (v0.82)
 
-NeonArena hat 9 Arenas mit unterschiedlichen Themen und Spielstilen:
+NeonArena hat 14 Arenas mit unterschiedlichen Themen und Spielstilen:
 
 | Arena | Map | Beschreibung | Schwierigkeit |
 |-------|-----|--------------|---------------|
 | **Neon Arena** | oa_shine | Standard Arena — ausgeglichenes Gameplay | ⭐ |
 | **Boss Rush** | oa_pulse | Nur Bosse — jede Welle ein Boss | ⭐⭐⭐ |
-| **Ghost Protocol** | oa_shine | Ghost-Kit nur — testen Sie alle neuen Waffen | ⭐⭐ |
+| **Ghost Protocol** | oa_shine | Ghost-Kit nur — Loadouts und Fähigkeiten testen | ⭐⭐ |
 | **Ironman** | oa_minia | Niemals sterben — kein Respawn, keine zweite Chance | ⭐⭐⭐⭐ |
 | **Catacombs** | oa_rpg3dm2 | Enge Gänge und dunkle Ecken — kurze Reichweite, hoher Schaden | ⭐⭐⭐ |
 | **Bleed Chamber** | oa_bleed | Dunkle Kammer mit rotem Neon-Akzent — Sichtbarkeit ist die Herausforderung | ⭐⭐ |
 | **Node Control** | oa_node | Multi-Level Arena mit Plattformen und Brücken — vertikales Gameplay | ⭐⭐⭐ |
 | **Desert Storm** | oa_desert | Offene Wüste mit Sandsturm-Perioden — Long-Range Combat | ⭐⭐ |
 | **Vortex Ring** | oa_vortex | Kreisförmige Arena mit Gravitations-Effekten — LOWGRAV-Modifier zentral | ⭐⭐⭐⭐ |
+| **Frostbite** | oa_frostbite | Eis, geringe Sichtweite, langsame Drones — Railgun-Präzision | ⭐⭐ |
+| **Skybridge** | oa_skybridge | Schwebende Plattformen, Fall-Schaden, niedrige Gravity | ⭐⭐⭐ |
+| **Underhive** | oa_underhive | Enge Korridore — Lightning Gun, aggressive Drones | ⭐⭐⭐ |
+| **Reactor** | oa_reactor | Zentraler Reaktor, periodischer AoE-Schaden | ⭐⭐ |
+| **Overgrowth** | oa_overgrowth | Dichte Vegetation — Ghost-Kit an, Cloak stärker | ⭐⭐ |
 
 Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`)
 
@@ -30,9 +35,10 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
   Waffen-Pickups werden ignoriert – Rail/LG-Pickups dienen als Ammo-Nachschub.
 - **Ghost-Kit** (optional, `g_neonwave_ghost 1` / `--ghost`): StarCraft-inspirierter
   Loadout — Rail-Snipe, Cloak-Drain, EMP-Round, Lockdown, Tac-Nuke-Calldown,
-  Detector ab Welle 8. Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md).
+  Detector ab Welle 8. Drei Kits per `loadout 0|1|2` (Infiltrator / Saboteur /
+  Spectre). Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md).
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
-- **Wellen-Modifier** (ab Welle 5, auch in Boss-Wellen): 14 Modifier mit
+- **Wellen-Modifier** (ab Welle 5, auch in Boss-Wellen): 15 Modifier mit
   Synergie-/Anti-Synergie-System (ab Welle 8). Siehe [Modifier-Reference](docs/MODIFIER_REFERENCE.md).
 - **Combo-System:** Kills innerhalb von 3 s ketten sich zu einer Serie.
   Ab Best-Serie 5 gibt es Bonus-Upgrade-Punkte (+1 pro weitere 5er-Stufe).
@@ -51,6 +57,10 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
   mit Welle/Best; FIRE startet neu.
 - **Daily Challenge:** Gleicher Tag = gleiche Herausforderung (FNV-1a-Hash
   über Datum bestimmt Boss-Rotation und Modifier-Reihenfolge).
+- **Seasonal Challenge:** Wöchentlich rotierende Ziele (`g_neonwave_seasonal 1`) —
+  16 Challenges, Fortschritt + Titel-Reward, lokale Top-5-Rangliste.
+- **Controller (QVM):** Aim-Assist und `[JOY]`-HUD wenn `in_joystick 1`. Analog-Stick
+  und UI-Navigation brauchen noch Quake3e-SDL2 (M13 Engine).
 - **Wellen-Jingles:** Sound-Signal bei Wellenstart und -clear.
 - **Neon-Look:** Dunkle Skybox, Neon-Grid auf oa_shine, Cyan-Rail/LG mit D-Lights,
   Drohnen-Cyan-Shell (Boss magenta), Rail-Impact-Burst, LG-Sparks, Muzzle-Flare,
@@ -62,18 +72,16 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
   Konsole.
 - **Achievements:** Erfolge wie FIRST VICTORY, SURVIVOR, SHARPSHOOTER, COMBOMASTER,
   SPEEDRUNNER, HARDCORE werden beim Freischalten im HUD angezeigt.
-- **Daily Challenge:** Gleicher Tag = gleiche Herausforderung (FNV-1a-Hash über
-  Datum bestimmt Boss-Rotation und Modifier-Reihenfolge).
 
 ## Dokumentation
 
-- [Boss-Reference](docs/BOSS_REFERENCE.md) — Alle 7 Boss-Typen mit Phase-2-Verhalten
-- [Modifier-Reference](docs/MODIFIER_REFERENCE.md) — Alle 14 Modifier + Synergien
+- [Boss-Reference](docs/BOSS_REFERENCE.md) — Alle 13 Boss-Typen mit Phase-2-Verhalten
+- [Modifier-Reference](docs/MODIFIER_REFERENCE.md) — Alle 15 Modifier + Synergien
 - [Perk-Reference](docs/PERK_REFERENCE.md) — Perk-System mit allen 6 Perks
-- [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Cloak, EMP, Lockdown, Nuke, Detector)
-- [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — nächste Slices (Balance, Lock-Round, Detector, Tests)
+- [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Loadouts, Cloak, EMP, Lockdown, Nuke, Detector)
+- [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — Kit G1–G12; nächster Hebel ist Playtest-Balance
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
-- [Test-Suite](tests/TESTS.md) — Headless-Suite (inkl. Ghost 73–75)
+- [Test-Suite](tests/TESTS.md) — Headless-Suite (103 Tests: 1–105 inkl. 9b, ohne 85–87)
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
 
 ## Schnellstart (Spieler)
@@ -228,8 +236,9 @@ oa-gamecode/
 ├── code/game/
 │   ├── g_neonwave.c      # Hauptlogik (Waves, Modifier, Boss, Perks, Records)
 │   ├── g_neonwave.h      # Defines (NW_MOD_*, NW_BOSS_*, NW_PERK_*)
-│   ├── g_ghost.c         # Ghost-Kit (Cloak, EMP, Nuke-Calldown, Detector)
-│   ├── g_cmds.c          # Upgrade-Kommando (upgrade hp|dmg|speed)
+│   ├── g_ghost.c         # Ghost-Kit (Loadouts, Cloak, EMP, Nuke, Detector)
+│   ├── g_seasonal.c      # Wöchentliche Challenges + Leaderboard
+│   ├── g_cmds.c          # upgrade, waveselect, loadout, cloak/emp/lockdown/nuke
 │   └── g_main.c          # CVar-Registrierungen
 └── code/cgame/
     └── cg_draw.c         # HUD, Modifier-Anzeige, Codex, Ghost-Leiste
@@ -241,7 +250,7 @@ Siehe [Architektur](docs/ARCHITECTURE.md) für Details.
 
 Ein Tag `v*` triggert automatisch:
 1. Build der QVMs und PK3-Dateien
-2. Vollständige Test-Suite (56 Tests)
+2. Vollständige Test-Suite (103 Tests)
 3. Erstellung eines GitHub Releases mit `neonarena.pk3` und `neonarena-qvm.pk3`
 
 GAMEVERSION in `code/game/g_local.h` muss mit dem Tag übereinstimmen.
@@ -262,4 +271,4 @@ Jede Rückmeldung hilft, NeonArena besser zu machen. Egal ob Bug-Bericht, Balanc
 
 ---
 
-**Version:** v0.71 | **Letzte Aktualisierung:** 2026-09-05
+**Version:** v0.82 | **Letzte Aktualisierung:** 2026-09-08

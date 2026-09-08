@@ -2,10 +2,14 @@
 ; Kompilieren mit Inno Setup (https://jrsoftware.org/isdl.php)
 ; Verwendung: iscc neonarena.iss
 
+#ifndef MyAppVersion
+#define MyAppVersion "0.82"
+#endif
+
 [Setup]
 AppId={{B9E3C7A2-4F1E-4B8D-9C6A-7D2E5F8A1B3C}
 AppName=NeonArena
-AppVersion=0.53
+AppVersion={#MyAppVersion}
 AppPublisher=bumblei3
 AppPublisherURL=https://github.com/bumblei3/neon-arena
 AppSupportURL=https://github.com/bumblei3/neon-arena/issues
@@ -15,7 +19,7 @@ DefaultGroupName=NeonArena
 AllowNoIcons=yes
 LicenseFile=LICENSE
 OutputDir=installer
-OutputBaseFilename=NeonArena-0.53-Setup
+OutputBaseFilename=NeonArena-{#MyAppVersion}-Setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern

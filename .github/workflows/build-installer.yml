@@ -33,28 +33,31 @@ jobs:
           cd engine-zip
           unzip -q *.zip -d ../installer/engine
 
+      - name: Resolve version
+        id: ver
+        run: |
+          V=$(grep -m1 'define[[:space:]]*GAMEVERSION' oa-gamecode/code/game/g_local.h \
+              | sed -n 's/.*"NeonArena-\(.*\)".*/\1/p')
+          [ -n "$V" ] || { echo "GAMEVERSION not found"; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Mod version: NeonArena-$V"
+
       - name: Copy Mod Files
         run: |
-          cp dist/neonarena.pk3 installer/engine/
-          cp dist/neonarena-qvm.pk3 installer/engine/
-          cp dist/neon-look.pk3 installer/engine/
+          test -f dist/neonarena.pk3 && test -f dist/neonarena-qvm.pk3 && test -f dist/neon-look.pk3
+          cp dist/neonarena.pk3 dist/neonarena-qvm.pk3 dist/neon-look.pk3 installer/engine/
 
       - name: Create Portable ZIP
         run: |
           cd installer/engine
-          zip -r ../../NeonArena-portable.zip .
-          ls -la ../../NeonArena-portable.zip
+          zip -r "../../NeonArena-${{ steps.ver.outputs.version }}-portable.zip" .
+          ls -la "../../NeonArena-${{ steps.ver.outputs.version }}-portable.zip"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
           name: neonarena-installer
-          path: NeonArena-portable.zip
+          path: NeonArena-${{ steps.ver.outputs.version }}-portable.zip
 
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v3
-        with:
-          files: NeonArena-portable.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # workflow_run github.ref is the default branch, never a tag — do not
+      # attach this zip to a GitHub Release here. Tag releases come from build-mod.
