@@ -413,7 +413,7 @@ assert_28() {
 assert_29() {
   local ok=0
   check "$1" "PERK TAKEN SKIP";                         [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$1" "SKIP modifier";                           [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "PERK TAKEN SKIP";                         [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "starting wave 6 (";                       [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "perk-skip-mod"
@@ -1180,8 +1180,8 @@ assert_14() {
 assert_15() {
   local ok=0 logfile="$1"
   count_min "$logfile" "DAILY CHALLENGE seed 12345" 2;  [ $? -eq 0 ] || ok=1
-  # seed 12345 -> map index (12345/65)%8 = 5 -> oa_pulse
-  check "$logfile" "DAILY MAP oa_pulse";                [ $LAST_RESULT -eq 0 ] || ok=1
+  # seed 12345 -> map index (12345/(16*13))%8 = 59%8 = 3 -> oa_bleed
+  check "$logfile" "DAILY MAP oa_bleed";                [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "dynamic difficulty locked (daily=1"; [ $LAST_RESULT -eq 0 ] || ok=1
   report $ok "daily-challenge-determinism"
 }
