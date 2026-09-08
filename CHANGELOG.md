@@ -8,12 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Seasonal Challenge System:**
+  - 15 weekly rotating challenges (modifier-specific goals)
+  - Challenge completion tracking + reward titles
+  - Local leaderboard (Top 5 per season)
+  - Persistence via `neonwave_seasonal.dat` + `neonwave_seasonal_leaderboard.json`
+  - CVars: `ui_neonwave_seasonal_title`, `ui_neonwave_seasonal_desc`, `ui_neonwave_seasonal_target`, `ui_neonwave_seasonal_progress`, `ui_neonwave_seasonal_completed`, `ui_neonwave_seasonal_reward`, `ui_neonwave_seasonal_week`
+  - Leaderboard CVars: `ui_neonwave_lb_0_name` .. `ui_neonwave_lb_4_victory`
 - **Controller Support (M13):** `ui_controller_active` CVar, `[JOY]` HUD indicator in Ghost kit
 - **Test 102:** controller-active validation
+- **Test 105:** seasonal challenge load + progress tracking
 
 ### Changed
 - **GAMEVERSION:** 0.80 → **0.81** (M13 Controller QVM-Complete)
-- **Test suite:** 103 tests, all green
+- **Test suite:** 105 tests, all green
 
 ## [0.80] - 2026-09-07
 

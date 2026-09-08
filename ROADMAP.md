@@ -88,9 +88,9 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 **Was:**
 - ✅ 5 neue Arenen (Frostbite, Skybridge, Underhive, Reactor, Overgrowth)
 - ✅ Neue Bot-Typen (Healer, Shielder, Sniper-Elite) — implementiert + getestet
-- ⏳ Seasonal Challenges / Rotating Modifiers (geplant)
+- ✅ Seasonal Challenges / Rotating Modifiers — implementiert + getestet
 
-**Aufwand:** ~5 Tage (3 Tage Arenen + Bot-Typen ✅, 2 Tage Seasonal)
+**Aufwand:** ~5 Tage (3 Tage Arenen + Bot-Typen ✅, 2 Tage Seasonal ✅)
 **Tests:** +15 (Arena-Validation, Bot-Verhalten) — 3/15 ✅
 **Priorität:** Medium
 **When:** Q4 2026 (in progress)

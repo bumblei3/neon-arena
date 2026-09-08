@@ -1094,6 +1094,14 @@ assert_104() {
   report $ok "boss-voidwalker"
 }
 
+# Test 105: Seasonal challenge load + progress tracking
+assert_105() {
+  local ok=0 logfile="$1"
+  check "$logfile" "SEASONAL rotation"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "seasonal-challenge"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -1304,6 +1312,7 @@ dispatch_test() {
     102) run_test 102 "controller-active" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_ghost 1 +set in_joystick 1 +set joy_assist 0.5 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
     103) run_test 103 "boss-chronomancer" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_autokill 1 +set g_neonwave_bosstype 12 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
     104) run_test 104 "boss-voidwalker" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_autokill 1 +set g_neonwave_bosstype 13 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
+    105) run_test 105 "seasonal-challenge" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_seasonal 1 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 +set g_neonwave_modifier 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac

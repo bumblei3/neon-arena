@@ -116,6 +116,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 102 | controller-active | autostart, in_joystick 1, joy_assist 0.5, ghost 1 | `Ghost kit active` | keine Fatal-Warnung |
 | 103 | boss-chronomancer | autostart, bosstype 12, startwave 12, autokill | `CHRONOMANCER` | keine Fatal-Warnung |
 | 104 | boss-voidwalker | autostart, bosstype 13, startwave 12, autokill | `VOID WALKER` | keine Fatal-Warnung |
+| 105 | seasonal-challenge | autostart, seasonal 1, startwave 6, autokill, fastbreak | `SEASONAL challenge` | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
