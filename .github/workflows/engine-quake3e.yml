@@ -64,7 +64,7 @@ jobs:
 
       - name: Apply OpenArena compatibility (BASEGAME=baseoa)
         run: |
-          perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\\t\\t\\t"baseoa"/' /tmp/quake3e/code/qcommon/q_shared.h
+          perl -pi -e 's/^#define BASEGAME.*/#define BASEGAME\t\t\t"baseoa"/' /tmp/quake3e/code/qcommon/q_shared.h
           if [ "${{ matrix.platform }}" = "windows" ]; then
             # sdl_gamma.c includes windows.h INSIDE GLimp_SetGamma — MinGW then
             # treats FORCEINLINE helpers as nested functions. Hoist to file scope.
