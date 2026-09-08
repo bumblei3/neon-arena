@@ -108,14 +108,13 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 - ✅ Standard-Binds in `autoexec.cfg`
 - ✅ Aim-Assist-Logik in `g_active.c` (Magnetwirkung für Controller-Spieler)
 - ✅ `[JOY]` HUD-Indikator im Ghost-Kit
-- ⏳ Controller-Input-Verarbeitung (SDL2-Integration in Quake3e erforderlich)
-- ⏳ UI-Navigation mit Gamepad (Quake3e UI-Layer)
+- ✅ Controller-Input-Verarbeitung (SDL2-Integration in Quake3e)
+- ✅ UI-Navigation mit Gamepad (Quake3e UI-Layer)
+- ✅ Rumble-Support (`joy_rumble_low`, `joy_rumble_high`, `joy_rumble_duration`)
 
-**Aufwand:** ~2 Tage (Tag 1: CVars + Binds + Aim-Assist + HUD ✅, Tag 2: SDL2-Integration in Quake3e)
+**Aufwand:** ~2 Tage (Tag 1: CVars + Binds + Aim-Assist + HUD ✅, Tag 2: SDL2-Integration in Quake3e ✅)
 **Priorität:** Medium
-**When:** Q4 2026 (QVM-seitig abgeschlossen)
-
-**Hinweis:** Die Analog-Stick-Steuerung und UI-Navigation erfordern SDL2-Integration im Quake3e-Engine. Die QVM-seitige Basis (CVars, Binds, Aim-Assist, HUD) ist implementiert.
+**When:** Q4 2026 ✅ (M13 abgeschlossen)
 
 ---
 
@@ -123,7 +122,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 | Milestone | Priority | Impact | Risk | When |
 |-----------|----------|--------|------|------|
-| **M13 Engine-Controller (SDL2)** | 🟡 Medium | Gamepad | Medium | Q4 2026 |
+| **M13 Engine-Controller (SDL2)** | ✅ Fertig | Gamepad | — | Q4 2026 ✅ |
 | **Ghost Playtest-Balance** | 🟡 Medium | Feel | Low | Q4 2026 |
 | **M10 Netzwerk-Coop** | 🟠 Niedrig | Multiplayer | High | Q1 2027 |
 
