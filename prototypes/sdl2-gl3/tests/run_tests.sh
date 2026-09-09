@@ -15,7 +15,16 @@ echo ""
 echo "=== Running Wave Config Tests ==="
 ./test_wave_config
 
-# --- 2. Unit Tests (mock-based) ---
+# --- 2. Modifier System Tests ---
+echo ""
+echo "=== Building Modifier Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_modifier test_modifier.cpp ../src/modifier.cpp
+
+echo ""
+echo "=== Running Modifier Tests ==="
+./test_modifier
+
+# --- 3. Unit Tests (mock-based) ---
 echo ""
 echo "=== Building Unit Tests ==="
 g++ -std=c++17 -O2 -o test_game test_game.cpp
@@ -177,4 +186,4 @@ echo "=== Running Achievement Tests ==="
 ./test_achievements
 
 # Cleanup
-rm -f test_wave_config test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_ghost test_wave_editor test_map_validator test_replay_recorder test_perf_profiler test_achievements
+rm -f test_wave_config test_modifier test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_ghost test_wave_editor test_map_validator test_replay_recorder test_perf_profiler test_achievements

@@ -1,5 +1,6 @@
 // game.cpp - Game logic implementation with wave survival gameplay
 #include "game.h"
+#include "config.h"
 #include "weapons.h"
 #include "bots.h"
 #include "score.h"
@@ -24,7 +25,7 @@ bool Game::init(SDL_Window* window) {
     window_ = window;
 
     renderer_ = new Renderer();
-    if (!renderer_->init(window, 1280, 720)) {
+    if (!renderer_->init(window, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)) {
         fprintf(stderr, "Failed to initialize renderer\n");
         return false;
     }
@@ -48,12 +49,18 @@ bool Game::init(SDL_Window* window) {
     echoSystem = new EchoSystem();
     echoSystem->init();
 
+    // Initialize input system
+    input_ = new InputSystem();
+
+    // Initialize wave system
+    wave_system_ = new WaveSystem();
+
     SDL_SetRelativeMouseMode(SDL_TRUE);
     loadHighScore(*this);
     setupArena();
 
-    player.pos = Vec3(0, playerHeight, 0);
-    player.health = maxHealth;
+    player.pos = Vec3(0, DEFAULT_PLAYER_HEIGHT, 0);
+    player.health = DEFAULT_MAX_HEALTH;
     player.alive = true;
     player.yaw = 0;
     player.pitch = 0;
@@ -106,15 +113,15 @@ void Game::run() {
         float dt = (now - lastTime) / 1000.0f;
         lastTime = now;
 
-        if (dt > 0.1f) dt = 0.1f;
+        if (dt > 0.1f) dt = 0.1f; // Cap at 100ms
 
         handleInput(dt);
         update(dt);
         render();
 
         Uint32 frameTime = SDL_GetTicks() - now;
-        if (frameTime < 16) {
-            SDL_Delay(16 - frameTime);
+        if (frameTime < TARGET_FRAME_MS) {
+            SDL_Delay((Uint32)(TARGET_FRAME_MS - frameTime));
         }
 
         gameTime += dt;
@@ -199,14 +206,14 @@ void Game::handleInput(float dt) {
                 }
                 if (event.key.keysym.sym == SDLK_LEFT) {
                     if (menuSelection == 0) {
-                        mouseSensitivity -= 0.0005f;
-                        if (mouseSensitivity < 0.0005f) mouseSensitivity = 0.0005f;
+                        mouseSensitivity -= MOUSE_SENSITIVITY_STEP;
+                        if (mouseSensitivity < MIN_MOUSE_SENSITIVITY) mouseSensitivity = MIN_MOUSE_SENSITIVITY;
                     }
                 }
                 if (event.key.keysym.sym == SDLK_RIGHT) {
                     if (menuSelection == 0) {
-                        mouseSensitivity += 0.0005f;
-                        if (mouseSensitivity > 0.005f) mouseSensitivity = 0.005f;
+                        mouseSensitivity += MOUSE_SENSITIVITY_STEP;
+                        if (mouseSensitivity > MAX_MOUSE_SENSITIVITY) mouseSensitivity = MAX_MOUSE_SENSITIVITY;
                     }
                 }
                 if (event.key.keysym.sym == SDLK_UP) {
@@ -327,7 +334,7 @@ void Game::resetGame() {
     score = 0;
     kills = 0;
     killStreak = 0;
-    player.health = maxHealth;
+    player.health = DEFAULT_MAX_HEALTH;
     player.alive = true;
     player.pos = Vec3(0, playerHeight, 0);
     waveComplete = true;
@@ -473,6 +480,7 @@ void Game::update(float dt) {
     updatePowerUps(dt, *this);
     updateScore(dt, *this);
     updateSpecials(dt, *this);
+    UpdateModifiers(modifierState, dt);
     updateKillFeed(dt, *this);
     updateDamageNumbers(dt, *this);
 
@@ -712,7 +720,7 @@ void Game::updatePlayer(float dt) {
         );
         Vec3 muzzlePos = player2.pos + Vec3(0, 1.0f, 0);
         projectiles.push_back(Projectile(muzzlePos, dir, true, WeaponType::RAILGUN, 15.0f));
-        player2ShootCooldown = 0.3f;
+        player2ShootCooldown = RAILGUN_FIRE_RATE;
     }
     player2ShootCooldown -= dt;
     if (player2ShootCooldown < 0.0f) player2ShootCooldown = 0.0f;
@@ -786,6 +794,11 @@ void Game::nextWave() {
     waveComplete = false;
     waveBreak = 0;
     tookDamageThisWave = false;
+
+    // Select and apply wave modifiers (from wave 5+)
+    SelectModifiers(modifierState, wave + 1, dailyOffset, modifierForce1, modifierForce2);
+    ApplyModifiers(modifierState);
+
     spawnWave(*this);
     waveAnnounceTimer = 2.0f;
     if (echoSystem) echoSystem->startRecording();

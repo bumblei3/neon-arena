@@ -20,6 +20,10 @@
 #include "audio_polish.h"
 #include "wave_editor.h"
 #include "ghost_rules.h"
+#include "modifier.h"
+#include "config.h"
+#include "input_system.h"
+#include "wave_system.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -224,6 +228,8 @@ public:
     friend class OverclockManager;
     friend class EchoSystem;
     friend class CoopManager;
+    friend class InputSystem;
+    friend class WaveSystem;
     friend void handleUpgradeInput(Game& game, SDL_Event& event);
     friend void applyUpgrade(Game& game, int selection);
     friend void resetUpgrades(Game& game);
@@ -463,4 +469,10 @@ private:
     RivalGhost rivalGhost;
     OverclockManager* overclock = nullptr;
     EchoSystem* echoSystem = nullptr;
+
+    // === MODIFIER SYSTEM ===
+    ModifierState modifierState;
+    int modifierForce1 = -1;  // test hook: force slot 1 modifier (-1 = random)
+    int modifierForce2 = -1;  // test hook: force slot 2 modifier (-1 = random)
+    int dailyOffset = 0;      // daily challenge offset
 };

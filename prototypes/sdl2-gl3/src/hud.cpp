@@ -268,6 +268,26 @@ void renderHUD(Game& game) {
         if (game.wave % 5 == 0) {
             game.text_.drawTextCentered("BOSS INCOMING!", -0.15f, 1.5f, Vec3(1.0f, 0.5f, 0.0f) * alpha);
         }
+
+        // Show active modifiers
+        const char* mod1 = ModifierName(game.modifierState.slot1);
+        const char* mod2 = ModifierName(game.modifierState.slot2);
+        if (mod1 && mod1[0]) {
+            game.text_.drawTextCentered(mod1, -0.25f, 1.5f, Vec3(0.8f, 0.6f, 1.0f) * alpha);
+            if (mod2 && mod2[0]) {
+                std::string both = std::string(mod1) + " + " + mod2;
+                game.text_.drawTextCentered(both, -0.25f, 1.5f, Vec3(0.8f, 0.6f, 1.0f) * alpha);
+            }
+        }
+
+        // Show synergy name
+        const char* synName = GetSynergyName(game.modifierState);
+        if (synName && synName[0]) {
+            Vec3 synColor = IsAntiSynergy(game.modifierState)
+                ? Vec3(1.0f, 0.4f, 0.4f) * alpha
+                : Vec3(1.0f, 0.8f, 0.4f) * alpha;
+            game.text_.drawTextCentered(synName, -0.35f, 1.5f, synColor);
+        }
     }
 
     // Wave complete message area
