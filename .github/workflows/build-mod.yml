@@ -40,9 +40,9 @@ jobs:
         uses: actions/cache@v6
         with:
           path: oa-gamecode/build/release-linux-x86_64/neonarena/vm
-          key: qvm-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
+          key: qvm-v2-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
           restore-keys: |
-            qvm-${{ runner.os }}-
+            qvm-v2-${{ runner.os }}-
 
       - name: Build mod
         run: |
