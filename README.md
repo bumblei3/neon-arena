@@ -6,7 +6,7 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 > Spielen: `scripts/start-quake3e.sh` · Daily: `--daily` · Ghost: `--ghost` · Arena: `--arena <name>`  
 > oder: `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
 
-## Arenas (v0.82)
+## Arenas (v0.90)
 
 NeonArena hat 14 Arenas mit unterschiedlichen Themen und Spielstilen:
 
@@ -81,7 +81,7 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
 - [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Loadouts, Cloak, EMP, Lockdown, Nuke, Detector)
 - [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — Kit G1–G12; nächster Hebel ist Playtest-Balance
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
-- [Test-Suite](tests/TESTS.md) — Headless-Suite (103 Tests: 1–105 inkl. 9b, ohne 85–87)
+- [Test-Suite](tests/TESTS.md) — Headless-Suite (112 Tests: 1–114 inkl. 9b, ohne 85–87)
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
 
 ## Schnellstart (Spieler)
@@ -250,7 +250,7 @@ Siehe [Architektur](docs/ARCHITECTURE.md) für Details.
 
 Ein Tag `v*` triggert automatisch:
 1. Build der QVMs und PK3-Dateien
-2. Vollständige Test-Suite (103 Tests)
+2. Vollständige Test-Suite (112 Tests)
 3. Erstellung eines GitHub Releases mit `neonarena.pk3` und `neonarena-qvm.pk3`
 
 GAMEVERSION in `code/game/g_local.h` muss mit dem Tag übereinstimmen.
@@ -271,4 +271,4 @@ Jede Rückmeldung hilft, NeonArena besser zu machen. Egal ob Bug-Bericht, Balanc
 
 ---
 
-**Version:** v0.82 | **Letzte Aktualisierung:** 2026-09-08
+**Version:** v0.90 | **Letzte Aktualisierung:** 2026-09-09

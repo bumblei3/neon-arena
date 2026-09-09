@@ -3,7 +3,7 @@
 StarCraft-inspiriertes Ghost-Kit in **OpenArena** (`g_neonwave_ghost 1`).
 Zahlen und Loop: [GHOST_REFERENCE](GHOST_REFERENCE.md). Produkt ist der OA-Mod, nicht `prototypes/sdl2-gl3`.
 
-> Letztes Update: 2026-09-08 · Kit in **v0.82** · G12 Loadouts
+> Letztes Update: 2026-09-09 · Kit in **v0.90** · G12 Loadouts
 
 ## Stand
 

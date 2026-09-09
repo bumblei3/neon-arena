@@ -7,7 +7,7 @@ Drei Ghost-Kits per `loadout 0|1|2` / `g_ghost_loadout` (Default: Infiltrator).
 > **Produkt ist der OpenArena-Mod.** Der SDL2-GL3-Prototyp unter `prototypes/sdl2-gl3`
 > ist nur eine Skizze — Zahlen und Loop dort nicht als Quelle nehmen.
 >
-> Kit G1–G12 in **v0.82**. Nächster Hebel: [GHOST_ROADMAP](GHOST_ROADMAP.md) (Playtest-Balance).
+> Kit G1–G12 in **v0.90**. Nächster Hebel: [GHOST_ROADMAP](GHOST_ROADMAP.md) (Playtest-Balance).
 >
 > **Feedback willkommen!** Siehe [README](../README.md#feedback).
 

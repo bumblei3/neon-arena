@@ -117,6 +117,15 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 103 | boss-chronomancer | autostart, bosstype 12, startwave 12, autokill | `CHRONOMANCER` | keine Fatal-Warnung |
 | 104 | boss-voidwalker | autostart, bosstype 13, startwave 12, autokill | `VOID WALKER` | keine Fatal-Warnung |
 | 105 | seasonal-challenge | autostart, seasonal 1, startwave 6, autokill, fastbreak | `SEASONAL challenge` | keine Fatal-Warnung |
+| 106 | ghost-loadout-infiltrator | ghost 1, autostart, failrun | `Ghost: .* joined the Ghost team (loadout 0)` | keine Fatal-Warnung |
+| 107 | ghost-loadout-saboteur | ghost 1, loadout 1, failrun | `joined the Ghost team (loadout 1)` | keine Fatal-Warnung |
+| 108 | ghost-loadout-spectre | ghost 1, loadout 2, failrun | `joined the Ghost team (loadout 2)` | keine Fatal-Warnung |
+| 109 | ghost-loadout-infiltrator-energy | ghost 1, autostart, failrun | `joined the Ghost team (loadout 0)` | keine Fatal-Warnung |
+| 110 | controller-cvars | in_joystick 1, joy_deadzone, joy_sensitivity | `NeonWave` | keine Fatal-Warnung |
+| 111 | ghost-balance-infiltrator | ghost 1, autostart, failrun | `ENERGY=80 (loadout 0)` | keine Fatal-Warnung |
+| 112 | ghost-balance-saboteur | ghost 1, loadout 1, failrun | `ENERGY=70 (loadout 1)` | keine Fatal-Warnung |
+| 113 | ghost-balance-spectre | ghost 1, loadout 2, failrun | `ENERGY=90 (loadout 2)` | keine Fatal-Warnung |
+| 114 | ghost-balance-saboteur-discount | ghost 1, loadout 1, failrun | `ENERGY=70 (loadout 1)`, `joined the Ghost team (loadout 1)` | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
@@ -180,7 +189,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **103 Tests** (1–105 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
+Die Suite umfasst **112 Tests** (1–114 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:

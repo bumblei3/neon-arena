@@ -29,7 +29,7 @@ mit Bloom, HDR und Vulkan-Unterstützung. Dieses Dokument beschreibt die Integra
 
 Jedes `v*` Tag triggert:
 - QVM-Build + PK3-Packaging
-- Test-Suite (103 Tests)
+- Test-Suite (112 Tests)
 - GitHub Release mit `neonarena.pk3` + `neonarena-qvm.pk3`
 
 ### Engine-Release (optional)
@@ -161,7 +161,7 @@ Bei Unterbelichtung: `r_bloom_intensity` erhöhen oder `r_bloom_threshold` senke
 
 - Trigger: Push, Tag, PR, manuell
 - Build: QVMs + PK3s
-- Tests: 103 Tests
+- Tests: 112 Tests
 - Release: `neonarena.pk3` + `neonarena-qvm.pk3`
 
 ## Troubleshooting

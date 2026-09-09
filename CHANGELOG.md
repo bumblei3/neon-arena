@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Ghost spawn ENERGY log (`Ghost: <name> ENERGY=N (loadout L)`) for loadout-balance tests
+- Tests 111–114: Ghost loadout start-energy (Infiltrator 80 / Saboteur 70 / Spectre 90)
+
+### Fixed
+- Join-log newline in `NW_GhostSpawn` (`\\n` → newline)
+
 ## [0.90] - 2026-09-09
 
 ### Added
