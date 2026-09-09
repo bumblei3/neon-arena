@@ -126,6 +126,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 112 | ghost-balance-saboteur | ghost 1, loadout 1, failrun | `ENERGY=70 (loadout 1)` | keine Fatal-Warnung |
 | 113 | ghost-balance-spectre | ghost 1, loadout 2, failrun | `ENERGY=90 (loadout 2)` | keine Fatal-Warnung |
 | 114 | ghost-balance-saboteur-discount | ghost 1, loadout 1, failrun | `ENERGY=70 (loadout 1)`, `joined the Ghost team (loadout 1)` | keine Fatal-Warnung |
+| 115 | ghost-loadout-cycle | ghost 1, cycletest 1, failrun | `loadout set to 1`, `ENERGY=70 (loadout 1)` | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
@@ -189,7 +190,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **112 Tests** (1–114 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
+Die Suite umfasst **113 Tests** (1–115 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:

@@ -1154,6 +1154,19 @@ assert_114() {
   report $ok "ghost-balance-saboteur-discount"
 }
 
+# Test 115: loadout next (g_ghost_cycletest) 0 → 1 Saboteur
+assert_115() {
+  local ok=0 logfile="$1"
+  check "$logfile" "Ghost: loadout set to 1"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: .* ENERGY=70 (loadout 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  if [ -f "$TESTDIR/../assets/ghost-binds.cfg" ]; then
+    grep -q 'bind l "loadout next"' "$TESTDIR/../assets/ghost-binds.cfg" || ok=1
+    grep -q 'bind m "multiscan"' "$TESTDIR/../assets/ghost-binds.cfg" || ok=1
+  fi
+  report $ok "ghost-loadout-cycle"
+}
+
 # TEST 2: full run victory
 assert_2() {
   local ok=0
@@ -1372,11 +1385,12 @@ dispatch_test() {
     112) run_test 112 "ghost-balance-saboteur" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     113) run_test 113 "ghost-balance-spectre" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 2 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     114) run_test 114 "ghost-balance-saboteur-discount" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    115) run_test 115 "ghost-loadout-cycle" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_ghost_cycletest 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115"
 QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 110"
 
   case "$MODE" in

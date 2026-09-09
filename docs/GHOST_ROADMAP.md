@@ -14,7 +14,7 @@ Cloak (Toggle + Drain) → RMB-Snipe (Rail, Ambush 2×) → EMP-Round → Lockdo
 Keine neuen Tasten. G12 splittet den bestehenden Verb-Satz in Infiltrator / Saboteur / Spectre. Nächster Hebel: **Playtest-Daten für Fein-Balance**.
 
 Start: `scripts/start-quake3e.sh --ghost`  
-J cloak · H emp · K lockdown · N nuke · RMB zoom · `loadout 0|1|2`.
+J cloak · H emp · K lockdown · N nuke · M scan · L next kit · RMB zoom.
 
 ## Erledigt
 
@@ -55,7 +55,7 @@ J cloak · H emp · K lockdown · N nuke · RMB zoom · `loadout 0|1|2`.
 ### G12 — Loadouts ✅
 
 Drei Kits, keine neuen Tasten. Default Infiltrator (`g_ghost_loadout 0`).
-Saboteur: EMP 25/20 s, Lockdown 35 Energy. Spectre: kein Cloak, Nuke + Multiscan, 90 Start.
+Saboteur: EMP 25/22 s, Lockdown 35 Energy. Spectre: kein Cloak, Nuke 85 + Multiscan, 90 Start.
 Zahlen: [GHOST_REFERENCE](GHOST_REFERENCE.md#loadouts-v12).
 
 ## Nächste Slices (Reihenfolge)

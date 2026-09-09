@@ -1,7 +1,7 @@
 # Ghost Loadout Balance-Analyse
 
 > Erstellt: 2026-09-08
-> Stand: v0.82 Loadouts v1.2 (Infiltrator / Saboteur / Spectre)
+> Stand: v0.90 Loadouts v1.2 (Infiltrator / Saboteur / Spectre)
 
 ---
 

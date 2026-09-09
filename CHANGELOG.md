@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Ghost spawn ENERGY log (`Ghost: <name> ENERGY=N (loadout L)`) for loadout-balance tests
 - Tests 111–114: Ghost loadout start-energy (Infiltrator 80 / Saboteur 70 / Spectre 90)
+- **L** cycles Ghost loadout (`loadout next`); **M** binds Multiscan
+- HUD shows kit name (`INFIL` / `SAB` / `SPEC`) and Spectre pips (N/M instead of J)
 
 ### Fixed
 - Join-log newline in `NW_GhostSpawn` (`\\n` → newline)

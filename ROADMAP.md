@@ -171,7 +171,7 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 112 | 112 ✅ |
+| Haupt-Mod Tests | 113 | 113 ✅ |
 | Build Time | ~45s | <60s |
 | Bosse | 13 | 13 |
 | Bot-Typen (Trash) | Healer / Shielder / Elite | — |

@@ -19,7 +19,7 @@ scripts/start-quake3e.sh --ghost
 openarena +set fs_game neonarena +g_gametype 14 +set g_neonwave_ghost 1 +map oa_shine
 ```
 
-Binds in `assets/ghost-binds.cfg` (cgame exec't das File wenn das Kit an ist; `--ghost` kopiert es nach `~/.openarena/neonarena/`): **J** cloak · **H** emp · **K** lockdown · **N** nuke · **RMB** zoom. Spectre-Multiscan hat **keinen Default-Bind** — `bind <taste> multiscan`.
+Binds in `assets/ghost-binds.cfg` (cgame exec't das File wenn das Kit an ist; `--ghost` kopiert es nach `~/.openarena/neonarena/`): **J** cloak · **H** emp · **K** lockdown · **N** nuke · **M** multiscan · **L** nächstes Kit · **RMB** zoom.
 
 Spawn: Railgun (30 Slugs) — das ist die Sniper. Keine Lightning Gun, kein Gauntlet.
 Hip-Fire: normales Rail-Crosshair + Cyan/Gold Hit-Confirm. **RMB** (`+zoom`, `cg_zoomfov 28`): runde Cyan-Blende + Fadenkreuz, Hit-Confirm im Iris, Zoom-In/Out-Sound. Kein extra Feuer-Delay (Rail bleibt 1500 ms).
@@ -28,12 +28,12 @@ Sounds (PK3): Cloak `sound/ghost_cloak_on.wav` / aus `_off` · EMP `ghost_emp` �
 
 ## Loadouts (v1.2)
 
-Konsole: `loadout` zeigt das aktuelle Kit, `loadout 0|1|2` wechselt (setzt Energy auf den Kit-Start, wenn lebend). Persistenz: `g_ghost_loadout`.
+`L` cycle (`loadout next`) · `loadout` zeigt das aktuelle Kit · `loadout 0|1|2` setzt direkt. Persistenz: `g_ghost_loadout` (ARCHIVE). Mid-run-Wechsel ändert das Kit, nicht die Energy (Refill erst beim nächsten Spawn).
 
 | ID | Name | Start-Energy | Cloak | EMP | Lockdown | Nuke | Multiscan |
 |----|------|--------------|-------|-----|----------|------|-----------|
 | 0 | **Infiltrator** (Default) | 80 | ja | 35 / 25 s | 50 / 20 s | — | — |
-| 1 | **Saboteur** | 70 | ja | **25 / 20 s** | **35** / 20 s | — | — |
+| 1 | **Saboteur** | 70 | ja | **25 / 22 s** | **35** / 20 s | — | — |
 | 2 | **Spectre** | 90 | — | 35 / 25 s | 50 / 20 s | ja | ja |
 
 Spectre: `cloak` → `CLOAK NOT AVAILABLE`. Infiltrator/Saboteur: `nuke` / `multiscan` → `NOT AVAILABLE`. Lockdown-Dauer bleibt 4 s für alle Kits (Saboteur ist nur günstiger, nicht länger).
@@ -65,8 +65,8 @@ Kosten/CDs gelten für Infiltrator; Saboteur/Spectre siehe Loadout-Tabelle.
 | J | `cloak` | 25 | — (Drain 5/s) | Toggle `PW_INVIS`. Bots sehen dich nicht jenseits von 80 u, außer Detector / Swarm / Boss Phase 2. Nicht Spectre. |
 | H | `emp` | 35 | 25 s | Plasma-Bolt: 400 u Armor auf 0 + 1.5 s Stun. |
 | K | `lockdown` | 50 | 20 s | Raketen-Bolt (900 u/s). Nur Boss/Detector; Miss refundet Energy, kein CD. |
-| N | `nuke` | 80 | 45 s | Calldown: 1.5 s stehen + 4 s inbound. Nur Spectre. |
-| — | `multiscan` | 30 | 3 s | 500 u Radius: Cloak-Reveal + 2 s Damage-Bonus. Nur Spectre. |
+| N | `nuke` | 85 | 45 s | Calldown: 1.5 s stehen + 4 s inbound. Nur Spectre. |
+| M | `multiscan` | 30 | 3 s | 500 u Radius: Cloak-Reveal + 2 s Damage-Bonus. Nur Spectre. |
 
 ### Cloak
 
@@ -152,7 +152,7 @@ Pro-Client über `playerState.stats` (lokal und Coop). `g_ghost_*` CVars bleiben
 | `STAT_GHOST_CDS` | empSec \| lockSec<<8 \| nukeSec<<16 \| cloakSec<<24 |
 | `STAT_GHOST_ST` | Status 1 Cloak / 2 Ambush / 3 Scanning / 4 Detected / 5 Designating / 6 Nuke; Nuke-Countdown in Bits 8–15 |
 
-Leiste unten links, Pips **J H K N** (cyan bereit, orange + Sekunden auf CD). Status zentriert.
+Leiste unten links: Kit-Name + Energy (`INFIL` / `SAB` / `SPEC`). Pips **J H K** (Infiltrator/Saboteur) bzw. **H K N M** (Spectre) — cyan bereit, orange + Sekunden auf CD. Status zentriert. Spawn-Centerprint `GHOST: <KIT>` + `L next kit`.
 
 ## CVars
 
@@ -189,6 +189,7 @@ Leiste unten links, Pips **J H K N** (cyan bereit, orange + Sekunden auf CD). St
 NeonWave: GHOST kit active (wave N)
 NeonWave: DETECTOR spawned (wave N, C, skill S)
 Ghost: <name> joined the Ghost team (loadout N)
+Ghost: loadout set to N (NAME)
 Ghost: detector revealed client N
 Ghost: nuke detonated by <name>
 ```

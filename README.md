@@ -35,8 +35,8 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
   Waffen-Pickups werden ignoriert – Rail/LG-Pickups dienen als Ammo-Nachschub.
 - **Ghost-Kit** (optional, `g_neonwave_ghost 1` / `--ghost`): StarCraft-inspirierter
   Loadout — Rail-Snipe, Cloak-Drain, EMP-Round, Lockdown, Tac-Nuke-Calldown,
-  Detector ab Welle 8. Drei Kits per `loadout 0|1|2` (Infiltrator / Saboteur /
-  Spectre). Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md).
+  Detector ab Welle 8. Drei Kits per `L` / `loadout next` (Infiltrator /
+  Saboteur / Spectre). Siehe [Ghost-Reference](docs/GHOST_REFERENCE.md).
 - **Skill-Kurve:** Bot-Skill steigt mit der Welle (1 → 5).
 - **Wellen-Modifier** (ab Welle 5, auch in Boss-Wellen): 15 Modifier mit
   Synergie-/Anti-Synergie-System (ab Welle 8). Siehe [Modifier-Reference](docs/MODIFIER_REFERENCE.md).
@@ -81,7 +81,7 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
 - [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Loadouts, Cloak, EMP, Lockdown, Nuke, Detector)
 - [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — Kit G1–G12; nächster Hebel ist Playtest-Balance
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
-- [Test-Suite](tests/TESTS.md) — Headless-Suite (112 Tests: 1–114 inkl. 9b, ohne 85–87)
+- [Test-Suite](tests/TESTS.md) — Headless-Suite (113 Tests: 1–115 inkl. 9b, ohne 85–87)
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
 
 ## Schnellstart (Spieler)
@@ -250,7 +250,7 @@ Siehe [Architektur](docs/ARCHITECTURE.md) für Details.
 
 Ein Tag `v*` triggert automatisch:
 1. Build der QVMs und PK3-Dateien
-2. Vollständige Test-Suite (112 Tests)
+2. Vollständige Test-Suite (113 Tests)
 3. Erstellung eines GitHub Releases mit `neonarena.pk3` und `neonarena-qvm.pk3`
 
 GAMEVERSION in `code/game/g_local.h` muss mit dem Tag übereinstimmen.
