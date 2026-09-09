@@ -22,8 +22,6 @@
 #include "ghost_rules.h"
 #include "modifier.h"
 #include "config.h"
-#include "input_system.h"
-#include "wave_system.h"
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -228,8 +226,6 @@ public:
     friend class OverclockManager;
     friend class EchoSystem;
     friend class CoopManager;
-    friend class InputSystem;
-    friend class WaveSystem;
     friend void handleUpgradeInput(Game& game, SDL_Event& event);
     friend void applyUpgrade(Game& game, int selection);
     friend void resetUpgrades(Game& game);
@@ -258,6 +254,12 @@ private:
     void resetGame();
 
     void handleMouse();
+    void handleKeyDown(SDL_Event& event);
+    void handleKeyUp(SDL_Event& event);
+    void handleMouseMotion(SDL_Event& event);
+    void handleMouseButton(SDL_Event& event);
+    void handlePlayingKeyDown(SDL_Event& event);
+    void handleOptionsKeyDown(SDL_Event& event);
 
     Vec3 normalize(Vec3 v);
     float distance(Vec3 a, Vec3 b);

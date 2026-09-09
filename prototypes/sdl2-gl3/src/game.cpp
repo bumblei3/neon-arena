@@ -49,12 +49,6 @@ bool Game::init(SDL_Window* window) {
     echoSystem = new EchoSystem();
     echoSystem->init();
 
-    // Initialize input system
-    input_ = new InputSystem();
-
-    // Initialize wave system
-    wave_system_ = new WaveSystem();
-
     SDL_SetRelativeMouseMode(SDL_TRUE);
     loadHighScore(*this);
     setupArena();
@@ -137,124 +131,124 @@ void Game::handleInput(float dt) {
             }
             running = false;
         } else if (event.type == SDL_KEYDOWN) {
-            keys[event.key.keysym.scancode] = true;
-
-            if (state == GameState::MENU) {
-                handleMenuInput(event);
-            } else if (state == GameState::PAUSED) {
-                if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    state = GameState::PLAYING;
-                    SDL_SetRelativeMouseMode(SDL_TRUE);
-                } else if (event.key.keysym.sym == SDLK_q) {
-                    state = GameState::MENU;
-                    SDL_SetRelativeMouseMode(SDL_FALSE);
-                    updateMenuItems();
-                }
-            } else if (state == GameState::PLAYING) {
-                if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    state = GameState::PAUSED;
-                    SDL_SetRelativeMouseMode(SDL_FALSE);
-                    SavegameManager::save(*this);
-                }
-                if (showUpgradeMenu) {
-                    handleUpgradeInput(*this, event);
-                } else if (event.key.keysym.sym == SDLK_SPACE && waveComplete) {
-                    nextWave();
-                }
-                if (loadout == Loadout::GHOST) {
-                    if (event.key.keysym.sym == SDLK_1 || event.key.keysym.sym == SDLK_4) {
-                        currentWeapon = WeaponType::GHOST_SNIPER;
-                    }
-                    if (event.key.keysym.sym == SDLK_g) {
-                        activateScannerSweep(*this);
-                    }
-                    if (event.key.keysym.sym == SDLK_h) {
-                        activateEMPBlast(*this);
-                    }
-                    if (event.key.keysym.sym == SDLK_i || event.key.keysym.sym == SDLK_n) {
-                        activateTacNuke(*this);
-                    }
-                    if (event.key.keysym.sym == SDLK_j) {
-                        activateCloak(*this);
-                    }
-                } else {
-                    if (event.key.keysym.sym == SDLK_1) {
-                        currentWeapon = WeaponType::RAILGUN;
-                    }
-                    if (event.key.keysym.sym == SDLK_2) {
-                        currentWeapon = WeaponType::LIGHTNING_GUN;
-                    }
-                    if (event.key.keysym.sym == SDLK_3) {
-                        currentWeapon = WeaponType::PLASMA_RIFLE;
-                    }
-                    if (event.key.keysym.sym == SDLK_e) {
-                        activateNuclearBlast(*this);
-                    }
-                    if (event.key.keysym.sym == SDLK_r) {
-                        activateTimeSlow(*this);
-                    }
-                    if (event.key.keysym.sym == SDLK_f) {
-                        activateShield(*this);
-                    }
-                    if (event.key.keysym.sym == SDLK_q) {
-                        currentWeapon = WeaponType::LIGHTNING_GUN;
-                    }
-                }
-            } else if (state == GameState::OPTIONS) {
-                if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    state = GameState::MENU;
-                }
-                if (event.key.keysym.sym == SDLK_LEFT) {
-                    if (menuSelection == 0) {
-                        mouseSensitivity -= MOUSE_SENSITIVITY_STEP;
-                        if (mouseSensitivity < MIN_MOUSE_SENSITIVITY) mouseSensitivity = MIN_MOUSE_SENSITIVITY;
-                    }
-                }
-                if (event.key.keysym.sym == SDLK_RIGHT) {
-                    if (menuSelection == 0) {
-                        mouseSensitivity += MOUSE_SENSITIVITY_STEP;
-                        if (mouseSensitivity > MAX_MOUSE_SENSITIVITY) mouseSensitivity = MAX_MOUSE_SENSITIVITY;
-                    }
-                }
-                if (event.key.keysym.sym == SDLK_UP) {
-                    menuSelection--;
-                    if (menuSelection < 0) menuSelection = 2;
-                }
-                if (event.key.keysym.sym == SDLK_DOWN) {
-                    menuSelection++;
-                    if (menuSelection > 2) menuSelection = 0;
-                }
-            } else if (state == GameState::GAME_OVER) {
-                if (event.key.keysym.sym == SDLK_SPACE) {
-                    startNewRun(loadout);
-                } else if (event.key.keysym.sym == SDLK_ESCAPE) {
-                    state = GameState::MENU;
-                    SDL_SetRelativeMouseMode(SDL_FALSE);
-                    updateMenuItems();
-                }
-            }
-
+            handleKeyDown(event);
         } else if (event.type == SDL_KEYUP) {
-            keys[event.key.keysym.scancode] = false;
+            handleKeyUp(event);
         } else if (event.type == SDL_MOUSEMOTION) {
-            mouseX = event.motion.xrel;
-            mouseY = event.motion.yrel;
-        } else if (event.type == SDL_MOUSEBUTTONDOWN) {
-            if (event.button.button == SDL_BUTTON_LEFT) {
-                shootRequested = true;
-            }
-            if (event.button.button == SDL_BUTTON_RIGHT) {
-                if (loadout == Loadout::GHOST) adsHeld = true;
-                else shootLightning = true;
-            }
-        } else if (event.type == SDL_MOUSEBUTTONUP) {
-            if (event.button.button == SDL_BUTTON_LEFT) {
-                shootRequested = false;
-            }
-            if (event.button.button == SDL_BUTTON_RIGHT) {
-                shootLightning = false;
-                adsHeld = false;
-            }
+            handleMouseMotion(event);
+        } else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
+            handleMouseButton(event);
+        }
+    }
+}
+
+void Game::handleKeyDown(SDL_Event& event) {
+    keys[event.key.keysym.scancode] = true;
+    if (event.key.repeat) return;
+    
+    if (state == GameState::MENU) {
+        handleMenuInput(event);
+    } else if (state == GameState::PAUSED) {
+        if (event.key.keysym.sym == SDLK_ESCAPE) {
+            state = GameState::PLAYING;
+            SDL_SetRelativeMouseMode(SDL_TRUE);
+        } else if (event.key.keysym.sym == SDLK_q) {
+            state = GameState::MENU;
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+            updateMenuItems();
+        }
+    } else if (state == GameState::PLAYING) {
+        handlePlayingKeyDown(event);
+    } else if (state == GameState::OPTIONS) {
+        handleOptionsKeyDown(event);
+    } else if (state == GameState::GAME_OVER) {
+        if (event.key.keysym.sym == SDLK_SPACE) {
+            startNewRun(loadout);
+        } else if (event.key.keysym.sym == SDLK_ESCAPE) {
+            state = GameState::MENU;
+            SDL_SetRelativeMouseMode(SDL_FALSE);
+            updateMenuItems();
+        }
+    }
+}
+
+void Game::handlePlayingKeyDown(SDL_Event& event) {
+    if (event.key.keysym.sym == SDLK_ESCAPE) {
+        state = GameState::PAUSED;
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+        SavegameManager::save(*this);
+    }
+    if (showUpgradeMenu) {
+        handleUpgradeInput(*this, event);
+    } else if (event.key.keysym.sym == SDLK_SPACE && waveComplete) {
+        nextWave();
+    }
+    
+    // Weapon switching
+    if (loadout == Loadout::GHOST) {
+        if (event.key.keysym.sym == SDLK_1 || event.key.keysym.sym == SDLK_4) {
+            currentWeapon = WeaponType::GHOST_SNIPER;
+        }
+        if (event.key.keysym.sym == SDLK_g) activateScannerSweep(*this);
+        if (event.key.keysym.sym == SDLK_h) activateEMPBlast(*this);
+        if (event.key.keysym.sym == SDLK_i || event.key.keysym.sym == SDLK_n) activateTacNuke(*this);
+        if (event.key.keysym.sym == SDLK_j) activateCloak(*this);
+    } else {
+        if (event.key.keysym.sym == SDLK_1) currentWeapon = WeaponType::RAILGUN;
+        if (event.key.keysym.sym == SDLK_2) currentWeapon = WeaponType::LIGHTNING_GUN;
+        if (event.key.keysym.sym == SDLK_3) currentWeapon = WeaponType::PLASMA_RIFLE;
+        if (event.key.keysym.sym == SDLK_q) currentWeapon = WeaponType::LIGHTNING_GUN;
+        if (event.key.keysym.sym == SDLK_e) activateNuclearBlast(*this);
+        if (event.key.keysym.sym == SDLK_r) activateTimeSlow(*this);
+        if (event.key.keysym.sym == SDLK_f) activateShield(*this);
+    }
+}
+
+void Game::handleOptionsKeyDown(SDL_Event& event) {
+    if (event.key.keysym.sym == SDLK_ESCAPE) {
+        state = GameState::MENU;
+    }
+    if (event.key.keysym.sym == SDLK_LEFT && menuSelection == 0) {
+        mouseSensitivity -= MOUSE_SENSITIVITY_STEP;
+        if (mouseSensitivity < MIN_MOUSE_SENSITIVITY) mouseSensitivity = MIN_MOUSE_SENSITIVITY;
+    }
+    if (event.key.keysym.sym == SDLK_RIGHT && menuSelection == 0) {
+        mouseSensitivity += MOUSE_SENSITIVITY_STEP;
+        if (mouseSensitivity > MAX_MOUSE_SENSITIVITY) mouseSensitivity = MAX_MOUSE_SENSITIVITY;
+    }
+    if (event.key.keysym.sym == SDLK_UP) {
+        menuSelection--;
+        if (menuSelection < 0) menuSelection = 2;
+    }
+    if (event.key.keysym.sym == SDLK_DOWN) {
+        menuSelection++;
+        if (menuSelection > 2) menuSelection = 0;
+    }
+}
+
+void Game::handleKeyUp(SDL_Event& event) {
+    keys[event.key.keysym.scancode] = false;
+}
+
+void Game::handleMouseMotion(SDL_Event& event) {
+    if (state != GameState::PLAYING) return;
+    mouseX = (float)event.motion.xrel;
+    mouseY = (float)event.motion.yrel;
+}
+
+void Game::handleMouseButton(SDL_Event& event) {
+    if (state != GameState::PLAYING) return;
+    
+    if (event.button.button == SDL_BUTTON_LEFT) {
+        shootRequested = (event.type == SDL_MOUSEBUTTONDOWN);
+    }
+    if (event.button.button == SDL_BUTTON_RIGHT) {
+        if (event.type == SDL_MOUSEBUTTONDOWN) {
+            if (loadout == Loadout::GHOST) adsHeld = true;
+            else shootLightning = true;
+        } else {
+            shootLightning = false;
+            adsHeld = false;
         }
     }
 }
