@@ -1082,7 +1082,7 @@ assert_105() {
 # Test 106: Ghost Loadout Infiltrator (default)
 assert_106() {
   local ok=0 logfile="$1"
-  check "$logfile" "Ghost: joined the Ghost team (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: .* joined the Ghost team (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "ghost-loadout-infiltrator"
 }
@@ -1090,7 +1090,7 @@ assert_106() {
 # Test 107: Ghost Loadout Saboteur
 assert_107() {
   local ok=0 logfile="$1"
-  check "$logfile" "Ghost: joined the Ghost team (loadout 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: .* joined the Ghost team (loadout 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "ghost-loadout-saboteur"
 }
@@ -1098,7 +1098,7 @@ assert_107() {
 # Test 108: Ghost Loadout Spectre
 assert_108() {
   local ok=0 logfile="$1"
-  check "$logfile" "Ghost: joined the Ghost team (loadout 2)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: .* joined the Ghost team (loadout 2)"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "ghost-loadout-spectre"
 }
@@ -1106,7 +1106,7 @@ assert_108() {
 # Test 109: Ghost Loadout Infiltrator Energy
 assert_109() {
   local ok=0 logfile="$1"
-  check "$logfile" "Ghost: joined the Ghost team (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: .* joined the Ghost team (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "ghost-loadout-infiltrator-energy"
 }
