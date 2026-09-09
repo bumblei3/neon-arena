@@ -388,88 +388,57 @@ void Game::update(float dt) {
         updateMenu(dt);
         return;
     }
-
-    if (state == GameState::PAUSED) {
-        return;
-    }
-
-    if (state == GameState::GAME_OVER) {
-        return;
-    }
+    if (state == GameState::PAUSED) return;
+    if (state == GameState::GAME_OVER) return;
 
     if (gameOver) {
         state = GameState::GAME_OVER;
         if (g_music) g_music->playScene(MusicScene::GAME_OVER);
-        if (echoSystem) {
-            echoSystem->stopRecording();
-            echoSystem->play();
-        }
+        if (echoSystem) { echoSystem->stopRecording(); echoSystem->play(); }
         SavegameManager::remove();
         return;
     }
 
     if (waveComplete) {
         waveBreak += dt;
-        if (waveBreak >= nextWaveDelay) {
-            nextWave();
-        }
+        if (waveBreak >= nextWaveDelay) nextWave();
         return;
     }
 
-    // Update coop (player 2 input, revive system)
-    if (coopActive) {
-        CoopManager::update(dt);
-        CoopManager::updatePlayer2(*this, dt);
-    }
+    updateCoop(dt);
+    updateGameplay(dt);
+    updateEchoSystem(dt);
+    updateSpatialHash();
+    checkCollisions();
+    updateAudio(dt);
+    updateCamera(dt);
+    updateHudTimers(dt);
+    updateAchievements();
+    updatePostProcessing(dt);
+    checkWaveComplete();
+    checkPlayerDeath();
+    checkRevive();
+}
 
+void Game::updateCoop(float dt) {
+    if (!coopActive) return;
+    CoopManager::update(dt);
+    CoopManager::updatePlayer2(*this, dt);
+}
+
+void Game::updateGameplay(float dt) {
     updatePlayer(dt);
     updateBots(*this, dt);
     updateProjectiles(dt);
     if (particleSystem) particleSystem->update(dt);
 
-    // Update overclock
     if (overclock) {
-        // Score decay
         if (scoreDecayRate > 0.0f) {
-            score -= (int)(scoreDecayRate * dt * 60.0f); // per second basis
+            score -= (int)(scoreDecayRate * dt * SCORE_DECAY_PER_SEC);
         }
-        // Phase shift timer
         if (phaseShiftTimer > 0.0f) phaseShiftTimer -= dt;
-
-        // Update echo system
-        if (echoSystem) {
-            echoSystem->update(dt);
-
-            // Record player state for echo
-            if (echoSystem->isRecording()) {
-                echoSystem->recordFrame(
-                    player.pos.x, player.pos.y, player.pos.z,
-                    player.vx, player.vy, player.vz,
-                    player.yaw, player.pitch, gameTime
-                );
-            }
-
-            // Check player boost (if player is near echo ghost)
-            echoSystem->checkPlayerBoost(player.pos.x, player.pos.y, player.pos.z, playerSpeed);
-
-            // Check bot collisions with echo
-            for (int i = 0; i < (int)bots.size(); i++) {
-                if (bots[i].alive) {
-                    echoSystem->checkBotCollision(
-                        bots[i].pos.x, bots[i].pos.y, bots[i].pos.z, i
-                    );
-                }
-            }
-
-            // Apply boost decay
-            if (echoSystem->isBoostActive()) {
-                // Boost is active - speed is already multiplied
-            } else if (playerSpeed > 10.0f && !echoSystem->isBoostActive()) {
-                // Boost expired - reset speed
-                playerSpeed = 10.0f;
-            }
-        }
     }
+
     updateWeapons(dt, *this);
     updatePowerUps(dt, *this);
     updateScore(dt, *this);
@@ -478,7 +447,6 @@ void Game::update(float dt) {
     updateKillFeed(dt, *this);
     updateDamageNumbers(dt, *this);
 
-    // Ghost energy regen (kit only)
     if (loadout == Loadout::GHOST) {
         ghostEnergy = GhostRules::addEnergy(ghostEnergy, GhostRules::ENERGY_REGEN * dt);
         if (cloakTimer <= 0.0f) {
@@ -486,20 +454,44 @@ void Game::update(float dt) {
             lastKnownPlayerZ = player.pos.z;
         }
     }
+}
 
-    // Rebuild spatial hash for collision detection
-    if (spatialHash) {
-        spatialHash->clear();
-        for (int i = 0; i < (int)bots.size(); i++) {
-            if (bots[i].alive) {
-                spatialHash->insert(i, bots[i].pos.x, bots[i].pos.z);
-            }
+void Game::updateEchoSystem(float dt) {
+    if (!overclock || !echoSystem) return;
+    echoSystem->update(dt);
+
+    if (echoSystem->isRecording()) {
+        echoSystem->recordFrame(
+            player.pos.x, player.pos.y, player.pos.z,
+            player.vx, player.vy, player.vz,
+            player.yaw, player.pitch, gameTime);
+    }
+
+    echoSystem->checkPlayerBoost(player.pos.x, player.pos.y, player.pos.z, playerSpeed);
+
+    for (int i = 0; i < (int)bots.size(); i++) {
+        if (bots[i].alive) {
+            echoSystem->checkBotCollision(bots[i].pos.x, bots[i].pos.y, bots[i].pos.z, i);
         }
     }
-    
-    checkCollisions();
-    
-    // Count alive bots for audio
+
+    if (!echoSystem->isBoostActive() && playerSpeed > DEFAULT_PLAYER_SPEED) {
+        playerSpeed = DEFAULT_PLAYER_SPEED;
+    }
+}
+
+void Game::updateSpatialHash() {
+    if (!spatialHash) return;
+    spatialHash->clear();
+    for (int i = 0; i < (int)bots.size(); i++) {
+        if (bots[i].alive) {
+            spatialHash->insert(i, bots[i].pos.x, bots[i].pos.z);
+        }
+    }
+}
+
+void Game::updateAudio(float dt) {
+    (void)dt;
     int aliveBots = 0;
     bool bossActive = false;
     for (const auto& bot : bots) {
@@ -508,31 +500,30 @@ void Game::update(float dt) {
             if (bot.botType == 4) bossActive = true;
         }
     }
-    
-    // Audio polish: dynamic layers, reverb, occlusion
     if (g_audio) {
-        AudioPolish::update(dt, aliveBots, wave,
-            bossActive,
-            arenaSize > 60.0f);
+        AudioPolish::update(0.016f, aliveBots, wave, bossActive, arenaSize > ARENA_MAX_SIZE);
         AudioPolish::setListenerPosition(player.pos.x, player.pos.z);
     }
-    
-    // Update camera shake
-    if (shakeAmount > 0.0f) {
-        shakeOffset.x = (rand() % 100 / 100.0f - 0.5f) * shakeAmount;
-        shakeOffset.z = (rand() % 100 / 100.0f - 0.5f) * shakeAmount;
-        shakeAmount -= shakeDecay * dt;
-        if (shakeAmount < 0.0f) {
-            shakeAmount = 0.0f;
-            shakeOffset = Vec3(0,0,0);
-        }
-    }
+}
 
-    // Decay HUD timers
+void Game::updateCamera(float dt) {
+    if (shakeAmount <= 0.0f) return;
+    shakeOffset.x = (rand() % 100 / 100.0f - 0.5f) * shakeAmount;
+    shakeOffset.z = (rand() % 100 / 100.0f - 0.5f) * shakeAmount;
+    shakeAmount -= shakeDecay * dt;
+    if (shakeAmount < 0.0f) {
+        shakeAmount = 0.0f;
+        shakeOffset = Vec3(0, 0, 0);
+    }
+    (void)dt;
+}
+
+void Game::updateHudTimers(float dt) {
     if (hitFeedbackTimer > 0.0f) { hitFeedbackTimer -= dt; if (hitFeedbackTimer < 0.0f) hitFeedbackTimer = 0.0f; }
     if (waveAnnounceTimer > 0.0f) { waveAnnounceTimer -= dt; if (waveAnnounceTimer < 0.0f) waveAnnounceTimer = 0.0f; }
+}
 
-    // Achievement popup queue processing
+void Game::updateAchievements() {
     if (achievementPopupTimer <= 0.0f && !pendingAchievements.empty()) {
         AchievementSystem::ID id = pendingAchievements.front();
         pendingAchievements.erase(pendingAchievements.begin());
@@ -544,115 +535,98 @@ void Game::update(float dt) {
         if (g_audio) g_audio->playAchievement();
     }
 
-    // Poll newly unlocked achievements
     AchievementSystem::ID newlyUnlocked[8];
     int newCount = AchievementSystem::consumeNewlyUnlocked(newlyUnlocked, 8);
     for (int i = 0; i < newCount; i++) {
         pendingAchievements.push_back(newlyUnlocked[i]);
     }
-    
-    // Decay post-processing effects
-    if (renderer_) {
-        // Hit flash decay
-        float hitFlash = renderer_->hitFlashIntensity;
-        if (hitFlash > 0.0f) {
-            hitFlash -= dt * 3.0f;
-            if (hitFlash < 0.0f) hitFlash = 0.0f;
-            renderer_->setHitFlash(hitFlash);
-        }
-        
-        // Chromatic aberration decay
-        float ca = renderer_->chromaticAberrationAmount;
-        if (ca > 0.0f) {
-            ca -= dt * 4.0f;
-            if (ca < 0.0f) ca = 0.0f;
-            renderer_->setChromaticAberration(ca);
-        }
-        
-        // Game over vignette
-        if (gameOver) {
-            float gov = renderer_->gameOverVignette;
-            gov += dt * 0.5f;
-            if (gov > 1.0f) gov = 1.0f;
-            renderer_->setGameOverVignette(gov);
-        }
-    }
+}
 
-    // Check wave complete
+void Game::updatePostProcessing(float dt) {
+    if (!renderer_) return;
+    float hitFlash = renderer_->hitFlashIntensity;
+    if (hitFlash > 0.0f) {
+        hitFlash -= dt * 3.0f;
+        if (hitFlash < 0.0f) hitFlash = 0.0f;
+        renderer_->setHitFlash(hitFlash);
+    }
+    float ca = renderer_->chromaticAberrationAmount;
+    if (ca > 0.0f) {
+        ca -= dt * 4.0f;
+        if (ca < 0.0f) ca = 0.0f;
+        renderer_->setChromaticAberration(ca);
+    }
+    if (gameOver) {
+        float gov = renderer_->gameOverVignette;
+        gov += dt * 0.5f;
+        if (gov > 1.0f) gov = 1.0f;
+        renderer_->setGameOverVignette(gov);
+    }
+}
+
+void Game::checkWaveComplete() {
     bool anyAlive = false;
     for (auto& bot : bots) {
-        if (bot.alive) {
-            anyAlive = true;
-            break;
-        }
+        if (bot.alive) { anyAlive = true; break; }
     }
-    if (!anyAlive && bots.size() > 0) {
-        waveComplete = true;
-        waveBreak = 0;
-        killStreak = 0;
-        if (echoSystem) echoSystem->stopRecording();
-        score += wave * 100;
-        upgradePoints += 1 + wave / 3;
-        showUpgradeMenu = true;
-        // Achievement: wave check
-        AchievementSystem::checkWaveAchievements(achievementProgress, wave, gameTime, tookDamageThisWave);
-        if (wave % 5 == 0) {
-            upgradePoints += 3;
-            printf("BOSS KILLED! Wave %d cleared! Score: %d\n", wave, score);
-        } else {
-            printf("Wave %d cleared! Score: %d\n", wave, score);
-        }
-    }
+    if (anyAlive || bots.empty()) return;
 
-    // Check player death
-    if (player.health <= 0) {
-        if (coopActive) {
-            // In coop: game over only if both players dead
-            if (player2.health <= 0) {
-                gameOver = true;
-                saveHighScore(*this);
-                printf("Game Over! Waves survived: %d, Kills: %d/%d\n", wave - 1, kills, player2Kills);
-            } else {
-                // Player 1 down, player 2 can revive
-                player.alive = false;
-                if (!CoopManager::getRevive().playerDown) {
-                    CoopManager::getRevive().playerDown = true;
-                    printf("Player 1 DOWN! Player 2 has 5 seconds to revive!\n");
-                }
-            }
-        } else {
-            gameOver = true;
-            saveHighScore(*this);
-            printf("Game Over! Waves survived: %d, Kills: %d\n", wave - 1, kills);
-        }
+    waveComplete = true;
+    waveBreak = 0;
+    killStreak = 0;
+    if (echoSystem) echoSystem->stopRecording();
+    score += wave * 100;
+    upgradePoints += 1 + wave / 3;
+    showUpgradeMenu = true;
+    AchievementSystem::checkWaveAchievements(achievementProgress, wave, gameTime, tookDamageThisWave);
+    if (wave % 5 == 0) {
+        upgradePoints += 3;
+        printf("BOSS KILLED! Wave %d cleared! Score: %d\n", wave, score);
+    } else {
+        printf("Wave %d cleared! Score: %d\n", wave, score);
     }
-    
-    // Check player 2 death
-    if (coopActive && player2.health <= 0) {
-        if (player.health <= 0) {
+}
+
+void Game::checkPlayerDeath() {
+    if (player.health > 0) return;
+
+    if (coopActive) {
+        if (player2.health <= 0) {
             gameOver = true;
             saveHighScore(*this);
             printf("Game Over! Waves survived: %d, Kills: %d/%d\n", wave - 1, kills, player2Kills);
         } else {
-            player2.alive = false;
+            player.alive = false;
             if (!CoopManager::getRevive().playerDown) {
                 CoopManager::getRevive().playerDown = true;
-                printf("Player 2 DOWN! Player 1 has 5 seconds to revive!\n");
+                printf("Player 1 DOWN! Player 2 has 5 seconds to revive!\n");
             }
         }
+    } else {
+        gameOver = true;
+        saveHighScore(*this);
+        printf("Game Over! Waves survived: %d, Kills: %d\n", wave - 1, kills);
     }
-    
-    // Revive check: if revive timer expires, player stays down
-    if (coopActive && CoopManager::getRevive().playerDown && !CoopManager::getRevive().reviving) {
-        // Check if other player is close enough to revive
-        float dist = distance(player.pos, player2.pos);
-        if (dist < CoopManager::getRevive().reviveRange) {
-            CoopManager::startRevive();
+
+    if (coopActive && player2.health <= 0 && player.health > 0) {
+        player2.alive = false;
+        if (!CoopManager::getRevive().playerDown) {
+            CoopManager::getRevive().playerDown = true;
+            printf("Player 2 DOWN! Player 1 has 5 seconds to revive!\n");
         }
     }
-    
-    // Complete revive
-    if (coopActive && CoopManager::getRevive().reviving && CoopManager::getRevive().reviveTimer <= 0.0f) {
+}
+
+void Game::checkRevive() {
+    if (!coopActive) return;
+    if (!CoopManager::getRevive().playerDown || CoopManager::getRevive().reviving) return;
+
+    float dist = distance(player.pos, player2.pos);
+    if (dist < CoopManager::getRevive().reviveRange) {
+        CoopManager::startRevive();
+    }
+
+    if (CoopManager::getRevive().reviving && CoopManager::getRevive().reviveTimer <= 0.0f) {
         if (!player.alive) {
             CoopManager::completeRevive(*this);
             printf("Player 1 REVIVED!\n");

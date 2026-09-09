@@ -240,7 +240,6 @@ private:
     void renderProjectiles();
     void renderMinimap();
     void checkCollisions();
-    void updateCamera(float dt);
     void nextWave();
     void gameOverScreen();
 
@@ -254,6 +253,18 @@ private:
     void resetGame();
 
     void handleMouse();
+    void updateGameplay(float dt);
+    void updateCoop(float dt);
+    void updateEchoSystem(float dt);
+    void updateSpatialHash();
+    void updateAudio(float dt);
+    void updateCamera(float dt);
+    void updateHudTimers(float dt);
+    void updateAchievements();
+    void updatePostProcessing(float dt);
+    void checkWaveComplete();
+    void checkPlayerDeath();
+    void checkRevive();
     void handleKeyDown(SDL_Event& event);
     void handleKeyUp(SDL_Event& event);
     void handleMouseMotion(SDL_Event& event);
