@@ -226,6 +226,7 @@ public:
     friend class OverclockManager;
     friend class EchoSystem;
     friend class CoopManager;
+    friend class TestGame; // Unit tests
     friend void handleUpgradeInput(Game& game, SDL_Event& event);
     friend void applyUpgrade(Game& game, int selection);
     friend void resetUpgrades(Game& game);
