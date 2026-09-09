@@ -275,83 +275,51 @@ private:
     Vec3 normalize(Vec3 v);
     float distance(Vec3 a, Vec3 b);
 
-    Renderer* renderer_ = nullptr;
-    SDL_Window* window_ = nullptr;
 
     GameState state = GameState::MENU;
     int menuSelection = 0;
     std::vector<std::string> menuItems;
     float stateTimer = 0;
-
-    TextRenderer text_;
-
-    SpatialHash* spatialHash = nullptr;
-    ParticleSystem* particleSystem = nullptr;
-
-    float shakeAmount = 0.0f;
-    float shakeDecay = 5.0f;
-    Vec3 shakeOffset;
-
-    Entity player;
-    std::vector<Entity> bots;
-    std::vector<Projectile> projectiles;
-    std::vector<Particle> particles;
-    int wave = 0;
-    int score = 0;
-    int highScore = 0;
-    int kills = 0;
-    float gameTime = 0;
     bool running = true;
     bool gameOver = false;
     bool waveComplete = false;
     float waveBreak = 0;
     float nextWaveDelay = 3.0f;
+    int wave = 0;
+    float gameTime = 0;
 
-    int scoreMultiplier = 1;
-    int killStreak = 0;
-    float hitFeedbackTimer = 0;
-    float waveAnnounceTimer = 0;
-    float multiplierTimer = 0.0f;
-    const float multiplierDecay = 5.0f;
-    int comboCount = 0;
-
-    std::vector<KillFeedEntry> killFeed;
-    std::vector<DamageNumber> damageNumbers;
-
-    bool keys[SDL_NUM_SCANCODES];
-    float mouseX = 0, mouseY = 0;
-    bool shootRequested = false;
-    bool shootLightning = false;
-
+    // === Player ===
+    Entity player;
     float playerSpeed = 10.0f;
     float playerHeight = 1.7f;
     float mouseSensitivity = 0.002f;
     float maxHealth = 100.0f;
-    float arenaSize = 40.0f;
-
     Loadout loadout = Loadout::ARENA;
     WeaponType currentWeapon = WeaponType::RAILGUN;
     bool adsHeld = false;
+    bool shootRequested = false;
+    bool shootLightning = false;
+    float mouseX = 0, mouseY = 0;
+    bool keys[SDL_NUM_SCANCODES];
+
+    // === Weapons ===
     float railgunCooldown = 0.0f;
-    float lightningCooldown = 0.0f;
     const float railgunFireRate = 0.3f;
+    float lightningCooldown = 0.0f;
     const float lightningFireRate = 0.05f;
     float lightningRange = 15.0f;
     const float lightningDamage = 25.0f;
     int lightningChainCount = 3;
-
     float plasmaCooldown = 0.0f;
     float plasmaFireRate = 0.5f;
     const float plasmaDamage = 80.0f;
     const float plasmaRadius = 5.0f;
     const float plasmaSpeed = 30.0f;
-
     std::vector<LightningArc> lightningArcs;
-
     int railgunLevel = 1;
     int lightningLevel = 1;
 
-    // Ghost sniper
+    // === Ghost System ===
     float ghostCooldown = 0.0f;
     const float ghostFireRate = GhostRules::SNIPER_MISS_LOCKOUT;
     int ghostKills = 0;
@@ -360,32 +328,25 @@ private:
     float ghostAmbushDamageMult = GhostRules::AMBUSH_MULT;
     float lastKnownPlayerX = 0.0f;
     float lastKnownPlayerZ = 0.0f;
-
-    // === GHOST ENERGY SYSTEM ===
     float ghostEnergy = 0.0f;
     const float GHOST_ENERGY_MAX = GhostRules::ENERGY_MAX;
     float ghostEnergyRegen = GhostRules::ENERGY_REGEN;
     float ghostEnergyFromKill = GhostRules::ENERGY_KILL;
     float ghostEnergyFromStealthKill = GhostRules::ENERGY_STEALTH_KILL;
     float ghostEnergyFromCombo = 2.0f;
-
     const float SCANNER_COST = GhostRules::SCANNER_COST;
     const float EMP_COST = GhostRules::EMP_COST;
     const float CLOAK_COST = GhostRules::CLOAK_COST;
     const float NUKE_COST = GhostRules::NUKE_COST;
-
-    // Ghost specials
     float scannerCooldown = 0.0f;
     const float scannerMaxCooldown = 15.0f;
     float scannerTimer = 0.0f;
-
     float empCooldown = 0.0f;
     const float empMaxCooldown = 25.0f;
     float empTimer = 0.0f;
     float empStunTimer = 0.0f;
     const float EMP_STUN_DURATION = GhostRules::EMP_STUN;
     float empRadius = GhostRules::EMP_RADIUS;
-
     float nukeCooldown = 0.0f;
     const float nukeMaxCooldown = GhostRules::NUKE_COOLDOWN;
     float nukePaintTimer = 0.0f;
@@ -396,21 +357,18 @@ private:
     float nukePaintOriginZ = 0.0f;
     float nukeFlashTimer = 0.0f;
     float detectorSwarmTimer = 0.0f;
-
     float cloakCooldown = 0.0f;
     const float cloakMaxCooldown = 20.0f;
     float cloakTimer = 0.0f;
     float cloakSpeedBoost = GhostRules::CLOAK_SPEED;
     float cloakShieldTimer = 0.0f;
-
-    // Combo system
     int ghostComboCount = 0;
     float ghostComboTimer = 0.0f;
     const float COMBO_WINDOW = 3.0f;
     const float COMBO_MAX_LEVEL = 5;
     float comboBonusDamage = 1.0f;
 
-    // Manager specials
+    // === Specials ===
     float nuclearBlastCooldown = 0.0f;
     const float nuclearBlastMaxCooldown = 30.0f;
     float timeSlowCooldown = 0.0f;
@@ -421,9 +379,30 @@ private:
     float shieldTimer = 0.0f;
     bool hasShield = false;
 
-    std::vector<PowerUp> powerUps;
-    float damageBoostTimer = 0.0f;
+    // === World ===
+    std::vector<Entity> bots;
+    std::vector<Projectile> projectiles;
+    std::vector<Particle> particles;
+    float arenaSize = 40.0f;
+    WaveFusion currentFusion = WaveFusion::NONE;
+    float arenaShrinkTimer = 0.0f;
+    float fusionDisplayTimer = 0.0f;
 
+    // === Scoring ===
+    int score = 0;
+    int highScore = 0;
+    int kills = 0;
+    int scoreMultiplier = 1;
+    int killStreak = 0;
+    float hitFeedbackTimer = 0;
+    float waveAnnounceTimer = 0;
+    float multiplierTimer = 0.0f;
+    const float multiplierDecay = 5.0f;
+    int comboCount = 0;
+    std::vector<KillFeedEntry> killFeed;
+    std::vector<DamageNumber> damageNumbers;
+
+    // === Upgrades ===
     int upgradePoints = 0;
     int healthLevel = 1;
     int speedLevel = 1;
@@ -431,18 +410,24 @@ private:
     int upgradeSelection = 0;
     const int maxUpgradeLevel = 5;
 
+    // === Power-Ups ===
+    std::vector<PowerUp> powerUps;
+    float damageBoostTimer = 0.0f;
+
+    // === Bug Effects ===
     float railgunFeedbackChance = 0.0f;
     float plasmaOverheatPenalty = 0.0f;
     float lightningBacklashChance = 0.0f;
     float shieldCrashChance = 0.0f;
-    int   splitterVirusLevel = 0;
-    bool  splitterFriendlyFire = false;
+    int splitterVirusLevel = 0;
+    bool splitterFriendlyFire = false;
     float scoreMultiplierFloat = 1.0f;
     float scoreDecayRate = 0.0f;
     float phaseGlitchChance = 0.0f;
-    int   phaseShiftKills = 0;
+    int phaseShiftKills = 0;
     float phaseShiftTimer = 0.0f;
 
+    // === Achievements ===
     AchievementSystem::AchievementProgress achievementProgress;
     bool tookDamageThisWave = false;
     float achievementPopupTimer = 0.0f;
@@ -455,6 +440,7 @@ private:
     bool thermalVision = false;
     float thermalVisionTimer = 0.0f;
 
+    // === Coop ===
     bool coopActive = false;
     Entity player2;
     int player2Score = 0;
@@ -462,15 +448,17 @@ private:
     float player2ShootCooldown = 0.0f;
     bool player2Shoot = false;
     float player2ShootTimer = 0.0f;
-    
     Vec3 coopCameraEye;
     Vec3 coopCameraTarget;
     float coopCameraFov = 60.0f;
 
-    WaveFusion currentFusion = WaveFusion::NONE;
-    float arenaShrinkTimer = 0.0f;
-    float fusionDisplayTimer = 0.0f;
+    // === Modifiers ===
+    ModifierState modifierState;
+    int modifierForce1 = -1;
+    int modifierForce2 = -1;
+    int dailyOffset = 0;
 
+    // === Rival Ghost ===
     struct RivalGhost {
         bool active = false;
         float posX = 0, posY = 0, posZ = 0;
@@ -480,12 +468,18 @@ private:
         int rivalWave = 0;
     };
     RivalGhost rivalGhost;
+
+    // === Camera ===
+    float shakeAmount = 0.0f;
+    float shakeDecay = 5.0f;
+    Vec3 shakeOffset;
+
+    // === Subsystems ===
+    Renderer* renderer_ = nullptr;
+    SDL_Window* window_ = nullptr;
+    TextRenderer text_;
+    SpatialHash* spatialHash = nullptr;
+    ParticleSystem* particleSystem = nullptr;
     OverclockManager* overclock = nullptr;
     EchoSystem* echoSystem = nullptr;
-
-    // === MODIFIER SYSTEM ===
-    ModifierState modifierState;
-    int modifierForce1 = -1;  // test hook: force slot 1 modifier (-1 = random)
-    int modifierForce2 = -1;  // test hook: force slot 2 modifier (-1 = random)
-    int dailyOffset = 0;      // daily challenge offset
 };
