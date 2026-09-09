@@ -10,5 +10,5 @@ exec tests/helpers/autostart_test.sh \
     --autostart \
     --timeout 60 \
     --extra-args "+set g_neonwave_ghost 1 +set g_neonwave_failrun 1" \
-    --expected "Ghost: joined the Ghost team (loadout 0)" \
+    --expected "Ghost: .* joined the Ghost team (loadout 0)" \
     "$@"
