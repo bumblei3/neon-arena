@@ -41,8 +41,8 @@ jobs:
         with:
           path: oa-gamecode/build/release-linux-x86_64/neonarena/vm
           key: qvm-v2-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
-          restore-keys: |
-            qvm-v2-${{ runner.os }}-
+          # no restore-keys: a prefix hit would restore stale QVMs whose
+          # mtimes can skip Q3ASM even when g_ghost.c changed.
 
       - name: Build mod
         run: |
@@ -114,14 +114,6 @@ jobs:
           name: oa-build
           path: oa-gamecode/build/release-linux-x86_64/neonarena/
 
-      - name: Cache QVMs
-        uses: actions/cache@v6
-        with:
-          path: oa-gamecode/build/release-linux-x86_64/neonarena/vm
-          key: qvm-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
-          restore-keys: |
-            qvm-${{ runner.os }}-
-
       - name: Install test dependencies
         run: |
           sudo apt-get update
@@ -133,8 +125,14 @@ jobs:
 
       - name: Install QVMs
         run: |
+          set -e
           OUT=oa-gamecode/build/release-linux-x86_64/neonarena
-          mkdir -p ~/.openarena/neonarena/vm
+          mkdir -p "$OUT/vm" ~/.openarena/neonarena/vm
+          # upload-artifact of .../vm/ unpacks QVMs at $OUT/, not $OUT/vm/
+          if [ ! -f "$OUT/vm/cgame.qvm" ] && [ -f "$OUT/cgame.qvm" ]; then
+            mv "$OUT"/*.qvm "$OUT/vm/"
+          fi
+          test -f "$OUT/vm/cgame.qvm" && test -f "$OUT/vm/qagame.qvm" && test -f "$OUT/vm/ui.qvm"
           cp "$OUT/vm/"*.qvm ~/.openarena/neonarena/vm/
           cd "$OUT" && zip -q ~/.openarena/neonarena/neonarena-qvm.pk3 vm/cgame.qvm vm/qagame.qvm vm/ui.qvm && cd - >/dev/null
           (cd assets && zip -rq ~/.openarena/neonarena/neon-look.pk3 scripts textures gfx env sound autoexec.cfg ghost-binds.cfg neon-look.cfg neon-gfx.cfg gfx-auto.cfg && cp autoexec.cfg ghost-binds.cfg neon-look.cfg neon-gfx.cfg ~/.openarena/neonarena/)

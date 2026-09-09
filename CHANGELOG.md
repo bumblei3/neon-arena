@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Join-log newline in `NW_GhostSpawn` (`\\n` → newline)
+- CI test job no longer restores a stale QVM cache over the build artifacts (tests 111–114)
 
 ## [0.90] - 2026-09-09
 
