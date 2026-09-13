@@ -49,6 +49,7 @@ add_executable(neon-arena
     src/powerups.cpp
     src/specials.cpp
     src/hud.cpp
+    src/modifier.cpp
 )
 
 target_include_directories(neon-arena PRIVATE src)
