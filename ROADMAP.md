@@ -1,7 +1,8 @@
 # NeonArena Roadmap
 
-> Letztes Update: 2026-09-08
-> Stand: v0.90 (released) Ghost-Kit G1–G12 (Loadouts), 13 Bosse, 14 Arenas, 110+ Tests
+> Letztes Update: 2026-09-13
+> Stand: v0.90 (released) Ghost-Kit G1–G12 (Loadouts), 13 Bosse, 14 Arenas, 114 Tests
+> Unreleased: Ghost-Ersthinweis, Pad-Binds, Daily-Pool 14, Startmenü PLAY/DAILY/GHOST/ARENA
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
 > Letztes GitHub-Release: **v0.90**.
@@ -88,12 +89,12 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 **When:** Q4 2026 ✅
 
 **Definition of Done:**
-- [ ] Controller-Support in CI getestet (Engine-Build mit Patch)
-- [ ] Ghost Loadouts balanced (Drain, Cooldowns, Energy per Playtest-Daten)
-- [ ] 110+ Tests (Basis 103 + Balance-Regression-Tests)
-- [ ] CHANGELOG.md aktualisiert
-- [ ] GitHub Release v0.90 mit Engine-Artifacts
-- [ ] Installer getestet (Windows/Linux)
+- [x] Controller-Support in CI getestet (Engine-Build mit Patch)
+- [x] Ghost Loadouts shipped (Drain, Cooldowns, Energy — Fein-Balance nach Playtest)
+- [x] 110+ Tests (Basis 103 + Balance-Regression-Tests)
+- [x] CHANGELOG.md aktualisiert
+- [x] GitHub Release v0.90 mit Engine-Artifacts
+- [x] Installer-Version auf 0.90 (Windows-Binary-Playtest weiter offen)
 
 ---
 
@@ -171,7 +172,7 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 113 | 113 ✅ |
+| Haupt-Mod Tests | 115 | 115 ✅ |
 | Build Time | ~45s | <60s |
 | Bosse | 13 | 13 |
 | Bot-Typen (Trash) | Healer / Shielder / Elite | — |

@@ -1,6 +1,6 @@
 {
   "name": "Node Control",
-  "map": "oa_node",
+  "map": "oa_dm1",
   "description": "Multi-Level Arena mit Plattformen und Brücken — vertikales Gameplay. Railgun dominiert die oberen Ebenen.",
   "settings": {
     "g_neonwave_maxwave": 22,

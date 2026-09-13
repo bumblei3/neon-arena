@@ -35,7 +35,7 @@ Optionen:
   --ghost         StarCraft Ghost kit (g_neonwave_ghost 1): Rail, Cloak, EMP, Lockdown, Nuke
   --wayland       SDL2 native Wayland backend (kein X11-Compat-Layer)
   --gfx-reset     GPU neu probe, gfx-auto.cfg überschreiben
-  --map NAME      Map (Default: oa_shine; mit --daily überschreibt die Tages-Map)
+  --map NAME      Map (ohne Flags: Startmenü; mit --daily/--ghost/--arena sofort starten)
   --help          diese Hilfe
 
 Umgebungsvariablen (optional):
@@ -105,27 +105,70 @@ if [ "$WAYLAND" -eq 1 ]; then
   echo "Wayland backend: SDL_VIDEODRIVER=wayland"
 fi
 
-daily_map_today() {
-  # FNV-1a over YYYY-MM-DD, then (hash/40)%3 — must match g_neonwave.c
-  python3 - <<'PY'
+daily_pick_today() {
+  # FNV-1a over YYYY-MM-DD — must match g_neonwave.c NW_DailyHash + pool.
+  # Prints: pool_key <tab> bsp <tab> arena_json_stem (may be empty)
+  # Optional first arg: forced seed (g_neonwave_dailyseed).
+  python3 - "$1" <<'PY'
+import sys
 from datetime import date
-h = 2166136261
-for c in date.today().strftime("%Y-%m-%d").encode("ascii"):
-    h ^= c
-    h = (h * 16777619) & 0xffffffff
-forced = h & 0x7fffffff
-idx = (forced // 40) % 3
-print(("oa_shine", "oa_minia", "oa_rpg3dm2")[idx])
+MOD_POOL, BOSS_COUNT = 16, 13
+# (pool key, loadable OA bsp, optional configs/arenas/*.json stem)
+POOL = [
+    ("oa_shine", "oa_shine", "neon_arena"),
+    ("oa_minia", "oa_minia", ""),
+    ("oa_rpg3dm2", "oa_rpg3dm2", "catacombs"),
+    ("oa_bleed", "slimefac", "bleed_chamber"),
+    ("oa_node", "oa_dm1", "node_control"),
+    ("oa_pulse", "oa_dm3", ""),
+    ("oa_desert", "islanddm", "desert_storm"),
+    ("oa_vortex", "oa_dm6", "vortex_ring"),
+    ("oa_frostbite", "oa_minia", "frostbite"),
+    ("oa_skybridge", "suspended", "skybridge"),
+    ("oa_underhive", "am_underworks", "underhive"),
+    ("oa_reactor", "hydronex", "reactor"),
+    ("oa_overgrowth", "am_galmevish", "overgrowth"),
+    ("oa_thor", "oa_thor", ""),
+]
+forced = 0
+arg = sys.argv[1] if len(sys.argv) > 1 else ""
+if arg.isdigit() and int(arg) > 0:
+    forced = int(arg)
+else:
+    h = 2166136261
+    for c in date.today().strftime("%Y-%m-%d").encode("ascii"):
+        h ^= c
+        h = (h * 16777619) & 0xffffffff
+    forced = h & 0x7fffffff
+idx = (forced // (MOD_POOL * BOSS_COUNT)) % len(POOL)
+name, bsp, arena = POOL[idx]
+print(f"{name}\t{bsp}\t{arena}")
 PY
 }
 
 MODE_CVARS=()
 if [ "$DAILY" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_daily 1)
-  if [ "$MAP_FORCED" -eq 0 ]; then
-    if MAP_TODAY=$(daily_map_today 2>/dev/null) && [ -n "$MAP_TODAY" ]; then
-      MAP="$MAP_TODAY"
-      echo "Daily map: $MAP"
+  DAILY_SEED=""
+  i=0
+  while [ $i -lt ${#EXTRA_CVARS[@]} ]; do
+    if [ "${EXTRA_CVARS[$i]}" = "+set" ] && [ "${EXTRA_CVARS[$((i+1))]:-}" = "g_neonwave_dailyseed" ]; then
+      DAILY_SEED="${EXTRA_CVARS[$((i+2))]:-}"
+      break
+    fi
+    i=$((i+1))
+  done
+  if PICK=$(daily_pick_today "$DAILY_SEED" 2>/dev/null) && [ -n "$PICK" ]; then
+    DAILY_KEY="${PICK%%$'\t'*}"
+    REST="${PICK#*$'\t'}"
+    DAILY_BSP="${REST%%$'\t'*}"
+    DAILY_ARENA="${REST#*$'\t'}"
+    echo "Daily: $DAILY_KEY  bsp=$DAILY_BSP${DAILY_ARENA:+  arena=$DAILY_ARENA}"
+    if [ "$MAP_FORCED" -eq 0 ]; then
+      MAP="$DAILY_BSP"
+    fi
+    if [ -z "$ARENA" ] && [ -n "$DAILY_ARENA" ]; then
+      ARENA="$DAILY_ARENA"
     fi
   fi
 fi
@@ -136,7 +179,7 @@ AFTER_MAP=()
 if [ "$GHOST" -eq 1 ]; then
   MODE_CVARS+=(+set g_neonwave_ghost 1)
   AFTER_MAP+=(+exec ghost-binds.cfg)
-  echo "Ghost kit: cloak/emp/lockdown/nuke  (J/H/K/N)  RMB zoom/snipe"
+  echo "Ghost kit: J/LB cloak  H/RB emp  K/X lock  N/Y nuke  M/RS scan  L/Back kit  RMB/B zoom"
 fi
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -167,7 +210,14 @@ if [ -n "$ARENA" ]; then
     value=$(echo "$value" | sed 's/^ *"//;s/" *$//')
     case "$key" in
       map) MAP="$value"; MAP_FORCED=1 ;;
-      g_neonwave_maxwave|g_neonwave_modifier|g_neonwave_bosstype|g_neonwave_startwave|g_momentum|g_momentum_decay|g_momentum_kill|g_neonwave_drone_hp_scale|g_neonwave_drone_damage_scale|g_neonwave_drone_count_scale|g_neonwave_drone_speed_scale|g_neonwave_gravity_scale|g_neonwave_ghost|g_ghost_energy_start|g_ghost_energy_max|g_ghost_regen_amt|g_neonwave_hardcore)
+      g_neonwave_modifier|g_neonwave_bosstype|g_neonwave_startwave)
+        # Daily owns modifier/boss rotation; don't let arena JSON pin them.
+        if [ "$DAILY" -eq 1 ]; then
+          continue
+        fi
+        MODE_CVARS+=(+set "$key" "$value")
+        ;;
+      g_neonwave_maxwave|g_momentum|g_momentum_decay|g_momentum_kill|g_neonwave_drone_hp_scale|g_neonwave_drone_damage_scale|g_neonwave_drone_count_scale|g_neonwave_drone_speed_scale|g_neonwave_gravity_scale|g_neonwave_ghost|g_ghost_energy_start|g_ghost_energy_max|g_ghost_regen_amt|g_neonwave_hardcore)
         MODE_CVARS+=(+set "$key" "$value")
         ;;
     esac
@@ -212,6 +262,49 @@ if [ "$BLOOM" = auto ]; then
   BLOOM="${BLOOM:-1}"
 fi
 
+look_cvars_for_map() {
+  # Must match oa-gamecode/code/game/neon_maplook.h
+  python3 - "$1" <<'PY'
+import sys
+LOOK = {
+    "oa_shine": (1, "1.40", "0.50", "0.60", "0.18"),
+    "oa_minia": (1, "1.40", "0.48", "0.62", "0.16"),
+    "oa_rpg3dm2": (1, "1.40", "0.50", "0.60", "0.16"),
+    "slimefac": (1, "1.45", "0.55", "0.55", "0.32"),
+    "oa_dm1": (1, "1.42", "0.52", "0.58", "0.30"),
+    "oa_dm3": (0, "1.25", "0.40", "0.70", "0.35"),
+    "islanddm": (0, "1.20", "0.35", "0.72", "0.38"),
+    "oa_dm6": (1, "1.40", "0.50", "0.60", "0.28"),
+    "suspended": (1, "1.38", "0.48", "0.62", "0.30"),
+    "am_underworks": (1, "1.45", "0.55", "0.55", "0.30"),
+    "hydronex": (1, "1.42", "0.52", "0.58", "0.28"),
+    "am_galmevish": (1, "1.40", "0.48", "0.62", "0.26"),
+    "oa_thor": (1, "1.40", "0.50", "0.60", "0.28"),
+}
+ob, gamma, bi, bt, grid = LOOK.get(sys.argv[1], LOOK["oa_shine"])
+print(ob, gamma, bi, bt, grid)
+PY
+}
+
+LOOK_CVARS=()
+if MAP_LOOK=$(look_cvars_for_map "$MAP" 2>/dev/null); then
+  # shellcheck disable=SC2086
+  read -r LOOK_OB LOOK_GAMMA LOOK_BI LOOK_BT LOOK_GRID <<EOF
+$MAP_LOOK
+EOF
+  if [ -n "$LOOK_OB" ] && [ -n "$LOOK_GRID" ]; then
+    LOOK_CVARS=(+set r_mapoverbrightbits "$LOOK_OB" +set r_gamma "$LOOK_GAMMA" +set r_bloom_intensity "$LOOK_BI" +set r_bloom_threshold "$LOOK_BT" +set cg_neon_grid "$LOOK_GRID")
+    echo "Look: $MAP  overbright=$LOOK_OB bloom=$LOOK_BI grid=$LOOK_GRID"
+  fi
+fi
+
+LAUNCH_MAP=()
+if [ "$MAP_FORCED" -eq 1 ] || [ "$DAILY" -eq 1 ] || [ "$GHOST" -eq 1 ] || [ "$HARDCORE" -eq 1 ] || [ -n "${ARENA:-}" ]; then
+  LAUNCH_MAP=(+map "$MAP")
+else
+  echo "Startmenü: PLAY / DAILY / GHOST / ARENA"
+fi
+
 exec "$ENGINE_BIN" \
   +set cl_renderer "$RENDERER" \
   +set r_bloom "$BLOOM" \
@@ -220,6 +313,7 @@ exec "$ENGINE_BIN" \
   +set fs_game "$GAME" \
   +set g_gametype "$GAME_TYPE" \
   "${MODE_CVARS[@]}" \
+  "${LOOK_CVARS[@]}" \
   "${EXTRA_CVARS[@]}" \
-  +map "$MAP" \
+  "${LAUNCH_MAP[@]}" \
   "${AFTER_MAP[@]}"

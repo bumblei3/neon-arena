@@ -1,6 +1,6 @@
 {
   "name": "Overgrowth",
-  "map": "oa_overgrowth",
+  "map": "am_galmevish",
   "description": "Zurückgewonnene Natur mit dichtem Unterholz. Cloak ist hier mächtiger als sonst.",
   "settings": {
     "g_neonwave_maxwave": 20,

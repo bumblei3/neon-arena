@@ -1,6 +1,6 @@
 {
   "name": "Desert Storm",
-  "map": "oa_desert",
+  "map": "islanddm",
   "description": "Offene Wüste mit Sandsturm-Perioden — Sichtweite schwankt. Long-Range Combat und Überraschungsangriffe.",
   "settings": {
     "g_neonwave_maxwave": 20,

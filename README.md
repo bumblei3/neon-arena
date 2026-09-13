@@ -3,8 +3,9 @@
 **Wave-Survival-Shooter auf OpenArena-Basis** – Railgun & Lightning Gun gegen
 steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 
-> Spielen: `scripts/start-quake3e.sh` · Daily: `--daily` · Ghost: `--ghost` · Arena: `--arena <name>`  
-> oder: `openarena +set fs_game neonarena +g_gametype 14 +map oa_shine`
+> Spielen: `scripts/start-quake3e.sh` (Startmenü: PLAY = Ghost, DAILY / GHOST / ARENA)  
+> Direkt: `--daily` · `--ghost` · `--arena <name>`  
+> oder: `openarena +set fs_game neonarena +g_gametype 14`
 
 ## Arenas (v0.90)
 
@@ -13,19 +14,19 @@ NeonArena hat 14 Arenas mit unterschiedlichen Themen und Spielstilen:
 | Arena | Map | Beschreibung | Schwierigkeit |
 |-------|-----|--------------|---------------|
 | **Neon Arena** | oa_shine | Standard Arena — ausgeglichenes Gameplay | ⭐ |
-| **Boss Rush** | oa_pulse | Nur Bosse — jede Welle ein Boss | ⭐⭐⭐ |
+| **Boss Rush** | oa_dm3 | Nur Bosse — jede Welle ein Boss | ⭐⭐⭐ |
 | **Ghost Protocol** | oa_shine | Ghost-Kit nur — Loadouts und Fähigkeiten testen | ⭐⭐ |
 | **Ironman** | oa_minia | Niemals sterben — kein Respawn, keine zweite Chance | ⭐⭐⭐⭐ |
 | **Catacombs** | oa_rpg3dm2 | Enge Gänge und dunkle Ecken — kurze Reichweite, hoher Schaden | ⭐⭐⭐ |
-| **Bleed Chamber** | oa_bleed | Dunkle Kammer mit rotem Neon-Akzent — Sichtbarkeit ist die Herausforderung | ⭐⭐ |
-| **Node Control** | oa_node | Multi-Level Arena mit Plattformen und Brücken — vertikales Gameplay | ⭐⭐⭐ |
-| **Desert Storm** | oa_desert | Offene Wüste mit Sandsturm-Perioden — Long-Range Combat | ⭐⭐ |
-| **Vortex Ring** | oa_vortex | Kreisförmige Arena mit Gravitations-Effekten — LOWGRAV-Modifier zentral | ⭐⭐⭐⭐ |
-| **Frostbite** | oa_frostbite | Eis, geringe Sichtweite, langsame Drones — Railgun-Präzision | ⭐⭐ |
-| **Skybridge** | oa_skybridge | Schwebende Plattformen, Fall-Schaden, niedrige Gravity | ⭐⭐⭐ |
-| **Underhive** | oa_underhive | Enge Korridore — Lightning Gun, aggressive Drones | ⭐⭐⭐ |
-| **Reactor** | oa_reactor | Zentraler Reaktor, periodischer AoE-Schaden | ⭐⭐ |
-| **Overgrowth** | oa_overgrowth | Dichte Vegetation — Ghost-Kit an, Cloak stärker | ⭐⭐ |
+| **Bleed Chamber** | slimefac | Dunkle Kammer — Sichtbarkeit ist die Herausforderung | ⭐⭐ |
+| **Node Control** | oa_dm1 | Multi-Level Arena mit Plattformen und Brücken — vertikales Gameplay | ⭐⭐⭐ |
+| **Desert Storm** | islanddm | Offene Fläche — Long-Range Combat | ⭐⭐ |
+| **Vortex Ring** | oa_dm6 | Vertikale Arena — LOWGRAV-Modifier zentral | ⭐⭐⭐⭐ |
+| **Frostbite** | oa_minia | Kompakt, langsame Drones — Railgun-Präzision | ⭐⭐ |
+| **Skybridge** | suspended | Schwebende Plattformen, Fall-Schaden, niedrige Gravity | ⭐⭐⭐ |
+| **Underhive** | am_underworks | Enge Korridore — Lightning Gun, aggressive Drones | ⭐⭐⭐ |
+| **Reactor** | hydronex | Industrie-Arena, enge Gänge um den Kern | ⭐⭐ |
+| **Overgrowth** | am_galmevish | Vegetation — Ghost-Kit an, Cloak stärker | ⭐⭐ |
 
 Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`)
 
@@ -47,7 +48,7 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
   Kosten: 1 Punkt für Level 0-3, 2 Punkte für Level 4+.
   HUD zeigt Punkte + Level live.
 - **Perk-System:** 3 Angebote pro Pause, F1/F2/F3 wählen. 6 Perks:
-  PIERCE, OVERCHARGE, CHAIN, SKIP, SECOND WIND, MIRROR.
+  PIERCE, CHAIN, DASH, OVERCHARGE, SECOND WIND, SKIP.
 - **Run-Statistik & End-Screen:** Bei Victory/Game Over Overlay mit
   überlebten Wellen, Kills, bester Combo und Laufzeit.
 - **Benannte Drones:** Killfeed zeigt `Drone W3-1` statt `sarge`.
@@ -81,7 +82,7 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
 - [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Loadouts, Cloak, EMP, Lockdown, Nuke, Detector)
 - [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — Kit G1–G12; nächster Hebel ist Playtest-Balance
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
-- [Test-Suite](tests/TESTS.md) — Headless-Suite (113 Tests: 1–115 inkl. 9b, ohne 85–87)
+- [Test-Suite](tests/TESTS.md) — Headless-Suite (115 Tests: 1–117 inkl. 9b, ohne 85–87)
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
 
 ## Schnellstart (Spieler)
@@ -99,7 +100,7 @@ cd neon-arena
 ./scripts/install.sh
 ```
 
-Starte mit: `neonarena`
+Starte mit: `neonarena` — Startmenü PLAY / DAILY / GHOST / ARENA.
 
 ### Option B: Manuell
 
@@ -250,7 +251,7 @@ Siehe [Architektur](docs/ARCHITECTURE.md) für Details.
 
 Ein Tag `v*` triggert automatisch:
 1. Build der QVMs und PK3-Dateien
-2. Vollständige Test-Suite (113 Tests)
+2. Vollständige Test-Suite (114 Tests)
 3. Erstellung eines GitHub Releases mit `neonarena.pk3` und `neonarena-qvm.pk3`
 
 GAMEVERSION in `code/game/g_local.h` muss mit dem Tag übereinstimmen.

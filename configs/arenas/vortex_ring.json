@@ -1,6 +1,6 @@
 {
   "name": "Vortex Ring",
-  "map": "oa_vortex",
+  "map": "oa_dm6",
   "description": "Kreisförmige Arena mit Gravitations-Effekten — LOWGRAV-Modifier zentral. Bewegung ist alles.",
   "settings": {
     "g_neonwave_maxwave": 20,

@@ -1,6 +1,6 @@
 {
   "name": "Bleed Chamber",
-  "map": "oa_bleed",
+  "map": "slimefac",
   "description": "Dunkle Kammer mit rotem Neon-Akzent — Sichtbarkeit ist die Herausforderung. Cloak und Detector entscheidend.",
   "settings": {
     "g_neonwave_maxwave": 20,

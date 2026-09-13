@@ -35,7 +35,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 12 | newrecord-flag | autostart, autokill, fastbreak, startwave 20 | `NEW RECORD WAVE\|NEW RECORD TIME`, `RECORDS SAVED` | keine alten Bestwerte unterdrücken |
 | 13 | mega-combo-reward | autostart, startwave 2, fakecombo 8, botasplayer 1, autokill, fastbreak | `fake combo 8 registered`, `MEGA COMBO 8`, `item_quad` | kein Quad bei kleinerem Combo |
 | 14 | boss-glass-cannon | autostart, startwave 10, bosstype 4 | `boss spawned: GLASS CANNON (hc 200)`, `hc\\200` | kein anderer Boss-Type |
-| 15 | daily-challenge-determinism | daily 1, dailyseed 12345/999, startwave 10 | je 2× `DAILY CHALLENGE seed N`, `DAILY MAP oa_pulse` (seed 12345 → Index 5) | Boss-Mismatch zwischen Läufen |
+| 15 | daily-challenge-determinism | daily 1, dailyseed 12345/999, startwave 10 | je 2× `DAILY CHALLENGE seed N`, `DAILY MAP oa_bleed` + `DAILY BSP slimefac` (seed 12345 → Index 3/14) | Boss-Mismatch zwischen Läufen |
 | 16 | boss-warden | autostart, startwave 10, bosstype 5, wardenforce 1 | `boss spawned: WARDEN (hc 500)`, ≥1 `WARDEN strikes the player zone`, ≥1 `WARDEN raises armor` | kein anderer Boss-Type |
 | 17 | timewarp-modifier | autostart, startwave 6, modifier 5 (TIME WARP), fastbreak, autokill | `starting wave 6.*\[TIME WARP\]`, payload mod=5 | keine Fatal-Warnung |
 | 18 | runstats-json | autostart, startwave 10, failrun | `RUN STATS JSON written`, Datei `neonwave_runstats.json` existiert + valides JSON (version=1, result in VICTORY/FAILED, modifierNames=list, achievements=list) | keine Write-Warnung |
@@ -126,7 +126,9 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 112 | ghost-balance-saboteur | ghost 1, loadout 1, failrun | `ENERGY=70 (loadout 1)` | keine Fatal-Warnung |
 | 113 | ghost-balance-spectre | ghost 1, loadout 2, failrun | `ENERGY=90 (loadout 2)` | keine Fatal-Warnung |
 | 114 | ghost-balance-saboteur-discount | ghost 1, loadout 1, failrun | `ENERGY=70 (loadout 1)`, `joined the Ghost team (loadout 1)` | keine Fatal-Warnung |
-| 115 | ghost-loadout-cycle | ghost 1, cycletest 1, failrun | `loadout set to 1`, `ENERGY=70 (loadout 1)` | keine Fatal-Warnung |
+| 115 | ghost-loadout-cycle | ghost 1, cycletest 1, failrun | `loadout set to 1`, `ENERGY=70 (loadout 1)`, `hint SABOTEUR`, JOY5/JOY6 binds | keine Fatal-Warnung |
+| 116 | start-menu | failrun | PLAY startet Ghost, ESC Resume/Restart/Leave, daily pool header | keine Fatal-Warnung |
+| 117 | map-look | failrun | `NeonArena: look oa_shine overbright=1 bloom=0.50 grid=0.18` | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
@@ -190,7 +192,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **113 Tests** (1–115 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
+Die Suite umfasst **115 Tests** (1–117 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:

@@ -12,10 +12,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tests 111–114: Ghost loadout start-energy (Infiltrator 80 / Saboteur 70 / Spectre 90)
 - **L** cycles Ghost loadout (`loadout next`); **M** binds Multiscan
 - HUD shows kit name (`INFIL` / `SAB` / `SPEC`) and Spectre pips (N/M instead of J)
+- Ghost spawn/loadout centerprint lists the kit verbs (J/H/K or H/K/N/M)
+- Gamepad Ghost-Binds: LB cloak, RB emp, X lockdown, Y nuke, Back kit, RS scan
+- HUD pip labels switch to pad names when `[JOY]` is active
+- Daily pool 8 → 14; each key maps to a real OpenArena BSP (`DAILY BSP`)
+- Startmenü (q3_ui): PLAY / DAILY / GHOST (Infiltrator/Saboteur/Spectre) / ARENA
+- PLAY starts Ghost with the last loadout (`g_ghost_loadout`, default Infiltrator)
+- ESC pause in GT_NEONWAVE: Resume / Restart / Setup / Leave (no Add Bots / Vote)
+- Launcher without flags opens the menu instead of auto-`+map oa_shine`
+- Shared `neon_daily_pool.h` for game + UI daily hash
+- Per-BSP look table (`neon_maplook.h`): overbright, gamma, bloom, `cg_neon_grid`
+- Dark sky + neon floor shaders for Daily maps (slimefac, islanddm, suspended, …)
+- HUD grid overlay scaled per map so non-shine arenas still read as NeonArena
 
 ### Fixed
+- Menu Daily applied Neon Arena cvars for every pool map; now uses `nw_daily_arena` stems like `--daily`
+- `CG_Init` no longer re-execs `neon-gfx.cfg` (it overwrote per-map gamma/overbright)
+- Ghost pad: JOY7 is Back (kit), JOY10 is RS-click (scan); LT is an axis on Linux SDL
 - Join-log newline in `NW_GhostSpawn` (`\\n` → newline)
 - CI test job no longer restores a stale QVM cache over the build artifacts (tests 111–114)
+- Daily launcher hash used a 3-map formula; now matches `g_neonwave.c` (16×13, 14 maps)
+- Arena JSONs pointed at maps that do not exist (`oa_frostbite` …); rebound to OA maps with AAS
+- README perk list said MIRROR (modifier) instead of DASH
+- Windows installer default version still 0.82 after the v0.90 tag
 
 ## [0.90] - 2026-09-09
 

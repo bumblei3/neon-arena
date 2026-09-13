@@ -942,3 +942,327 @@ textures/base_wall/metalfloor_wall_11
 		tcMod scale 2 2
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Daily-pool maps: dark sky + neon grid (overrides stock shaders by name)
+// ---------------------------------------------------------------------------
+gfx/2d/neon_grid
+{
+	nopicmip
+	nomipmaps
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen vertex
+		tcMod scale 8 6
+		tcMod scroll 0.008 0
+	}
+}
+
+textures/skies/earthsky01
+{
+	surfaceparm noimpact
+	surfaceparm nolightmap
+	surfaceparm sky
+	q3map_globaltexture
+	skyParms full 512 -
+	{
+		map textures/neonarena/night.jpg
+		tcMod scale 3 2
+		tcMod scroll 0.004 0.008
+		rgbGen identity
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.06 0.22 0.26 )
+		tcMod scale 6 6
+		tcMod scroll 0.01 0
+	}
+}
+
+textures/acc_dm3/fx_dm3sky
+{
+	surfaceparm noimpact
+	surfaceparm nolightmap
+	surfaceparm sky
+	q3map_globaltexture
+	skyParms full 512 -
+	{
+		map textures/neonarena/night.jpg
+		tcMod scale 3 2
+		tcMod scroll 0.004 0.008
+		rgbGen identity
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.06 0.22 0.26 )
+		tcMod scale 6 6
+		tcMod scroll 0.01 0
+	}
+}
+
+textures/skies/skybox
+{
+	surfaceparm noimpact
+	surfaceparm nolightmap
+	surfaceparm sky
+	q3map_globaltexture
+	skyParms full 512 -
+	{
+		map textures/neonarena/night.jpg
+		tcMod scale 3 2
+		tcMod scroll 0.004 0.008
+		rgbGen identity
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.06 0.22 0.26 )
+		tcMod scale 6 6
+		tcMod scroll 0.01 0
+	}
+}
+
+textures/nki_shaders/tropicalsky
+{
+	surfaceparm noimpact
+	surfaceparm nolightmap
+	surfaceparm sky
+	q3map_globaltexture
+	skyParms full 512 -
+	{
+		map textures/neonarena/night.jpg
+		tcMod scale 3 2
+		tcMod scroll 0.004 0.008
+		rgbGen identity
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.06 0.22 0.26 )
+		tcMod scale 6 6
+		tcMod scroll 0.01 0
+	}
+}
+
+textures/cosmo_skies/tim_tourney2
+{
+	surfaceparm noimpact
+	surfaceparm nolightmap
+	surfaceparm sky
+	q3map_globaltexture
+	skyParms full 512 -
+	{
+		map textures/neonarena/night.jpg
+		tcMod scale 3 2
+		tcMod scroll 0.004 0.008
+		rgbGen identity
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.06 0.22 0.26 )
+		tcMod scale 6 6
+		tcMod scroll 0.01 0
+	}
+}
+
+textures/cosmo_floor/metalgrid
+{
+	{
+		map textures/cosmo_floor/metalgrid.tga
+		rgbGen const ( 0.45 0.52 0.58 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/gothic_floor/largerblock3b3dim
+{
+	{
+		map textures/gothic_floor/largerblock3b3dim.jpg
+		rgbGen const ( 0.48 0.54 0.62 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/gothic_floor/metalbridge06
+{
+	{
+		map textures/gothic_floor/metalbridge06.jpg
+		rgbGen const ( 0.48 0.55 0.64 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/evil8_floor/e8clangfloor
+{
+	{
+		map textures/evil8_floor/e8clangfloor.jpg
+		rgbGen const ( 0.48 0.55 0.64 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/e7/e7brickfloor01
+{
+	{
+		map textures/e7/e7brickfloor01.jpg
+		rgbGen const ( 0.46 0.52 0.58 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.36 0.40 )
+		tcMod scale 2 2
+	}
+}
+
+textures/e7/e7sbrickfloor
+{
+	{
+		map textures/e7/e7sbrickfloor.jpg
+		rgbGen const ( 0.46 0.52 0.58 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.36 0.40 )
+		tcMod scale 2 2
+	}
+}
+
+textures/evil1_floors/stile_drty
+{
+	{
+		map textures/evil1_floors/stile_drty.jpg
+		rgbGen const ( 0.46 0.52 0.60 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/base_floor/floor3_3dark
+{
+	{
+		map textures/base_floor/floor3_3dark.jpg
+		rgbGen const ( 0.48 0.55 0.64 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}
+
+textures/acc_dm3/sp_ground
+{
+	{
+		map textures/acc_dm3/sp_ground.jpg
+		rgbGen const ( 0.46 0.52 0.58 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.36 0.40 )
+		tcMod scale 2 2
+	}
+}
+
+textures/acc_dm3/grind
+{
+	{
+		map textures/acc_dm3/grind.tga
+		rgbGen const ( 0.46 0.52 0.58 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.36 0.40 )
+		tcMod scale 2 2
+	}
+}
+
+textures/cosmo_floor/bfloor3
+{
+	{
+		map textures/cosmo_floor/bfloor3.tga
+		rgbGen const ( 0.46 0.52 0.60 )
+	}
+	{
+		map $lightmap
+		blendfunc filter
+	}
+	{
+		map textures/neonarena/grid.tga
+		blendfunc add
+		rgbGen const ( 0.10 0.38 0.42 )
+		tcMod scale 2 2
+	}
+}

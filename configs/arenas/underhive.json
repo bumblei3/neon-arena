@@ -1,6 +1,6 @@
 {
   "name": "Underhive",
-  "map": "oa_underhive",
+  "map": "am_underworks",
   "description": "Enge Korridore und dunkle Ecken. Nahkampf-Lightning-Gun ist König, Überraschungen an jeder Ecke.",
   "settings": {
     "g_neonwave_maxwave": 20,

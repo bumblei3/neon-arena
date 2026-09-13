@@ -14,7 +14,7 @@ Cloak (Toggle + Drain) → RMB-Snipe (Rail, Ambush 2×) → EMP-Round → Lockdo
 Keine neuen Tasten. G12 splittet den bestehenden Verb-Satz in Infiltrator / Saboteur / Spectre. Nächster Hebel: **Playtest-Daten für Fein-Balance**.
 
 Start: `scripts/start-quake3e.sh --ghost`  
-J cloak · H emp · K lockdown · N nuke · M scan · L next kit · RMB zoom.
+J/LB cloak · H/RB emp · K/X lockdown · N/Y nuke · M/RS scan · L/Back next kit · RMB/B zoom.
 
 ## Erledigt
 

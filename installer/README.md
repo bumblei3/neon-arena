@@ -15,8 +15,8 @@
    installer/engine/renderer_opengl2.dll
    ```
 3. `installer/neonarena.iss` mit Inno Setup kompilieren
-   (`iscc /DMyAppVersion=0.82 neonarena.iss` — Default ist GAMEVERSION 0.82)
-4. Fertig: `installer/NeonArena-0.82-Setup.exe`
+   (`iscc /DMyAppVersion=0.90 neonarena.iss` — Default ist GAMEVERSION 0.90)
+4. Fertig: `installer/NeonArena-0.90-Setup.exe`
 
 ## Manuelle Installation (ohne Installer)
 

@@ -3,7 +3,7 @@
 ; Verwendung: iscc neonarena.iss
 
 #ifndef MyAppVersion
-#define MyAppVersion "0.82"
+#define MyAppVersion "0.90"
 #endif
 
 [Setup]

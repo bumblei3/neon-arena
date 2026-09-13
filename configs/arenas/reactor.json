@@ -1,6 +1,6 @@
 {
   "name": "Reactor",
-  "map": "oa_reactor",
+  "map": "hydronex",
   "description": "Zentraler Reaktor strahlt periodisch Schaden ab. Positionierung und Timing sind entscheidend.",
   "settings": {
     "g_neonwave_maxwave": 20,

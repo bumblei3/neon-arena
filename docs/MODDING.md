@@ -184,7 +184,7 @@ Vordefinierte Spielmodi für verschiedene Herausforderungen:
 |-------|-----|--------------|---------------|
 | Neon Arena | oa_shine | Standard Gameplay | ★☆☆☆ |
 | Ghost Protocol | oa_shine | Ghost-Kit nur, mehr Energy | ★★☆☆ |
-| Boss Rush | oa_pulse | Jede Welle ein Boss | ★★★☆ |
+| Boss Rush | oa_dm3 | Jede Welle ein Boss | ★★★☆ |
 | Ironman | oa_minia | Hardcore, kein Respawn | ★★★★ |
 
 ### Arena laden

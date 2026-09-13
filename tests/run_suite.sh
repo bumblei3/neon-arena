@@ -1123,6 +1123,7 @@ assert_110() {
 assert_111() {
   local ok=0 logfile="$1"
   check "$logfile" "Ghost: .* ENERGY=80 (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: hint INFILTRATOR J cloak  H emp  K lock"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "ghost-balance-infiltrator"
 }
@@ -1139,6 +1140,7 @@ assert_112() {
 assert_113() {
   local ok=0 logfile="$1"
   check "$logfile" "Ghost: .* ENERGY=90 (loadout 2)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: hint SPECTRE H emp  K lock  N nuke  M scan"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "ghost-balance-spectre"
 }
@@ -1159,12 +1161,59 @@ assert_115() {
   local ok=0 logfile="$1"
   check "$logfile" "Ghost: loadout set to 1"; [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "Ghost: .* ENERGY=70 (loadout 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: hint SABOTEUR J cloak  H emp  K lock"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   if [ -f "$TESTDIR/../assets/ghost-binds.cfg" ]; then
     grep -q 'bind l "loadout next"' "$TESTDIR/../assets/ghost-binds.cfg" || ok=1
     grep -q 'bind m "multiscan"' "$TESTDIR/../assets/ghost-binds.cfg" || ok=1
+    grep -q 'bind JOY5 "cloak"' "$TESTDIR/../assets/ghost-binds.cfg" || ok=1
+    grep -q 'bind JOY6 "emp"' "$TESTDIR/../assets/ghost-binds.cfg" || ok=1
+    grep -q 'bind JOY7 "loadout next"' "$TESTDIR/../assets/ghost-binds.cfg" || ok=1
+    grep -q 'bind JOY10 "multiscan"' "$TESTDIR/../assets/ghost-binds.cfg" || ok=1
   fi
   report $ok "ghost-loadout-cycle"
+}
+
+# Test 116: Start menu sources + daily pool header stay wired
+assert_116() {
+  local ok=0 logfile="$1"
+  local ui="$TESTDIR/../oa-gamecode/code/q3_ui/ui_neonstart.c"
+  local hdr="$TESTDIR/../oa-gamecode/code/game/neon_daily_pool.h"
+  local mk="$TESTDIR/../oa-gamecode/Makefile"
+  [ -f "$ui" ] || ok=1
+  grep -q 'UI_NeonStartMenu' "$ui" || ok=1
+  grep -q '"PLAY"' "$ui" || ok=1
+  grep -q '"DAILY"' "$ui" || ok=1
+  grep -q '"GHOST"' "$ui" || ok=1
+  grep -q '"ARENA"' "$ui" || ok=1
+  grep -q 'Neon_LaunchGhost( Neon_LastLoadout()' "$ui" || ok=1
+  grep -q 'ghost loadout' "$ui" || ok=1
+  grep -q 'ui_neonstart.o' "$mk" || ok=1
+  grep -q '"RESUME"' "$TESTDIR/../oa-gamecode/code/q3_ui/ui_ingame.c" || ok=1
+  grep -q 'GT_NEONWAVE' "$TESTDIR/../oa-gamecode/code/q3_ui/ui_ingame.c" || ok=1
+  grep -q 'NW_DAILY_POOL_SIZE' "$hdr" || ok=1
+  grep -q 'nw_daily_arena' "$hdr" || ok=1
+  grep -q '"overgrowth"' "$hdr" || ok=1
+  grep -q 'Neon_ArenaByStem' "$ui" || ok=1
+  grep -q '"oa_bleed"' "$hdr" || ok=1
+  grep -q '"slimefac"' "$hdr" || ok=1
+  grep -q 'Startmenü' "$TESTDIR/../scripts/start-quake3e.sh" || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "start-menu"
+}
+
+# Test 117: per-BSP look table is applied (oa_shine default in suite)
+assert_117() {
+  local ok=0 logfile="$1"
+  local hdr="$TESTDIR/../oa-gamecode/code/game/neon_maplook.h"
+  check "$logfile" "NeonArena: look oa_shine overbright=1 bloom=0.50 grid=0.18"; [ $LAST_RESULT -eq 0 ] || ok=1
+  grep -q '"slimefac"' "$hdr" || ok=1
+  grep -q '"islanddm"' "$hdr" || ok=1
+  grep -q '"suspended"' "$hdr" || ok=1
+  grep -q 'cg_neon_grid' "$TESTDIR/../oa-gamecode/code/cgame/cg_draw.c" || ok=1
+  grep -q 'gfx/2d/neon_grid' "$TESTDIR/../assets/scripts/neon-look.shader" || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "map-look"
 }
 
 # TEST 2: full run victory
@@ -1245,8 +1294,10 @@ assert_14() {
 assert_15() {
   local ok=0 logfile="$1"
   count_min "$logfile" "DAILY CHALLENGE seed 12345" 2;  [ $? -eq 0 ] || ok=1
-  # seed 12345 -> map index (12345/(16*13))%8 = 59%8 = 3 -> oa_bleed
+  # seed 12345 -> map index (12345/(16*13))%14 = 59%14 = 3 -> oa_bleed / slimefac
   check "$logfile" "DAILY MAP oa_bleed";                [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "DAILY BSP slimefac";                [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "DAILY ARENA bleed_chamber";         [ $LAST_RESULT -eq 0 ] || ok=1
   check "$logfile" "dynamic difficulty locked (daily=1"; [ $LAST_RESULT -eq 0 ] || ok=1
   report $ok "daily-challenge-determinism"
 }
@@ -1386,11 +1437,13 @@ dispatch_test() {
     113) run_test 113 "ghost-balance-spectre" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 2 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     114) run_test 114 "ghost-balance-saboteur-discount" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     115) run_test 115 "ghost-loadout-cycle" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_ghost_cycletest 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    116) run_test 116 "start-menu" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    117) run_test 117 "map-look" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117"
 QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 110"
 
   case "$MODE" in

@@ -1,6 +1,6 @@
 {
   "name": "Frostbite",
-  "map": "oa_frostbite",
+  "map": "oa_minia",
   "description": "Eisige Arena mit geringer Sichtweite und rutschigen Oberflächen. Langsame Bewegung, präzises Zielen ist entscheidend.",
   "settings": {
     "g_neonwave_maxwave": 20,

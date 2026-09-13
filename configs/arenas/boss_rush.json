@@ -1,6 +1,6 @@
 {
   "name": "Boss Rush",
-  "map": "oa_pulse",
+  "map": "oa_dm3",
   "description": "Nur Bosse — jede Welle ein Boss",
   "settings": {
     "g_neonwave_maxwave": 15,

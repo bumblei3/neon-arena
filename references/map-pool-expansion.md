@@ -1,11 +1,15 @@
 # Map-Pool-Erweiterung für NeonArena
 
+Daily-Pool ist **14 Keys** in `g_neonwave.c` / `scripts/start-quake3e.sh`.
+Keys wie `oa_bleed` bleiben für Tests; `bsp[]` zeigt auf echte OA-Karten mit AAS
+(`slimefac`, `oa_dm1`, `suspended`, …). Look-CVars + Shader liegen in
+`neon_maplook.h` / `assets/scripts/neon-look.shader`.
+
 ## Warum
 
-Momentan drei Maps (`oa_shine`, `oa_minia`, `oa_rpg3dm2`) im Daily-Pool. Für regelmäßiges
-Spielen (insbesondere Daily-Challenge) ist die Auswahl zu klein — spieler spüren nach
-einigen Tagen Wiederholung. Für 5–8 Karten öffnet sich ein größeres Wiederspiel-Feld
-und das tägliche Gefühl bleibt frisch.
+Der erste Pool hatte drei Maps (`oa_shine`, `oa_minia`, `oa_rpg3dm2`). Ohne echte
+BSPs hinter den Arena-Namen lädt Daily ins Leere. 14 Keys mit Alias halten den
+Tag frisch, ohne Custom-Maps.
 
 ## Ansatz
 

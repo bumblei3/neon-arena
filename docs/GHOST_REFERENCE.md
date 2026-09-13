@@ -14,7 +14,8 @@ Drei Ghost-Kits per `loadout 0|1|2` / `g_ghost_loadout` (Default: Infiltrator).
 ## Start
 
 ```sh
-scripts/start-quake3e.sh --ghost
+scripts/start-quake3e.sh            # Menü → PLAY (letzter Kit) oder GHOST → Kit wählen
+scripts/start-quake3e.sh --ghost    # direkt Infiltrator auf oa_shine
 # oder:
 openarena +set fs_game neonarena +g_gametype 14 +set g_neonwave_ghost 1 +map oa_shine
 ```
@@ -152,7 +153,7 @@ Pro-Client über `playerState.stats` (lokal und Coop). `g_ghost_*` CVars bleiben
 | `STAT_GHOST_CDS` | empSec \| lockSec<<8 \| nukeSec<<16 \| cloakSec<<24 |
 | `STAT_GHOST_ST` | Status 1 Cloak / 2 Ambush / 3 Scanning / 4 Detected / 5 Designating / 6 Nuke; Nuke-Countdown in Bits 8–15 |
 
-Leiste unten links: Kit-Name + Energy (`INFIL` / `SAB` / `SPEC`). Pips **J H K** (Infiltrator/Saboteur) bzw. **H K N M** (Spectre) — cyan bereit, orange + Sekunden auf CD. Status zentriert. Spawn-Centerprint `GHOST: <KIT>` + `L next kit`.
+Leiste unten links: Kit-Name + Energy (`INFIL` / `SAB` / `SPEC`). Pips **J H K** (Infiltrator/Saboteur) bzw. **H K N M** (Spectre) — cyan bereit, orange + Sekunden auf CD. Mit `[JOY]`: **LB RB X** / **RB X Y RS**. Status zentriert. Spawn-Centerprint `GHOST: <KIT>` plus die drei Verben des Kits (`L kit  RMB zoom`).
 
 ## CVars
 
