@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Perk shop: cards are 1 / 2 / 3 buttons (also F1–F3 and D-pad). Binds load from cgame via upgrade-binds.cfg.
+- Removed fullscreen HUD neon grid overlay (it sat on the rail sight). Floor shaders keep map neon.
+- Removed always-on cyan 4:3 wash/vignette (ultrawide square over the rail). Cloak and zoom overlays stay.
+- Ghost kit is humans-only: drones keep rail+LG, no cloak/energy
+- Ghost waves 1–4 spawn n drones (not n+1) so a run can reach Detector
+
 ### Added
+- Test 119: Ghost humans-only + early wave count
 - Arena identity: stem look overrides so shared BSPs do not look the same
   - Frostbite ice grid/bloom vs Ironman harsh/dark (both `oa_minia`)
   - Ghost Protocol cyan, Overgrowth moss, Bleed Chamber blood

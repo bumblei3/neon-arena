@@ -1198,6 +1198,9 @@ assert_116() {
   grep -q '"oa_bleed"' "$hdr" || ok=1
   grep -q '"slimefac"' "$hdr" || ok=1
   grep -q 'Startmenü' "$TESTDIR/../scripts/start-quake3e.sh" || ok=1
+  grep -q 'bind 1 "upgrade 1"' "$TESTDIR/../assets/upgrade-binds.cfg" || ok=1
+  grep -q 'exec upgrade-binds.cfg' "$TESTDIR/../oa-gamecode/code/cgame/cg_main.c" || ok=1
+  grep -q 'PRESS  1 / 2 / 3' "$TESTDIR/../oa-gamecode/code/cgame/cg_draw.c" || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "start-menu"
 }
@@ -1206,11 +1209,10 @@ assert_116() {
 assert_117() {
   local ok=0 logfile="$1"
   local hdr="$TESTDIR/../oa-gamecode/code/game/neon_maplook.h"
-  check "$logfile" "NeonArena: look oa_shine overbright=1 bloom=0.50 grid=0.18"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "NeonArena: look oa_shine overbright=1 bloom=0.50 grid=0"; [ $LAST_RESULT -eq 0 ] || ok=1
   grep -q '"slimefac"' "$hdr" || ok=1
   grep -q '"islanddm"' "$hdr" || ok=1
   grep -q '"suspended"' "$hdr" || ok=1
-  grep -q 'cg_neon_grid' "$TESTDIR/../oa-gamecode/code/cgame/cg_draw.c" || ok=1
   grep -q 'gfx/2d/neon_grid' "$TESTDIR/../assets/scripts/neon-look.shader" || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "map-look"
@@ -1221,7 +1223,7 @@ assert_118() {
   local ok=0 logfile="$1"
   local hdr="$TESTDIR/../oa-gamecode/code/game/neon_maplook.h"
   local ui="$TESTDIR/../oa-gamecode/code/q3_ui/ui_neonstart.c"
-  check "$logfile" "NeonArena: look frostbite overbright=1 bloom=0.38 grid=0.40"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "NeonArena: look frostbite overbright=1 bloom=0.38 grid=0"; [ $LAST_RESULT -eq 0 ] || ok=1
   grep -q '"frostbite"' "$hdr" || ok=1
   grep -q '"ironman"' "$hdr" || ok=1
   grep -q 'NW_GRID_ICE' "$hdr" || ok=1
@@ -1238,6 +1240,18 @@ assert_118() {
   grep -q 'ARENA_LOOK' "$TESTDIR/../scripts/start-quake3e.sh" || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "arena-identity"
+}
+
+# Test 119: Ghost kit is humans-only; early waves spawn n drones not n+1
+assert_119() {
+  local ok=0 logfile="$1"
+  check "$logfile" "Ghost: kit ENERGY=80 (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: kit joined the Ghost team (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "starting wave 1 (1 bots, skill 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  assert_no_pattern "$logfile" "Ghost: Sarge ENERGY=" || ok=1
+  assert_no_pattern "$logfile" "Ghost: Sarge joined the Ghost team" || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "ghost-humans-only"
 }
 
 # TEST 2: full run victory
@@ -1451,12 +1465,12 @@ dispatch_test() {
     103) run_test 103 "boss-chronomancer" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_autokill 1 +set g_neonwave_bosstype 12 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
     104) run_test 104 "boss-voidwalker" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_autokill 1 +set g_neonwave_bosstype 13 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
     105) run_test 105 "seasonal-challenge" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 +set g_neonwave_seasonal 1 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 +set g_neonwave_modifier 1 ;;
-    106) run_test 106 "ghost-loadout-infiltrator" 60 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    106) run_test 106 "ghost-loadout-infiltrator" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     107) run_test 107 "ghost-loadout-saboteur" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     108) run_test 108 "ghost-loadout-spectre" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 2 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    109) run_test 109 "ghost-loadout-infiltrator-energy" 60 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    109) run_test 109 "ghost-loadout-infiltrator-energy" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     110) run_test 110 "controller-cvars" 30 +set joy_deadzone 0.15 +set joy_sensitivity 2.5 +set in_joystick 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    111) run_test 111 "ghost-balance-infiltrator" 60 +set g_neonwave_ghost 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    111) run_test 111 "ghost-balance-infiltrator" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     112) run_test 112 "ghost-balance-saboteur" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     113) run_test 113 "ghost-balance-spectre" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 2 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     114) run_test 114 "ghost-balance-saboteur-discount" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
@@ -1464,11 +1478,12 @@ dispatch_test() {
     116) run_test 116 "start-menu" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     117) run_test 117 "map-look" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     118) run_test 118 "arena-identity" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 +set g_neonwave_arena frostbite ;;
+    119) run_test 119 "ghost-humans-only" 30 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119"
 QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 110"
 
   case "$MODE" in

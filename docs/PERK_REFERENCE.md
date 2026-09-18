@@ -1,6 +1,6 @@
 # Perk-Reference
 
-Das Perk-System in NeonArena: 3 Angebote pro Wellenpause, F1/F2/F3 wählen.
+Das Perk-System in NeonArena: 3 Angebote pro Wellenpause, **1 / 2 / 3** wählen (auch F1–F3 oder D-Pad).
 
 > **Feedback willkommen!** Siehe [README](../README.md#feedback).
 
