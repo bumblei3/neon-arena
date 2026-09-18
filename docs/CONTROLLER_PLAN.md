@@ -1,7 +1,7 @@
 # Controller-Support Plan für NeonArena
 
-> Stand v0.81/v0.82: **QVM-Seite fertig** (CVars, Binds, Aim-Assist, `[JOY]` HUD, Test 102).
-> Offen: Analog-Stick-Input und UI-Navigation in Quake3e (`patches/quake3e-controller.patch`).
+> Stand v0.90: **erledigt** (QVM Aim-Assist + `[JOY]` HUD, Quake3e SDL2 Stick/UI/Rumble).
+> Historischer Plan, kein offenes Milestone. Patch: `patches/quake3e-controller.patch`.
 
 ## Übersicht
 OpenArena hat Joystick/Gamepad-Support nur für Menüs, nicht für die Spielsteuerung. Wir implementieren vollständigen Controller-Support mit Aim-Assist.

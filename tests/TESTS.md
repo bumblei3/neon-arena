@@ -129,6 +129,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 115 | ghost-loadout-cycle | ghost 1, cycletest 1, failrun | `loadout set to 1`, `ENERGY=70 (loadout 1)`, `hint SABOTEUR`, JOY5/JOY6 binds | keine Fatal-Warnung |
 | 116 | start-menu | failrun | PLAY startet Ghost, ESC Resume/Restart/Leave, daily pool header | keine Fatal-Warnung |
 | 117 | map-look | failrun | `NeonArena: look oa_shine overbright=1 bloom=0.50 grid=0.18` | keine Fatal-Warnung |
+| 118 | arena-identity | arena frostbite, failrun | `NeonArena: look frostbite overbright=1 bloom=0.38 grid=0.40`, Ironman-Look ≠ Frostbite, PLAY/TODAY hints | keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |
@@ -192,7 +193,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **115 Tests** (1–117 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
+Die Suite umfasst **116 Tests** (1–118 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:

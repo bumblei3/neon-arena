@@ -3,3 +3,15 @@ build/
 *.o
 neon-arena
 !Makefile.local
+
+# Prototype sketches: local build trees and test binaries
+prototypes/**/build/
+prototypes/**/CMakeCache.txt
+prototypes/**/CMakeFiles/
+prototypes/**/cmake_install.cmake
+prototypes/sdl2-gl3/tests/test_modifier
+prototypes/sdl2-gl3/tests/test_particle_ecs
+prototypes/sdl2-gl3/tests/test_playtest
+prototypes/sdl2-gl3/test_game
+prototypes/sdl2-gl3/neon-arena
+prototypes/vulkan-archived/test_game

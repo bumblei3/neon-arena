@@ -1,5 +1,8 @@
 # NeonArena: Prototyp → Haupt-Mod Gap-Analyse
 
+> Stale. Produkt ist der OpenArena-Mod. Diese Datei beschreibt den Stand vor v0.70.
+> Nicht als Quelle für Features oder Prioritäten nutzen.
+
 ## Status
 - **Prototyp:** 27 Module (C++), 506 Tests
 - **Haupt-Mod:** ioq3e Submodule (C), g_neonwave.c + g_bot.c + g_spawn.c + g_client.c + g_combat.c + cg_draw.c

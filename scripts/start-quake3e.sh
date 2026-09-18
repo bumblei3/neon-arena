@@ -204,6 +204,7 @@ if [ -n "$ARENA" ]; then
     exit 2
   fi
   echo "Arena: $ARENA ($ARENA_FILE)"
+  MODE_CVARS+=(+set g_neonwave_arena "$ARENA")
   # Parse JSON and set CVars
   while IFS='=' read -r key value; do
     # Remove quotes and whitespace
@@ -264,8 +265,15 @@ fi
 
 look_cvars_for_map() {
   # Must match oa-gamecode/code/game/neon_maplook.h
-  python3 - "$1" <<'PY'
+  python3 - "$1" "${2:-}" <<'PY'
 import sys
+ARENA_LOOK = {
+    "frostbite": (1, "1.22", "0.38", "0.72", "0.40"),
+    "ironman": (0, "1.10", "0.28", "0.80", "0.20"),
+    "ghost_protocol": (1, "1.45", "0.58", "0.50", "0.26"),
+    "overgrowth": (1, "1.32", "0.44", "0.66", "0.24"),
+    "bleed_chamber": (1, "1.50", "0.60", "0.48", "0.38"),
+}
 LOOK = {
     "oa_shine": (1, "1.40", "0.50", "0.60", "0.18"),
     "oa_minia": (1, "1.40", "0.48", "0.62", "0.16"),
@@ -281,20 +289,24 @@ LOOK = {
     "am_galmevish": (1, "1.40", "0.48", "0.62", "0.26"),
     "oa_thor": (1, "1.40", "0.50", "0.60", "0.28"),
 }
-ob, gamma, bi, bt, grid = LOOK.get(sys.argv[1], LOOK["oa_shine"])
+stem = sys.argv[2] if len(sys.argv) > 2 else ""
+if stem in ARENA_LOOK:
+    ob, gamma, bi, bt, grid = ARENA_LOOK[stem]
+else:
+    ob, gamma, bi, bt, grid = LOOK.get(sys.argv[1], LOOK["oa_shine"])
 print(ob, gamma, bi, bt, grid)
 PY
 }
 
 LOOK_CVARS=()
-if MAP_LOOK=$(look_cvars_for_map "$MAP" 2>/dev/null); then
+if MAP_LOOK=$(look_cvars_for_map "$MAP" "${ARENA:-}" 2>/dev/null); then
   # shellcheck disable=SC2086
   read -r LOOK_OB LOOK_GAMMA LOOK_BI LOOK_BT LOOK_GRID <<EOF
 $MAP_LOOK
 EOF
   if [ -n "$LOOK_OB" ] && [ -n "$LOOK_GRID" ]; then
     LOOK_CVARS=(+set r_mapoverbrightbits "$LOOK_OB" +set r_gamma "$LOOK_GAMMA" +set r_bloom_intensity "$LOOK_BI" +set r_bloom_threshold "$LOOK_BT" +set cg_neon_grid "$LOOK_GRID")
-    echo "Look: $MAP  overbright=$LOOK_OB bloom=$LOOK_BI grid=$LOOK_GRID"
+    echo "Look: ${ARENA:-$MAP}  overbright=$LOOK_OB bloom=$LOOK_BI grid=$LOOK_GRID"
   fi
 fi
 

@@ -158,7 +158,7 @@ cd neon-arena
 
 ### Test-Suite
 
-- 114 Tests (`ALL_TESTS` in `tests/run_suite.sh`: 1–116 inkl. 9b, ohne 85–87)
+- 116 Tests (`ALL_TESTS` in `tests/run_suite.sh`: 1–118 inkl. 9b, ohne 85–87)
 - Verteilung auf 7 parallele Chunks (0–6)
 - Headless via `ioq3ded` + `xvfb-run`
 - Assertions prüfen Log-Marker + Anti-Patterns

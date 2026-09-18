@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Arena identity: stem look overrides so shared BSPs do not look the same
+  - Frostbite ice grid/bloom vs Ironman harsh/dark (both `oa_minia`)
+  - Ghost Protocol cyan, Overgrowth moss, Bleed Chamber blood
+  - HUD grid tint follows the look (`NW_GRID_ICE` / `IRON` / `GHOST` / `MOSS` / `BLOOD`)
+- Frostbite pins FROST (modifier 12) from wave 5; JSON + start menu
+- Start menu hints: PLAY shows last kit + binds, DAILY shows today's map, ARENA shows a one-liner
+- Ghost Protocol extra energy (max 150 / regen 6) from the menu, matching the JSON
+- Test 118: Frostbite look override + identity wiring
 - Ghost spawn ENERGY log (`Ghost: <name> ENERGY=N (loadout L)`) for loadout-balance tests
 - Tests 111–114: Ghost loadout start-energy (Infiltrator 80 / Saboteur 70 / Spectre 90)
 - **L** cycles Ghost loadout (`loadout next`); **M** binds Multiscan

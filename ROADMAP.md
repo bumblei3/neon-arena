@@ -1,8 +1,8 @@
 # NeonArena Roadmap
 
-> Letztes Update: 2026-09-13
-> Stand: v0.90 (released) Ghost-Kit G1–G12 (Loadouts), 13 Bosse, 14 Arenas, 114 Tests
-> Unreleased: Ghost-Ersthinweis, Pad-Binds, Daily-Pool 14, Startmenü PLAY/DAILY/GHOST/ARENA
+> Letztes Update: 2026-09-18
+> Stand: v0.90 (released) Ghost-Kit G1–G12, 13 Bosse, 14 Arenas, 116 Tests
+> Unreleased: Startmenü, Daily-Pool 14, Map-Look, Arena-Identität (Frostbite ≠ Ironman), Pad-Binds
 >
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
 > Letztes GitHub-Release: **v0.90**.
@@ -172,7 +172,7 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 115 | 115 ✅ |
+| Haupt-Mod Tests | 116 | 116 ✅ |
 | Build Time | ~45s | <60s |
 | Bosse | 13 | 13 |
 | Bot-Typen (Trash) | Healer / Shielder / Elite | — |

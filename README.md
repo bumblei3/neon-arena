@@ -16,13 +16,13 @@ NeonArena hat 14 Arenas mit unterschiedlichen Themen und Spielstilen:
 | **Neon Arena** | oa_shine | Standard Arena — ausgeglichenes Gameplay | ⭐ |
 | **Boss Rush** | oa_dm3 | Nur Bosse — jede Welle ein Boss | ⭐⭐⭐ |
 | **Ghost Protocol** | oa_shine | Ghost-Kit nur — Loadouts und Fähigkeiten testen | ⭐⭐ |
-| **Ironman** | oa_minia | Niemals sterben — kein Respawn, keine zweite Chance | ⭐⭐⭐⭐ |
+| **Ironman** | oa_minia | Hardcore, ein Leben — dunkler Look, gleiche Map wie Frostbite | ⭐⭐⭐⭐ |
 | **Catacombs** | oa_rpg3dm2 | Enge Gänge und dunkle Ecken — kurze Reichweite, hoher Schaden | ⭐⭐⭐ |
 | **Bleed Chamber** | slimefac | Dunkle Kammer — Sichtbarkeit ist die Herausforderung | ⭐⭐ |
 | **Node Control** | oa_dm1 | Multi-Level Arena mit Plattformen und Brücken — vertikales Gameplay | ⭐⭐⭐ |
 | **Desert Storm** | islanddm | Offene Fläche — Long-Range Combat | ⭐⭐ |
 | **Vortex Ring** | oa_dm6 | Vertikale Arena — LOWGRAV-Modifier zentral | ⭐⭐⭐⭐ |
-| **Frostbite** | oa_minia | Kompakt, langsame Drones — Railgun-Präzision | ⭐⭐ |
+| **Frostbite** | oa_minia | FROST-Modifier, Eis-Look, langsame Drones — nicht Ironman | ⭐⭐ |
 | **Skybridge** | suspended | Schwebende Plattformen, Fall-Schaden, niedrige Gravity | ⭐⭐⭐ |
 | **Underhive** | am_underworks | Enge Korridore — Lightning Gun, aggressive Drones | ⭐⭐⭐ |
 | **Reactor** | hydronex | Industrie-Arena, enge Gänge um den Kern | ⭐⭐ |
@@ -60,8 +60,8 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
   über Datum bestimmt Boss-Rotation und Modifier-Reihenfolge).
 - **Seasonal Challenge:** Wöchentlich rotierende Ziele (`g_neonwave_seasonal 1`) —
   16 Challenges, Fortschritt + Titel-Reward, lokale Top-5-Rangliste.
-- **Controller (QVM):** Aim-Assist und `[JOY]`-HUD wenn `in_joystick 1`. Analog-Stick
-  und UI-Navigation brauchen noch Quake3e-SDL2 (M13 Engine).
+- **Controller:** Aim-Assist und `[JOY]`-HUD bei `in_joystick 1`. Analog-Stick,
+  UI-Navigation und Rumble über Quake3e-SDL2 (M13). Pad-Binds fürs Ghost-Kit.
 - **Wellen-Jingles:** Sound-Signal bei Wellenstart und -clear.
 - **Neon-Look:** Dunkle Skybox, Neon-Grid auf oa_shine, Cyan-Rail/LG mit D-Lights,
   Drohnen-Cyan-Shell (Boss magenta), Rail-Impact-Burst, LG-Sparks, Muzzle-Flare,
@@ -82,7 +82,7 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
 - [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Loadouts, Cloak, EMP, Lockdown, Nuke, Detector)
 - [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — Kit G1–G12; nächster Hebel ist Playtest-Balance
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
-- [Test-Suite](tests/TESTS.md) — Headless-Suite (115 Tests: 1–117 inkl. 9b, ohne 85–87)
+- [Test-Suite](tests/TESTS.md) — Headless-Suite (116 Tests: 1–118 inkl. 9b, ohne 85–87)
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
 
 ## Schnellstart (Spieler)
@@ -251,7 +251,7 @@ Siehe [Architektur](docs/ARCHITECTURE.md) für Details.
 
 Ein Tag `v*` triggert automatisch:
 1. Build der QVMs und PK3-Dateien
-2. Vollständige Test-Suite (114 Tests)
+2. Vollständige Test-Suite (116 Tests)
 3. Erstellung eines GitHub Releases mit `neonarena.pk3` und `neonarena-qvm.pk3`
 
 GAMEVERSION in `code/game/g_local.h` muss mit dem Tag übereinstimmen.
