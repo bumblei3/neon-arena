@@ -58,6 +58,7 @@ Pro Wellenpause werden 3 zufällige Perks als F1/F2/F3-Angebot angezeigt:
 - Wiederholungen möglich (gleicher Perk mehrmals)
 - Perks am Cap werden nicht angeboten
 - SKIP und SECOND WIND nur wenn noch nicht am Cap
+- Ghost (nur Railgun) würfelt CHAIN nicht. PIERCE bleibt die Rail-Karte. `g_neonwave_perkforce` kann CHAIN trotzdem erzwingen.
 
 ## Test-Hooks
 

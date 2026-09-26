@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Drone count is capped after swarm, coop and arena scale (`g_neonwave_drone_cap`, default 8, `0` disables). Wave 6 SWARM is 8 drones instead of 14, so the reliable command buffer does not drop the client.
+- Ghost perk rolls skip CHAIN (lightning-only). PIERCE stays. `g_neonwave_perkforce` can still force CHAIN.
 - Perk shop: cards are 1 / 2 / 3 buttons (also F1–F3 and D-pad). Binds load from cgame via upgrade-binds.cfg.
 - Removed fullscreen HUD neon grid overlay (it sat on the rail sight). Floor shaders keep map neon.
 - Removed always-on cyan 4:3 wash/vignette (ultrawide square over the rail). Cloak and zoom overlays stay.
@@ -15,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ghost waves 1–4 spawn n drones (not n+1) so a run can reach Detector
 
 ### Added
+- Test 120: wave 6 SWARM clamps 14 drones to the cap of 8
+- Test 121: Ghost wave-1 offer is SECOND WIND / PIERCE / SKIP, never CHAIN
 - Test 119: Ghost humans-only + early wave count
 - Arena identity: stem look overrides so shared BSPs do not look the same
   - Frostbite ice grid/bloom vs Ironman harsh/dark (both `oa_minia`)

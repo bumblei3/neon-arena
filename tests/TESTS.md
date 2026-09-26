@@ -131,6 +131,8 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 117 | map-look | failrun | `NeonArena: look oa_shine overbright=1 bloom=0.50 grid=0` | keine Fatal-Warnung |
 | 118 | arena-identity | arena frostbite, failrun | `NeonArena: look frostbite overbright=1 bloom=0.38 grid=0`, Ironman-Look ≠ Frostbite, PLAY/TODAY hints | keine Fatal-Warnung |
 | 119 | ghost-humans-only | ghost, failrun | UnnamedPlayer Ghost join, `starting wave 1 (1 bots`, no `Sarge ENERGY` | keine Fatal-Warnung |
+| 120 | drone-cap | startwave 6, modifier 2 (SWARM), ghost 0, failrun | `drone cap 8: 14 -> 8`, `starting wave 6 (8 bots, skill 3)`, `[SWARM]` | keine Fatal-Warnung |
+| 121 | ghost-no-chain | ghost, loadout 0, startwave 1, autokill, fastbreak | `PERK OFFER F1=SECOND WIND F2=PIERCE F3=SKIP` | kein `PERK OFFER` mit CHAIN, keine Fatal-Warnung |
 | 82 | boss-shielder | bosstype 9 | `boss spawned: SHIELDER`, `SHIELDER deploys energy shield` | keine Fatal-Warnung |
 | 83 | boss-snipelite | bosstype 10 | `boss spawned: SNIPER ELITE`, `SNIPER ELITE rapid rail` | keine Fatal-Warnung |
 | 84 | boss-demolisher | bosstype 11 | `boss spawned: DEMOLISHER`, `DEMOLISHER fires rocket barrage` | keine Fatal-Warnung |

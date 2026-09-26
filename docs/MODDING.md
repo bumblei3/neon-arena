@@ -32,6 +32,7 @@
 | `g_neonwave_dashforce` | 0 | Sniper-Dash erzwingen |
 | `g_neonwave_wardenforce` | 0 | Warden erzwingen |
 | `g_neonwave_perkforce` | 0 | Perk erzwingen (ID) |
+| `g_neonwave_drone_cap` | 8 | Drohnen-Obergrenze nach Swarm/Coop/Scale (`0` = aus) |
 | `g_neonwave_autopick` | 0 | Perk automatisch wählen |
 | `g_neonwave_perkr` | 0 | Perk-Rank erzwingen |
 | `g_neonwave_fakecombo` | 0 | Fake-Combo erzwingen |

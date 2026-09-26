@@ -47,8 +47,9 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
   F1 = HP (bis 8), F2 = DMG (bis 7, +10 %/Level), F3 = SPD (bis 7).
   Kosten: 1 Punkt für Level 0-3, 2 Punkte für Level 4+.
   HUD zeigt Punkte + Level live.
-- **Perk-System:** 3 Angebote pro Pause, F1/F2/F3 wählen. 6 Perks:
+- **Perk-System:** 3 Angebote pro Pause, 1/2/3 wählen. 6 Perks:
   PIERCE, CHAIN, DASH, OVERCHARGE, SECOND WIND, SKIP.
+  Ghost würfelt CHAIN nicht (Lightning Gun); PIERCE bleibt.
 - **Run-Statistik & End-Screen:** Bei Victory/Game Over Overlay mit
   überlebten Wellen, Kills, bester Combo und Laufzeit.
 - **Benannte Drones:** Killfeed zeigt `Drone W3-1` statt `sarge`.

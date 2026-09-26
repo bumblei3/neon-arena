@@ -1242,6 +1242,25 @@ assert_118() {
   report $ok "arena-identity"
 }
 
+# TEST 120: SWARM double is clamped by g_neonwave_drone_cap (default 8)
+assert_120() {
+  local ok=0 logfile="$1"
+  check "$logfile" "drone cap 8: 14 -> 8"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "starting wave 6 (8 bots, skill 3)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "\\[SWARM\\]"; [ $LAST_RESULT -eq 0 ] || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "drone-cap"
+}
+
+# TEST 121: Ghost shop does not roll CHAIN. Wave 1 unfiltered would be CHAIN first.
+assert_121() {
+  local ok=0 logfile="$1"
+  check "$logfile" "PERK OFFER F1=SECOND WIND F2=PIERCE F3=SKIP"; [ $LAST_RESULT -eq 0 ] || ok=1
+  assert_no_pattern "$logfile" "PERK OFFER.*CHAIN" || ok=1
+  no_fatal_warnings "$logfile" || ok=1
+  report $ok "ghost-no-chain"
+}
+
 # Test 119: Ghost kit is humans-only; early waves spawn n drones not n+1
 assert_119() {
   local ok=0 logfile="$1"
@@ -1460,7 +1479,7 @@ dispatch_test() {
     98) run_test 98 "bot-elite" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 14 +set g_neonwave_autokill 1 +set g_neonwave_forcebot 3 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
     99) run_test 99 "seasonal-rotation" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_seasonal 1 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
     100) run_test 100 "arena-validation" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.1 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
-    101) run_test 101 "performance-stress" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_autokill 1 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 2.0 +set g_neonwave_gravity_scale 1.0 ;;
+    101) run_test 101 "performance-stress" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 15 +set g_neonwave_autokill 1 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 2.0 +set g_neonwave_drone_cap 20 +set g_neonwave_gravity_scale 1.0 ;;
     102) run_test 102 "controller-active" 60 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_autokill 1 +set g_neonwave_ghost 1 +set in_joystick 1 +set joy_assist 0.5 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
     103) run_test 103 "boss-chronomancer" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_autokill 1 +set g_neonwave_bosstype 12 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
     104) run_test 104 "boss-voidwalker" 90 +set g_neonwave_autostart 1 +set g_neonwave_startwave 12 +set g_neonwave_autokill 1 +set g_neonwave_bosstype 13 +set g_neonwave_ghost 0 +set g_neonwave_drone_hp_scale 1.0 +set g_neonwave_drone_damage_scale 1.0 +set g_neonwave_drone_speed_scale 1.0 +set g_neonwave_drone_count_scale 1.0 +set g_neonwave_gravity_scale 1.0 ;;
@@ -1479,12 +1498,14 @@ dispatch_test() {
     117) run_test 117 "map-look" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     118) run_test 118 "arena-identity" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 +set g_neonwave_arena frostbite ;;
     119) run_test 119 "ghost-humans-only" 30 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    120) run_test 120 "drone-cap" 30 +set g_neonwave_autostart 1 +set g_neonwave_startwave 6 +set g_neonwave_modifier 2 +set g_neonwave_ghost 0 +set g_neonwave_failrun 1 ;;
+    121) run_test 121 "ghost-no-chain" 45 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_startwave 1 +set g_neonwave_autokill 1 +set g_neonwave_fastbreak 1 ;;
 
     *)  echo "no cvar mapping for test $1"; return 2 ;;
   esac
 }
-ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119"
-QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 110"
+ALL_TESTS="1 2 3 4 5 6 7 8 9 9b 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121"
+QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 110 120 121"
 
   case "$MODE" in
   all)

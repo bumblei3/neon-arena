@@ -16,7 +16,7 @@ Rotation: `(wave - 5 + dailyOffset) % NW_MOD_POOL_SIZE`
 |---|------|----|--------|--------------|
 | 0 | NONE | 0 | Kein Modifier | — |
 | 1 | GLASS DRONES | 1 | Drones sterben mit 1 Treffer, aber +2 Skill-Aggression | — |
-| 2 | SWARM | 2 | Doppelte Drone-Zahl, Skill gedeckelt | — |
+| 2 | SWARM | 2 | Doppelte Drone-Zahl, danach `g_neonwave_drone_cap` (Default 8) | — |
 | 3 | LOW GRAVITY | 3 | g_gravity halbiert | `g_gravity 400` |
 | 4 | DOUBLE POINTS | 2 | Wave-Clear gibt x2 Upgrade-Punkte | — |
 | 5 | TIME WARP | 5 | Player-Speed skaliert (g_speed) | `g_speed 280` |
