@@ -371,6 +371,7 @@ assert_24() {
   local ok=0
   check "$1" "All waves cleared";                       [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "ACHIEVEMENT SPEEDRUNNER";                 [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "achievement save skipped (autostart)";    [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$1" || ok=1
   report $ok "speedrunner-ach"
 }

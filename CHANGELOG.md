@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Headless runs (`g_neonwave_autostart 1`) still log `ACHIEVEMENT` lines but do not write `neonwave_achievements.dat`, so the test suite cannot unlock lifetime badges in the player profile.
 - Coop respawn test keeps the headless stand-in connected until the next wave revives it. Dead bots were dropped as soon as `respawnTime` passed, so the revive never ran.
 - Ghost loadout cycle (`g_ghost_cycletest`) applies in the headless kit announce, not only on a human spawn.
 

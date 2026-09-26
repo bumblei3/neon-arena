@@ -44,7 +44,7 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 21 | vampire-lifesteal | autostart, startwave 6, modifier 6 (VAMPIRE), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*\[VAMPIRE\]`, ≥1 `VAMPIRE lifesteal`, payload mod=6 | keine Fatal-Warnung |
 | 22 | frenzy-quadfactor | autostart, startwave 6, modifier 7 (FRENZY), autokill 1, fastbreak 1 | `starting wave 6.*\[FRENZY\]`, ≥1 `FRENZY quadfactor set to 4` | keine Fatal-Warnung |
 | 23 | overshield-armor | autostart, startwave 6, modifier 8 (OVERSHIELD), botasplayer 1, autokill 1, fastbreak 1 | `starting wave 6.*\[OVERSHIELD\]`, ≥1 `OVERSHIELD +50 armor granted` | keine Fatal-Warnung |
-| 24 | speedrunner-ach | autostart, autokill, fastbreak, startwave 20 | `All waves cleared`, `ACHIEVEMENT SPEEDRUNNER` | keine Fatal-Warnung |
+| 24 | speedrunner-ach | autostart, autokill, fastbreak, startwave 20 | `All waves cleared`, `ACHIEVEMENT SPEEDRUNNER`, `achievement save skipped (autostart)` | keine Fatal-Warnung |
 | 25 | hardcore-ach | autostart, autokill, fastbreak, startwave 20, hardcore 1 | `HARDCORE mode enabled`, `All waves cleared`, `ACHIEVEMENT HARDCORE` | keine Fatal-Warnung |
 | 26 | combomaster-ach | autostart, startwave 2, fakecombo 12, botasplayer 1, failrun | `fake combo 12 registered`, `ACHIEVEMENT COMBOMASTER` | keine Fatal-Warnung |
 | 27 | perk-offer | autostart, startwave 5, autokill, fastbreak | `PERK OFFER F1=` | keine Fatal-Warnung |
