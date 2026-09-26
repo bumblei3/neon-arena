@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Coop respawn test keeps the headless stand-in connected until the next wave revives it. Dead bots were dropped as soon as `respawnTime` passed, so the revive never ran.
+- Ghost loadout cycle (`g_ghost_cycletest`) applies in the headless kit announce, not only on a human spawn.
+
 ### Changed
 - Drone count is capped after swarm, coop and arena scale (`g_neonwave_drone_cap`, default 8, `0` disables). Wave 6 SWARM is 8 drones instead of 14, so the reliable command buffer does not drop the client.
 - Ghost perk rolls skip CHAIN (lightning-only). PIERCE stays. `g_neonwave_perkforce` can still force CHAIN.
