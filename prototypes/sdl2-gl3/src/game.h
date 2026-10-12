@@ -16,6 +16,7 @@
 #include "overclock.h"
 #include "echo.h"
 #include "wave_system.h"
+#include "input_system.h"
 #include "bot_ai.h"
 #include "coop.h"
 #include "audio_polish.h"
@@ -183,6 +184,7 @@ public:
     friend void spawnExplosion(Game& game, Vec3 pos, Vec3 color, int count);
 
     friend class WaveSystem;
+    friend class InputSystem;
     
     friend void updateScore(float dt, Game& game);
     friend void addScore(Game& game, int points);
@@ -486,4 +488,5 @@ private:
     OverclockManager* overclock = nullptr;
     EchoSystem* echoSystem = nullptr;
     WaveSystem waveSystem;
+    InputSystem inputSystem;
 };
