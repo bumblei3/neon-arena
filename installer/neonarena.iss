@@ -1,6 +1,13 @@
 ; NeonArena Windows Installer
 ; Kompilieren mit Inno Setup (https://jrsoftware.org/isdl.php)
-; Verwendung: iscc neonarena.iss
+; Verwendung: iscc /DMyAppVersion=0.90 neonarena.iss
+;
+; Erwartetes Layout (wie vom CI-Portable-ZIP):
+;   engine/quake3e.exe, engine/quake3e_opengl_x86_64.dll,
+;   engine/quake3e_vulkan_x86_64.dll, engine/SDL2*.dll,
+;   engine/baseoa/  (OpenArena maps/content)
+;   neonarena/      (neonarena.pk3, neonarena-qvm.pk3, neon-look.pk3)
+;   neonarena.bat
 
 #ifndef MyAppVersion
 #define MyAppVersion "0.90"
@@ -17,14 +24,14 @@ AppUpdatesURL=https://github.com/bumblei3/neon-arena/releases
 DefaultDirName={autopf}\NeonArena
 DefaultGroupName=NeonArena
 AllowNoIcons=yes
-LicenseFile=LICENSE
-OutputDir=installer
+OutputDir=.
 OutputBaseFilename=NeonArena-{#MyAppVersion}-Setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
-SetupIconFile=assets\neonarena.ico
-UninstallDisplayIcon={app}\neonarena.exe
+UninstallDisplayIcon={app}\quake3e.exe
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -32,37 +39,33 @@ Name: "german"; MessagesFile: "compiler:Languages\German.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 6.1; Check: not IsAdminInstallMode
 
 [Files]
-; Engine (Quake3e)
+; Engine (Quake3e, MinGW cross-build from CI)
 Source: "engine\quake3e.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "engine\renderer_opengl2.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "engine\SDL2.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "engine\quake3e_opengl_x86_64.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "engine\quake3e_vulkan_x86_64.dll"; DestDir: "{app}"; Flags: ignoreversion; Check: FileExists(ExpandConstant('{src}\engine\quake3e_vulkan_x86_64.dll'))
+Source: "engine\SDL2*.dll"; DestDir: "{app}"; Flags: ignoreversion
 
-; Mod-Dateien
-Source: "dist\neonarena.pk3"; DestDir: "{app}\neonarena"; Flags: ignoreversion
-Source: "dist\neonarena-qvm.pk3"; DestDir: "{app}\neonarena"; Flags: ignoreversion
-Source: "dist\neon-look.pk3"; DestDir: "{app}\neonarena"; Flags: ignoreversion
+; OpenArena base content (maps, textures — engine expects baseoa\)
+Source: "engine\baseoa\*"; DestDir: "{app}\baseoa"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; Start-Skript
-Source: "scripts\neonarena.bat"; DestDir: "{app}"; Flags: ignoreversion
+; Mod files (QVM pk3s — portable across engines)
+Source: "neonarena\neonarena.pk3"; DestDir: "{app}\neonarena"; Flags: ignoreversion
+Source: "neonarena\neonarena-qvm.pk3"; DestDir: "{app}\neonarena"; Flags: ignoreversion
+Source: "neonarena\neon-look.pk3"; DestDir: "{app}\neonarena"; Flags: ignoreversion
 
-; Dokumentation
+; Launcher
+Source: "neonarena.bat"; DestDir: "{app}"; Flags: ignoreversion
+
+; Documentation
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion; DestName: "README.txt"
-Source: "LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\NeonArena"; Filename: "{app}\neonarena.bat"; WorkingDir: "{app}"; IconFilename: "{app}\quake3e.exe"
-Name: "{group}\NeonArena (Engine)"; Filename: "{app}\quake3e.exe"; WorkingDir: "{app}"
+Name: "{group}\NeonArena (Engine)"; Filename: "{app}\quake3e.exe"; Parameters: "+set fs_game neonarena"; WorkingDir: "{app}"
 Name: "{group}\{cm:UninstallProgram,NeonArena}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\NeonArena"; Filename: "{app}\neonarena.bat"; WorkingDir: "{app}"; IconFilename: "{app}\quake3e.exe"; Tasks: desktopicon
 
 [Run]
 Filename: "{app}\neonarena.bat"; Description: "{cm:LaunchProgram,NeonArena}"; Flags: nowait postinstall skipifsilent
-
-[Code]
-function InitializeSetup(): Boolean;
-begin
-  Result := true;
-end;

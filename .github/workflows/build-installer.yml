@@ -33,6 +33,20 @@ jobs:
           cd engine-zip
           unzip -q *.zip -d ../installer/engine
 
+      - name: Fetch OpenArena base content
+        run: |
+          # The engine is patched with BASEGAME=baseoa — it loads maps and
+          # textures from a baseoa\ folder next to the exe. Ship the OA
+          # pak files (GPL content) so the portable zip is playable.
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq openarena
+          BASE=$(dpkg -L openarena 2>/dev/null | grep -m1 '/baseoa/pak0.pk3' | xargs dirname)
+          [ -n "$BASE" ] || { echo "openarena baseoa not found"; exit 1; }
+          echo "baseoa source: $BASE"
+          mkdir -p installer/engine/baseoa
+          cp "$BASE"/*.pk3 installer/engine/baseoa/
+          ls -la installer/engine/baseoa/
+
       - name: Resolve version
         id: ver
         run: |
@@ -42,16 +56,33 @@ jobs:
           echo "version=$V" >> "$GITHUB_OUTPUT"
           echo "Mod version: NeonArena-$V"
 
-      - name: Copy Mod Files
+      - name: Assemble portable package
         run: |
+          set -e
           test -f dist/neonarena.pk3 && test -f dist/neonarena-qvm.pk3 && test -f dist/neon-look.pk3
-          cp dist/neonarena.pk3 dist/neonarena-qvm.pk3 dist/neon-look.pk3 installer/engine/
+          # fs_game=neonarena loads pk3s from neonarena\ next to the exe
+          mkdir -p installer/engine/neonarena
+          cp dist/neonarena.pk3 dist/neonarena-qvm.pk3 dist/neon-look.pk3 installer/engine/neonarena/
+          cp installer/neonarena.bat installer/engine/
+          cp README.md installer/engine/README.txt
 
       - name: Create Portable ZIP
         run: |
           cd installer/engine
           zip -r "../../NeonArena-${{ steps.ver.outputs.version }}-portable.zip" .
           ls -la "../../NeonArena-${{ steps.ver.outputs.version }}-portable.zip"
+
+      - name: Verify package contents
+        run: |
+          set -e
+          Z="NeonArena-${{ steps.ver.outputs.version }}-portable.zip"
+          unzip -l "$Z" | grep -q 'quake3e.exe'
+          unzip -l "$Z" | grep -q 'neonarena/neonarena.pk3'
+          unzip -l "$Z" | grep -q 'neonarena/neonarena-qvm.pk3'
+          unzip -l "$Z" | grep -q 'neonarena/neon-look.pk3'
+          unzip -l "$Z" | grep -q 'neonarena.bat'
+          unzip -l "$Z" | grep -q 'baseoa/pak.*\.pk3'
+          echo "portable package layout verified"
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
