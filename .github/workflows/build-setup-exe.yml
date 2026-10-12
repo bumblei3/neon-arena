@@ -31,24 +31,27 @@ jobs:
       - name: Extract Portable Package
         shell: bash
         run: |
+          # portable-zip/ and installer/ both live directly under the repo root
+          ROOT="$GITHUB_WORKSPACE"
+          mkdir -p "$ROOT/installer-staging"
           cd portable-zip
-          unzip -q *.zip -d ../installer-staging
-          cd ../installer-staging
+          unzip -q *.zip -d "$ROOT/installer-staging"
+          cd "$ROOT/installer-staging"
           # ISS expects: engine/ (exe+dlls+baseoa), neonarena/ (pk3s), neonarena.bat
           # tolerate a nested neonarena-engine/ wrapper if one is present
           if [ -d neonarena-engine ]; then
             cd neonarena-engine
           fi
-          mkdir -p ../../installer/engine ../../installer/neonarena
-          mv quake3e*.exe quake3e*.dll SDL2*.dll ../../installer/engine/ 2>/dev/null || true
-          mv baseoa ../../installer/engine/ 2>/dev/null || true
+          mkdir -p "$ROOT/installer/engine" "$ROOT/installer/neonarena"
+          mv quake3e*.exe quake3e*.dll SDL2*.dll "$ROOT/installer/engine/" 2>/dev/null || true
+          mv baseoa "$ROOT/installer/engine/" 2>/dev/null || true
           if [ -d neonarena ]; then
-            mv neonarena/*.pk3 ../../installer/neonarena/ 2>/dev/null || true
+            mv neonarena/*.pk3 "$ROOT/installer/neonarena/" 2>/dev/null || true
           fi
-          mv neonarena.bat ../../installer/ 2>/dev/null || true
-          ls -la ../../installer/engine/
-          test -f ../../installer/engine/quake3e.exe || { echo "quake3e.exe missing after extract"; exit 1; }
-          test -f ../../installer/neonarena/neonarena.pk3 || { echo "neonarena.pk3 missing after extract"; exit 1; }
+          mv neonarena.bat "$ROOT/installer/" 2>/dev/null || true
+          ls -la "$ROOT/installer/engine/"
+          test -f "$ROOT/installer/engine/quake3e.exe" || { echo "quake3e.exe missing after extract"; exit 1; }
+          test -f "$ROOT/installer/neonarena/neonarena.pk3" || { echo "neonarena.pk3 missing after extract"; exit 1; }
 
       - name: Install Inno Setup
         shell: pwsh
