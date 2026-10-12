@@ -1,0 +1,75 @@
+name: build-setup-exe
+
+on:
+  workflow_run:
+    workflows: ["build-installer"]
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-setup:
+    runs-on: windows-latest
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Download Portable Package
+        uses: actions/download-artifact@v7
+        with:
+          name: neonarena-installer
+          path: portable-zip
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id || github.run_id }}
+
+      - name: Extract Portable Package
+        shell: bash
+        run: |
+          cd portable-zip
+          # the zip contains the engine/ layout directly
+          unzip -q *.zip -d ../installer-staging
+          cd ../installer-staging
+          # ISS expects: engine/ (exe+dlls+baseoa), neonarena/ (pk3s), neonarena.bat
+          mkdir -p ../installer/engine ../installer/neonarena
+          mv quake3e*.exe quake3e*.dll SDL2*.dll ../installer/engine/ 2>/dev/null || true
+          mv baseoa ../installer/engine/ 2>/dev/null || true
+          mv neonarena/*.pk3 ../installer/neonarena/ 2>/dev/null || true
+          mv neonarena.bat ../installer/ 2>/dev/null || true
+          ls -la ../installer ../installer/engine
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Resolve version
+        shell: bash
+        run: |
+          V=$(grep -m1 'define[[:space:]]*GAMEVERSION' oa-gamecode/code/game/g_local.h \
+              | sed -n 's/.*"NeonArena-\(.*\)".*/\1/p')
+          [ -n "$V" ] || { echo "GAMEVERSION not found"; exit 1; }
+          echo "version=$V" >> "$GITHUB_ENV"
+          echo "Mod version: NeonArena-$V"
+
+      - name: Compile Setup.exe
+        shell: cmd
+        run: |
+          set PATH=%PATH%;C:\ProgramData\chocolatey\bin;C:\Program Files (x86)\Inno Setup 6
+          iscc /DMyAppVersion=%version% installer\neonarena.iss
+          dir installer\*Setup*.exe
+
+      - name: Upload Setup.exe
+        uses: actions/upload-artifact@v7
+        with:
+          name: neonarena-setup-exe
+          path: installer/NeonArena-*-Setup.exe
+
+      # workflow_run github.ref is the default branch, never a tag — do not
+      # attach the setup exe to a GitHub Release here. Tag releases come
+      # from build-mod; the exe is uploaded as a CI artifact for manual
+      # attachment.
