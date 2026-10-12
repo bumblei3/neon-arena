@@ -30,19 +30,22 @@ jobs:
 
       - name: Extract Engine
         run: |
+          set -e
+          mkdir -p installer/engine
           cd engine-zip
           unzip -q *.zip -d ../engine-extract
           cd ..
           # the engine artifact wraps its files in a neonarena-engine/ dir —
           # flatten so quake3e.exe sits directly in installer/engine/
           if [ -d engine-extract/neonarena-engine ]; then
-            mv engine-extract/neonarena-engine/* installer/engine/ 2>/dev/null || true
+            mv engine-extract/neonarena-engine/* installer/engine/
             rmdir engine-extract/neonarena-engine 2>/dev/null || true
           else
-            mv engine-extract/* installer/engine/ 2>/dev/null || true
+            mv engine-extract/* installer/engine/
           fi
           # baseq3 is unused — the engine is patched to BASEGAME=baseoa
           rmdir installer/engine/baseq3 2>/dev/null || true
+          test -f installer/engine/quake3e.exe || { echo "quake3e.exe missing after extract"; exit 1; }
           ls -la installer/engine/
 
       - name: Fetch OpenArena base content
