@@ -91,17 +91,24 @@ jobs:
         run: |
           set -e
           Z="NeonArena-${{ steps.ver.outputs.version }}-portable.zip"
-          # unzip -l prints the filename at the END of each line — anchor there
-          unzip -l "$Z" | grep -qE '(^|/)quake3e\.exe$'
-          unzip -l "$Z" | grep -qE '(^|/)quake3e_opengl_x86_64\.dll$'
-          unzip -l "$Z" | grep -qE '(^|/)quake3e_vulkan_x86_64\.dll$'
-          unzip -l "$Z" | grep -qE '(^|/)SDL2.*\.dll$'
-          unzip -l "$Z" | grep -qE '(^|/)neonarena/neonarena\.pk3$'
-          unzip -l "$Z" | grep -qE '(^|/)neonarena/neonarena-qvm\.pk3$'
-          unzip -l "$Z" | grep -qE '(^|/)neonarena/neon-look\.pk3$'
-          unzip -l "$Z" | grep -qE '(^|/)neonarena\.bat$'
-          unzip -l "$Z" | grep -qE '(^|/)baseoa/pak.*\.pk3$'
+          # extract bare filenames (last field of each unzip -l line), then
+          # fixed-string checks — no regex escaping pitfalls in YAML
+          unzip -l "$Z" | awk '{print $NF}' | grep -v '/$' > /tmp/pkgfiles.txt
+          for f in \
+            quake3e.exe \
+            quake3e_opengl_x86_64.dll \
+            quake3e_vulkan_x86_64.dll \
+            neonarena/neonarena.pk3 \
+            neonarena/neonarena-qvm.pk3 \
+            neonarena/neon-look.pk3 \
+            neonarena.bat \
+            README.txt; do
+            grep -qxF "$f" /tmp/pkgfiles.txt || { echo "MISSING in package: $f"; exit 1; }
+          done
+          grep -q 'baseoa/pak' /tmp/pkgfiles.txt || { echo "MISSING: baseoa content"; exit 1; }
+          grep -q 'SDL2' /tmp/pkgfiles.txt || { echo "MISSING: SDL2 dll"; exit 1; }
           echo "portable package layout verified"
+          cat /tmp/pkgfiles.txt
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
