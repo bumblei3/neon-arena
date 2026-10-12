@@ -541,74 +541,7 @@ void Game::checkRevive() {
 }
 
 void Game::updatePlayer(float dt) {
-    handleMouse();
-
-    float moveX = 0, moveZ = 0;
-    if (keys[SDL_SCANCODE_W]) moveZ -= 1;
-    if (keys[SDL_SCANCODE_S]) moveZ += 1;
-    if (keys[SDL_SCANCODE_A]) moveX -= 1;
-    if (keys[SDL_SCANCODE_D]) moveX += 1;
-
-    // Solo pad: left stick moves with the facing, right stick looks. Coop keeps the pad on player 2.
-    if (!coopActive) {
-        CoopManager::update(dt);
-        const CoopManager::GamepadState& pad = CoopManager::getGamepad();
-        if (pad.connected) {
-            float fwdX = sinf(player.yaw);
-            float fwdZ = -cosf(player.yaw);
-            float rightX = cosf(player.yaw);
-            float rightZ = sinf(player.yaw);
-            moveX += rightX * pad.leftStickX - fwdX * pad.leftStickY;
-            moveZ += rightZ * pad.leftStickX - fwdZ * pad.leftStickY;
-            player.yaw += pad.rightStickX * PAD_LOOK_SPEED * dt;
-            player.pitch -= pad.rightStickY * PAD_LOOK_SPEED * dt;
-            player.pitch = fmaxf(-1.2f, fminf(1.2f, player.pitch));
-        }
-    }
-
-    float speedMult = 1.0f;
-    if (cloakTimer > 0.0f) speedMult = cloakSpeedBoost;
-
-    if (moveX != 0 || moveZ != 0) {
-        Vec3 moveDir = normalize(Vec3(moveX, 0, moveZ));
-        player.pos.x += moveDir.x * playerSpeed * dt * speedMult;
-        player.pos.z += moveDir.z * playerSpeed * dt * speedMult;
-    }
-
-    player.pos.y = playerHeight;
-
-    if (player.pos.x < -arenaSize) player.pos.x = -arenaSize;
-    if (player.pos.x > arenaSize) player.pos.x = arenaSize;
-    if (player.pos.z < -arenaSize) player.pos.z = -arenaSize;
-    if (player.pos.z > arenaSize) player.pos.z = arenaSize;
-
-    if (shootRequested && currentWeapon == WeaponType::RAILGUN) {
-        fireRailgun(*this);
-    }
-    if (shootLightning && currentWeapon == WeaponType::LIGHTNING_GUN) {
-        fireLightning(*this);
-    }
-    if (shootRequested && currentWeapon == WeaponType::PLASMA_RIFLE) {
-        firePlasma(*this);
-    }
-    if (shootRequested && currentWeapon == WeaponType::GHOST_SNIPER && loadout == Loadout::GHOST) {
-        fireGhost(*this);
-    }
-
-    // Player 2 shooting (coop)
-    if (coopActive && player2Shoot && player2ShootCooldown <= 0.0f) {
-        // Player 2 fires railgun in facing direction
-        Vec3 dir(
-            sinf(player2.yaw),
-            0.0f,
-            -cosf(player2.yaw)
-        );
-        Vec3 muzzlePos = player2.pos + Vec3(0, 1.0f, 0);
-        projectiles.push_back(Projectile(muzzlePos, dir, true, WeaponType::RAILGUN, 15.0f));
-        player2ShootCooldown = RAILGUN_FIRE_RATE;
-    }
-    player2ShootCooldown -= dt;
-    if (player2ShootCooldown < 0.0f) player2ShootCooldown = 0.0f;
+    playerSystem.update(*this, dt);
 }
 
 void Game::updateProjectiles(float dt) {
@@ -663,17 +596,6 @@ void Game::checkCollisions() {
     }
 }
 
-void Game::handleMouse() {
-    if (fabsf(mouseX) > 80.0f) mouseX = 0.0f;
-    if (fabsf(mouseY) > 80.0f) mouseY = 0.0f;
-    if (mouseX != 0 || mouseY != 0) {
-        player.yaw += mouseX * mouseSensitivity;
-        player.pitch -= mouseY * mouseSensitivity;
-        player.pitch = fmaxf(-1.2f, fminf(1.2f, player.pitch));
-    }
-    mouseX = 0;
-    mouseY = 0;
-}
 
 void Game::nextWave() {
     waveSystem.nextWave(*this);
