@@ -16,6 +16,7 @@ constexpr float MIN_MOUSE_SENSITIVITY = 0.0005f;
 constexpr float MAX_MOUSE_SENSITIVITY = 0.005f;
 constexpr float MOUSE_SENSITIVITY_STEP = 0.0005f;
 constexpr int COOP_DEADZONE = 8000;
+constexpr float PAD_LOOK_SPEED = 2.2f;
 
 // --- Gameplay ---
 constexpr float DEFAULT_PLAYER_SPEED = 10.0f;

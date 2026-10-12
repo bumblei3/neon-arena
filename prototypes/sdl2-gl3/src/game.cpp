@@ -50,6 +50,7 @@ bool Game::init(SDL_Window* window) {
     echoSystem->init();
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
+    CoopManager::init();
     loadHighScore(*this);
     setupArena();
 
@@ -69,6 +70,7 @@ bool Game::init(SDL_Window* window) {
 
 void Game::shutdown() {
     if (!renderer_ && !particleSystem && !spatialHash && !overclock && !echoSystem) return;
+    CoopManager::shutdown();
     if (spatialHash) {
         delete spatialHash;
         spatialHash = nullptr;
@@ -138,6 +140,8 @@ void Game::handleInput(float dt) {
             handleMouseMotion(event);
         } else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
             handleMouseButton(event);
+        } else if (event.type == SDL_CONTROLLERDEVICEADDED || event.type == SDL_CONTROLLERDEVICEREMOVED) {
+            CoopManager::handleDeviceEvent(event);
         }
     }
 }
@@ -649,6 +653,23 @@ void Game::updatePlayer(float dt) {
     if (keys[SDL_SCANCODE_A]) moveX -= 1;
     if (keys[SDL_SCANCODE_D]) moveX += 1;
 
+    // Solo pad: left stick moves with the facing, right stick looks. Coop keeps the pad on player 2.
+    if (!coopActive) {
+        CoopManager::update(dt);
+        const CoopManager::GamepadState& pad = CoopManager::getGamepad();
+        if (pad.connected) {
+            float fwdX = sinf(player.yaw);
+            float fwdZ = -cosf(player.yaw);
+            float rightX = cosf(player.yaw);
+            float rightZ = sinf(player.yaw);
+            moveX += rightX * pad.leftStickX - fwdX * pad.leftStickY;
+            moveZ += rightZ * pad.leftStickX - fwdZ * pad.leftStickY;
+            player.yaw += pad.rightStickX * PAD_LOOK_SPEED * dt;
+            player.pitch -= pad.rightStickY * PAD_LOOK_SPEED * dt;
+            player.pitch = fmaxf(-1.2f, fminf(1.2f, player.pitch));
+        }
+    }
+
     float speedMult = 1.0f;
     if (cloakTimer > 0.0f) speedMult = cloakSpeedBoost;
 
@@ -759,17 +780,7 @@ void Game::handleMouse() {
 }
 
 void Game::nextWave() {
-    waveComplete = false;
-    waveBreak = 0;
-    tookDamageThisWave = false;
-
-    // Select and apply wave modifiers (from wave 5+)
-    SelectModifiers(modifierState, wave + 1, dailyOffset, modifierForce1, modifierForce2);
-    ApplyModifiers(modifierState);
-
-    spawnWave(*this);
-    waveAnnounceTimer = 2.0f;
-    if (echoSystem) echoSystem->startRecording();
+    waveSystem.nextWave(*this);
 
     // Detect wave fusion
     WaveConfig config = generateWaveConfig(wave);

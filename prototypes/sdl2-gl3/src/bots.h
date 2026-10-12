@@ -1,8 +1,9 @@
 // bots.h - Bot logic for neon arena prototype
+// Wave spawning moved to wave_system.h (WaveSystem); bots.h keeps the
+// update/render free functions.
 #pragma once
 #include "game.h"
 
-void spawnWave(Game& game);
 void updateBots(Game& game, float dt);
 void renderBots(Game& game);
 void renderSolidBots(Game& game);

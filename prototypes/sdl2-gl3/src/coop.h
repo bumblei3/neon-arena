@@ -1,6 +1,9 @@
 // coop.h - Coop mode: shared screen, gamepad support, revive system
 #pragma once
-#include "game.h"
+#include <SDL.h>
+#include "math.h"
+
+class Game; // forward declaration
 
 class CoopManager {
 public:
@@ -24,6 +27,7 @@ public:
     static void init();
     static void shutdown();
     static void update(float dt);
+    static void handleDeviceEvent(const SDL_Event& event);
     
     static GamepadState& getGamepad() { return gamepad; }
     static ReviveState& getRevive() { return revive; }

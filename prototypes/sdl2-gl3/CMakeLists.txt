@@ -36,6 +36,7 @@ add_executable(neon-arena
     src/weapons.cpp
     src/wave_config.h
     src/bots.cpp
+    src/wave_system.cpp
     src/coop.cpp
     src/balancing.cpp
     src/playtest.cpp

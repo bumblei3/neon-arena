@@ -15,6 +15,7 @@
 #include "wave_config.h"
 #include "overclock.h"
 #include "echo.h"
+#include "wave_system.h"
 #include "bot_ai.h"
 #include "coop.h"
 #include "audio_polish.h"
@@ -176,11 +177,12 @@ public:
     friend void renderLightning(Game& game);
     friend void findLightningTargets(Vec3 pos, Game& game, std::vector<Entity*>& targets);
     
-    friend void spawnWave(Game& game);
     friend void updateBots(Game& game, float dt);
     friend void renderBots(Game& game);
     friend void renderSolidBots(Game& game);
     friend void spawnExplosion(Game& game, Vec3 pos, Vec3 color, int count);
+
+    friend class WaveSystem;
     
     friend void updateScore(float dt, Game& game);
     friend void addScore(Game& game, int points);
@@ -483,4 +485,5 @@ private:
     ParticleSystem* particleSystem = nullptr;
     OverclockManager* overclock = nullptr;
     EchoSystem* echoSystem = nullptr;
+    WaveSystem waveSystem;
 };

@@ -1,4 +1,5 @@
 #include "coop.h"
+#include "game.h"
 #include <cstdio>
 #include <cmath>
 
@@ -42,6 +43,24 @@ void CoopManager::shutdown() {
     }
     SDL_QuitSubSystem(SDL_INIT_GAMECONTROLLER);
     coopActive = false;
+}
+
+void CoopManager::handleDeviceEvent(const SDL_Event& event) {
+    if (event.type == SDL_CONTROLLERDEVICEADDED) {
+        if (!controller && SDL_IsGameController(event.cdevice.which)) {
+            controller = SDL_GameControllerOpen(event.cdevice.which);
+            gamepad.connected = controller != nullptr;
+            if (controller) {
+                printf("Controller connected: %s\n", SDL_GameControllerName(controller));
+            }
+        }
+    } else if (event.type == SDL_CONTROLLERDEVICEREMOVED) {
+        if (controller && SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(controller)) == event.cdevice.which) {
+            SDL_GameControllerClose(controller);
+            controller = nullptr;
+            gamepad.connected = false;
+        }
+    }
 }
 
 void CoopManager::update(float dt) {
@@ -165,7 +184,7 @@ void CoopManager::completeRevive(Game& game) {
     revive.playerDown = false;
     revive.reviving = false;
     revive.reviveTimer = 0.0f;
-    
+
     // Teleport to player 2
     game.player.pos = game.player2.pos + Vec3(2.0f, 0, 2.0f);
 }
