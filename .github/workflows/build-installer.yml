@@ -31,7 +31,19 @@ jobs:
       - name: Extract Engine
         run: |
           cd engine-zip
-          unzip -q *.zip -d ../installer/engine
+          unzip -q *.zip -d ../engine-extract
+          cd ..
+          # the engine artifact wraps its files in a neonarena-engine/ dir —
+          # flatten so quake3e.exe sits directly in installer/engine/
+          if [ -d engine-extract/neonarena-engine ]; then
+            mv engine-extract/neonarena-engine/* installer/engine/ 2>/dev/null || true
+            rmdir engine-extract/neonarena-engine 2>/dev/null || true
+          else
+            mv engine-extract/* installer/engine/ 2>/dev/null || true
+          fi
+          # baseq3 is unused — the engine is patched to BASEGAME=baseoa
+          rmdir installer/engine/baseq3 2>/dev/null || true
+          ls -la installer/engine/
 
       - name: Fetch OpenArena base content
         run: |
@@ -76,12 +88,13 @@ jobs:
         run: |
           set -e
           Z="NeonArena-${{ steps.ver.outputs.version }}-portable.zip"
-          unzip -l "$Z" | grep -q 'quake3e.exe'
-          unzip -l "$Z" | grep -q 'neonarena/neonarena.pk3'
-          unzip -l "$Z" | grep -q 'neonarena/neonarena-qvm.pk3'
-          unzip -l "$Z" | grep -q 'neonarena/neon-look.pk3'
-          unzip -l "$Z" | grep -q 'neonarena.bat'
-          unzip -l "$Z" | grep -q 'baseoa/pak.*\.pk3'
+          unzip -l "$Z" | grep -qE '(^|/)quake3e\.exe$'
+          unzip -l "$Z" | grep -qE '(^|/)quake3e_opengl_x86_64\.dll$'
+          unzip -l "$Z" | grep -qE '^neonarena/neonarena\.pk3$'
+          unzip -l "$Z" | grep -qE '^neonarena/neonarena-qvm\.pk3$'
+          unzip -l "$Z" | grep -qE '^neonarena/neon-look\.pk3$'
+          unzip -l "$Z" | grep -qE '(^|/)neonarena\.bat$'
+          unzip -l "$Z" | grep -qE '^baseoa/pak.*\.pk3$'
           echo "portable package layout verified"
 
       - name: Upload Artifact
