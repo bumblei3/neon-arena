@@ -31,7 +31,8 @@ fi
 # Isolated homepath for --parallel slots (default: the player install).
 na_root() { echo "${TEST_HOMEPATH:-$HOME/.openarena}"; }
 na_game() { echo "$(na_root)/neonarena"; }
-HOME_DIR="$(na_game)"
+# HOME_DIR must follow TEST_HOMEPATH at call time (asserts run after
+# setup_isolated_homepath), so resolve lazily via na_game, not once here.
 PASS=0; FAIL=0; FAILED_NAMES=""
 
 MODE="all"
@@ -86,6 +87,8 @@ fi
 
 LOGDIR="/tmp/nw-suite-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$LOGDIR"
+# cvar-reset config lives in LOGDIR; rewritten before every test (see run_test)
+NW_RESET_CFG="$LOGDIR/nw-cvar-reset.cfg"
 
 # Tests known to be timing-sensitive in headless CI (spawn-fallback races).
 # They still run, but a single FAIL is retried once before counting as failed.
@@ -95,12 +98,86 @@ FLAKY_TESTS="${FLAKY_TESTS:-13 15 29 37 38 45 53 54 55 56 67 76 77 78 79 80}"
 is_flaky() { # is_flaky <num>; returns 0 if num is in FLAKY_TESTS
   local n="$1" f
   for f in $FLAKY_TESTS; do
-    [ "$f" = "$n" ] && return 0
+    [ "$n" = "$f" ] && return 0
   done
   return 1
 }
 
+# HYGIENE: ioq3 has a hard limit on command-line args (~32 +set pairs hang the
+# server right after "Opening IP socket"). So instead of ~32 +set resets we
+# generate a small reset config per suite run and +exec it before each test.
+# Without this, values a previous run left in q3config_server.cfg
+# (CVAR_ARCHIVE: daily=1 seed=12345, seasonal=1, modifier=8, modifier2=12,
+# autostart=1 ...) leak into every following test and silently change the wave
+# setup. Defaults mirror gameCvarTable in g_main.c.
+write_nw_reset_cfg() {
+  cat > "$NW_RESET_CFG" <<'EOF'
+seta g_neonwave_best 0
+seta g_neonwave_bossattr 0
+seta g_neonwave_music 1
+seta g_neonwave_coopmock 0
+seta g_neonwave_selfkill 0
+seta g_neonwave_coopdifficulty 0
+seta g_neonwave_phaseforce 0
+seta g_neonwave_modifier2 0
+seta g_neonwave_daily 0
+seta g_neonwave_dailyseed 0
+seta g_neonwave_waveselect 0
+seta g_neonwave_ghost 0
+seta g_neonwave_arena ""
+seta g_neonwave_replaytest 0
+seta g_neonwave_shieldactive 0
+seta g_neonwave_shieldtime 0
+seta g_neonwave_bosstype 0
+seta g_neonwave_autostart 0
+seta g_neonwave_startwave 0
+seta g_neonwave_fastbreak 0
+seta g_neonwave_autokill 0
+seta g_neonwave_failrun 0
+seta g_neonwave_modifier 0
+seta g_neonwave_drone_hp_scale 1.0
+seta g_neonwave_drone_damage_scale 1.0
+seta g_neonwave_drone_count_scale 1.0
+seta g_neonwave_drone_cap 8
+seta g_neonwave_drone_speed_scale 1.0
+seta g_neonwave_gravity_scale 1.0
+seta g_neonwave_forcebot 0
+seta g_neonwave_seasonal 0
+EOF
+}
+
+# HYGIENE: give each test its own fs_homepath so persistent files
+# (neonwave_records.dat, neonwave_runstats.json, achievements, seasonal ...)
+# cannot leak from one test into the next. Mirrors the parallel-mode setup.
+# Call before dispatch_test in serial/single mode.
+setup_isolated_homepath() {
+  local t="$1"
+  local hp="$HOME/.openarena-nwtest-serial/$t"
+  local src="$HOME/.openarena/neonarena"
+  mkdir -p "$hp/neonarena/vm"
+  if [ -d "$src" ]; then
+    for f in "$src"/*.pk3; do
+      [ -e "$f" ] && ln -sfn "$f" "$hp/neonarena/"
+    done
+    if [ -d "$src/vm" ]; then
+      for f in "$src/vm"/*.qvm; do
+        [ -e "$f" ] && ln -sfn "$f" "$hp/neonarena/vm/"
+      done
+    fi
+  fi
+  # tests that assert on files in the game dir (assert_7: neonwave_records.dat)
+  # read via na_game, which follows TEST_HOMEPATH
+  TEST_HOMEPATH="$hp"
+  export TEST_HOMEPATH
+}
+
 # run_test <num> <name> <timeout> <cvar1> <cvar2> ...
+#
+# HYGIENE: the archived g_neonwave_* cvars are reset to their defaults (via
+# +exec of NW_RESET_CFG) BEFORE the per-test +set args, so a previous run's
+# leftovers in q3config_server.cfg (CVAR_ARCHIVE: daily=1 seed=12345,
+# seasonal=1, modifier=8, modifier2=12, autostart=1 ...) can never change the
+# wave setup.
 run_test() {
   local num="$1" name="$2" timeout_s="$3"
   shift 3
@@ -114,10 +191,12 @@ run_test() {
     fi
     local _before_pass="${PASS:-0}" _before_fail="${FAIL:-0}"
     printf '%s' "TEST $num: $name ... "
+    write_nw_reset_cfg
     $RUNNER timeout "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
       +set fs_homepath "$(na_root)" \
       +set sv_maxclients 24 \
       +set fs_game neonarena +set g_gametype 14 \
+      +exec "$NW_RESET_CFG" \
       "$@" \
       +map oa_shine > "$log" 2>&1 || true
     eval "assert_$num \"$log\""
@@ -175,14 +254,15 @@ report() { # report <ok> <name>
 
 # ---- individual tests: assert_<num> uses the log file $1 ----
 
-# TEST 1: smoke + boss wave force-start (wave 10, classic sniper 4x hp)
+# TEST 1: smoke + boss wave force-start (wave 10; boss type/HP may vary with
+# rotation + wave scaling — only require "boss spawned: <TYPE> (hc N)")
 assert_1() {
   local ok=0
   # version-agnostic: match any NeonArena-* gameversion
   check "$1" "gamename\\\\NeonArena-*"; [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "g_gametype\\\\14";      [ $LAST_RESULT -eq 0 ] || ok=1
   check "$1" "starting wave 10";     [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$1" "hc\\\\400";             [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$1" "boss spawned:.*hc "; [ $LAST_RESULT -eq 0 ] || ok=1
   report $ok "smoke+boss"
 }
 
@@ -1510,12 +1590,18 @@ QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 
 
   case "$MODE" in
   all)
+    # Serial mode with an isolated homepath per test: records/*.dat files
+    # (neonwave_records.dat, runstats json, ...) persist in fs_homepath and
+    # otherwise leak between tests (a run to wave 20 changes the wave target
+    # of the next test). Same isolation the parallel mode uses.
     for t in $ALL_TESTS; do
+      setup_isolated_homepath "$t"
       dispatch_test "$t" || true
     done
     ;;
   quick)
     for t in $QUICK_TESTS; do
+      setup_isolated_homepath "$t"
       dispatch_test "$t" || true
     done
     ;;
@@ -1524,6 +1610,7 @@ QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 
       echo "specify --test N"
       exit 1
     fi
+    setup_isolated_homepath "$SELECTED"
     dispatch_test "$SELECTED"
     ;;
 
