@@ -39,6 +39,7 @@ add_executable(neon-arena
     src/wave_system.cpp
     src/input_system.cpp
     src/player_system.cpp
+    src/menu_system.cpp
     src/coop.cpp
     src/balancing.cpp
     src/playtest.cpp

@@ -18,6 +18,7 @@
 #include "wave_system.h"
 #include "input_system.h"
 #include "player_system.h"
+#include "menu_system.h"
 #include "bot_ai.h"
 #include "coop.h"
 #include "audio_polish.h"
@@ -187,6 +188,7 @@ public:
     friend class WaveSystem;
     friend class InputSystem;
     friend class PlayerSystem;
+    friend class MenuSystem;
     
     friend void updateScore(float dt, Game& game);
     friend void addScore(Game& game, int points);
@@ -491,4 +493,5 @@ private:
     WaveSystem waveSystem;
     InputSystem inputSystem;
     PlayerSystem playerSystem;
+    MenuSystem menuSystem;
 };

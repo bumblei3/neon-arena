@@ -154,19 +154,7 @@ void Game::handleMouseButton(SDL_Event& event) {
 }
 
 void Game::updateMenuItems() {
-    menuItems.clear();
-    if (SavegameManager::exists()) {
-        menuItems.push_back("Continue");
-        menuItems.push_back("New Arena");
-        menuItems.push_back("New Ghost");
-        menuItems.push_back("Sensitivity");
-        menuItems.push_back("Quit");
-    } else {
-        menuItems.push_back("Start Arena");
-        menuItems.push_back("Start Ghost");
-        menuItems.push_back("Sensitivity");
-        menuItems.push_back("Quit");
-    }
+    menuSystem.updateItems(*this);
 }
 
 void Game::startNewRun(Loadout kit) {
@@ -186,40 +174,7 @@ void Game::startNewRun(Loadout kit) {
 }
 
 void Game::handleMenuInput(SDL_Event& event) {
-    if (event.key.keysym.sym == SDLK_UP || event.key.keysym.sym == SDLK_w) {
-        menuSelection--;
-        if (menuSelection < 0) menuSelection = (int)menuItems.size() - 1;
-    } else if (event.key.keysym.sym == SDLK_DOWN || event.key.keysym.sym == SDLK_s) {
-        menuSelection++;
-        if (menuSelection >= (int)menuItems.size()) menuSelection = 0;
-    } else if (event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_SPACE) {
-        bool hasSave = SavegameManager::exists();
-        int continueIdx = hasSave ? 0 : -1;
-        int arenaIdx = hasSave ? 1 : 0;
-        int ghostIdx = hasSave ? 2 : 1;
-        int optionsIdx = hasSave ? 3 : 2;
-        int quitIdx = hasSave ? 4 : 3;
-
-        if (menuSelection == continueIdx && continueIdx >= 0) {
-            if (SavegameManager::load(*this)) {
-                loadout = (currentWeapon == WeaponType::GHOST_SNIPER)
-                    ? Loadout::GHOST : Loadout::ARENA;
-                adsHeld = false;
-                state = GameState::PLAYING;
-                SDL_SetRelativeMouseMode(SDL_TRUE);
-            }
-        } else if (menuSelection == arenaIdx) {
-            if (hasSave) SavegameManager::remove();
-            startNewRun(Loadout::ARENA);
-        } else if (menuSelection == ghostIdx) {
-            if (hasSave) SavegameManager::remove();
-            startNewRun(Loadout::GHOST);
-        } else if (menuSelection == optionsIdx) {
-            state = GameState::OPTIONS;
-        } else if (menuSelection == quitIdx) {
-            running = false;
-        }
-    }
+    menuSystem.handleInput(*this, event);
 }
 
 void Game::resetGame() {
