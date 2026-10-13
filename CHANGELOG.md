@@ -5,6 +5,11 @@ All notable changes to NeonArena will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- CI: apt-Steps in allen Workflows (build-mod, engine-quake3e, prototype-gl3, build-installer) mit Retry-Loop (3 Versuche, Backoff 15/30/45 s) und `Acquire::Retries=5` gehärtet — ein hängender Runner-apt-Step killte sonst den ganzen Build.
+
 ## [0.91] - 2026-10-13
 
 ### Fixed

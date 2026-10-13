@@ -19,14 +19,18 @@ jobs:
     
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-          cmake \
-          g++ \
-          libgl1-mesa-dev \
-          libglew-dev \
-          libsdl2-dev \
-          libsdl2-mixer-dev
+        for i in 1 2 3; do
+          sudo apt-get -o Acquire::Retries=5 update && \
+          sudo apt-get -o Acquire::Retries=5 install -y \
+            cmake \
+            g++ \
+            libgl1-mesa-dev \
+            libglew-dev \
+            libsdl2-dev \
+            libsdl2-mixer-dev && break
+          echo "::warning::apt attempt $i failed, retrying"
+          sleep $((i * 15))
+        done
     
     - name: Configure
       run: |
