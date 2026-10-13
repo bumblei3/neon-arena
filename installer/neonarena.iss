@@ -1,6 +1,6 @@
 ; NeonArena Windows Installer
 ; Kompilieren mit Inno Setup (https://jrsoftware.org/isdl.php)
-; Verwendung: iscc /DMyAppVersion=0.90 neonarena.iss
+; Verwendung: iscc /DMyAppVersion=0.91 neonarena.iss
 ;
 ; Erwartetes Layout (wie vom CI-Portable-ZIP):
 ;   engine/quake3e.exe, engine/quake3e_opengl_x86_64.dll,
@@ -10,7 +10,7 @@
 ;   neonarena.bat
 
 #ifndef MyAppVersion
-#define MyAppVersion "0.90"
+#define MyAppVersion "0.91"
 #endif
 
 [Setup]

@@ -5,7 +5,7 @@ All notable changes to NeonArena will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.91] - 2026-10-13
 
 ### Fixed
 - Centerprints for wave clear, Ghost spawn, boss, perk and difficulty used a literal `\n` or a stray backslash, so the client showed one garbled line. They now break like the wave-start banner.

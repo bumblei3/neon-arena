@@ -273,4 +273,4 @@ Jede Rückmeldung hilft, NeonArena besser zu machen. Egal ob Bug-Bericht, Balanc
 
 ---
 
-**Version:** v0.90 | **Letzte Aktualisierung:** 2026-09-09
+**Version:** v0.91 | **Letzte Aktualisierung:** 2026-10-13

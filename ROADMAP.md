@@ -1,11 +1,9 @@
 # NeonArena Roadmap
 
-> Letztes Update: 2026-09-18
-> Stand: v0.90 (released) Ghost-Kit G1–G12, 13 Bosse, 14 Arenas, 116 Tests
-> Unreleased: Startmenü, Daily-Pool 14, Map-Look, Arena-Identität (Frostbite ≠ Ironman), Pad-Binds
->
+> Letztes Update: 2026-10-13
+> Stand: v0.91 (unreleased) Startmenü, Daily-Pool 14, Map-Look, Arena-Identität, Pad-Binds, Tests 111–121
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
-> Letztes GitHub-Release: **v0.90**.
+> Letztes GitHub-Release: **v0.90** (v0.91 in Vorbereitung).
 
 ---
 
@@ -72,7 +70,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 ## 🗺️ Nächste Milestones
 
 ### M14: v0.90 — Gamepad-Ready Release 🎯
-> *Ziel: Stabiles, gamepad-fähiges Release mit Ghost-Balance* — **abgeschlossen** ✅
+> *Ziel: Stabiles, gamepad-fähiges Release mit Ghost-Balance* — **abgeschlossen** ✅ (v0.90, Sep 2026)
 
 **Was:**
 - ✅ M13 Controller-Support komplett (SDL2 + UI-Nav + Rumble)
@@ -95,6 +93,35 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 - [x] CHANGELOG.md aktualisiert
 - [x] GitHub Release v0.90 mit Engine-Artifacts
 - [x] Installer-Version auf 0.90 (Windows-Binary-Playtest weiter offen)
+
+---
+
+### M15: v0.91 — Start-Menu & Arena-Identität Release 🎯
+> *Ziel: Unreleased-Block als Release schützen — Startmenü, Daily-Pool, Map-Look, Module-Split*
+> **Status:** Code fertig, CI grün — Release-Tag ausstehend
+
+**Inhalt (aus CHANGELOG [0.91]):**
+- ✅ Startmenü (q3_ui): PLAY / DAILY / GHOST / ARENA; Launcher ohne Flags öffnet Menü
+- ✅ Daily-Pool 8 → 14, jede Map ein echter OA-BSP (`DAILY BSP`), shared Hash
+- ✅ Per-BSP Look-Tabelle (`neon_maplook.h`): Overbright/Gamma/Bloom/Grid pro Arena
+- ✅ Arena-Identität: Frostbite ≠ Ironman (stem look overrides, HUD-Grid-Tint)
+- ✅ Gamepad Ghost-Binds (LB/RB/X/Y/Back/RS), Pad-Pip-Labels
+- ✅ Modul-Split: perks/bosses/modifiers/achievements/records in `g_nw_*.c`
+- ✅ Drone-Cap (`g_neonwave_drone_cap`, Welle 6 SWARM 8 statt 14)
+- ✅ Tests 111–121 (Loadout-Energie, Startmenü, Map-Look, Arena-Identity, Humans-only, Drone-Cap, no-CHAIN)
+
+**Aufwand:** ~1 Tag (Release-Vorbereitung + Verifikation)
+**Priorität:** Hoch (fast fertig — nur Tag + Release-Notes offen)
+**When:** Okt 2026
+
+**Definition of Done:**
+- [x] Feature implemented
+- [x] Tests geschrieben (Tests 111–121)
+- [x] CI grün (Build + alle Tests)
+- [x] CHANGELOG.md aktualisiert (0.91)
+- [x] GAMEVERSION 0.91 in beiden Repos
+- [x] Installer-Version 0.91
+- [ ] GitHub Release v0.91 mit Engine-Artifacts
 
 ---
 
@@ -150,6 +177,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 | Milestone | Priority | Impact | Risk | When |
 |-----------|----------|--------|------|------|
+| **M15 v0.91 Start-Menu & Arena-Identität** | ✅ Code fertig | Release | Low | Okt 2026 |
 | **M14 v0.90 Gamepad-Ready** | ✅ Fertig | Release | Low | Q4 2026 ✅ |
 | **M13 Engine-Controller (SDL2)** | ✅ Fertig | Gamepad | — | Q4 2026 ✅ |
 | **Ghost Playtest-Balance** | 🟡 Medium | Feel | Low | Q4 2026 |
@@ -172,7 +200,7 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 116 | 116 ✅ |
+| Haupt-Mod Tests | 121 | 121 ✅ |
 | Build Time | ~45s | <60s |
 | Bosse | 13 | 13 |
 | Bot-Typen (Trash) | Healer / Shielder / Elite | — |
@@ -186,13 +214,13 @@ Jedes Milestone ist fertig wenn:
 
 ```
 Sep 2026  v0.71 Ghost-Kit G1–G11 ✅
-          v0.80 Content-Complete (14 Arenas, Bot-Typen) ✅
+          v0.80 Content-Complete (14 Arenen, Bot-Typen) ✅
           v0.81 Controller QVM ✅
           v0.82 Ghost Loadouts + Seasonal + Bosse 12–13 ✅
           v0.90 Gamepad-Ready Release ✅
-Okt 2026  Playtest-Balance, M13 Engine-SDL2
-Nov 2026  M13 Abschluss
-Dez 2026  M14 v0.90 Gamepad-Ready Release — Ziel
+Okt 2026  v0.91 Start-Menu & Arena-Identität (Code fertig, Release-Tag)
+          Ghost Playtest-Balance, M13 Engine-SDL2
+Nov 2026  v0.91 Release + Ghost-Feinbalance
 Jan 2027  M10 Netzwerk-Coop Start
 Mär 2027  Release v1.0 (Multiplayer-Ready) — Ziel
 ```
