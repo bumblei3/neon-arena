@@ -1199,12 +1199,13 @@ assert_108() {
   report $ok "ghost-loadout-spectre"
 }
 
-# Test 109: Ghost Loadout Infiltrator Energy
+# Test 109: Ghost EMP cost baseline (Infiltrator pays full 35)
 assert_109() {
   local ok=0 logfile="$1"
-  check "$logfile" "Ghost: .* joined the Ghost team (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: .* ENERGY=80 (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: EMP cost=35 cd=25000 (loadout 0)"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
-  report $ok "ghost-loadout-infiltrator-energy"
+  report $ok "ghost-emp-cost-infiltrator"
 }
 
 # Test 110: Controller CVars
@@ -1242,12 +1243,12 @@ assert_113() {
 }
 
 # Test 114: Ghost Loadout Balance - Saboteur EMP Discount
-# Saboteur EMP costs 25 (35-10 discount), Lockdown costs 35 (50-15 discount)
+# Saboteur EMP costs 25 (35-10 discount), cd 22000 (25000-3000)
 # With 70 energy: can cast 2 EMPs (50) or 1 EMP + 1 Lockdown (60)
 assert_114() {
   local ok=0 logfile="$1"
   check "$logfile" "Ghost: .* ENERGY=70 (loadout 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
-  check "$logfile" "Ghost: .* joined the Ghost team (loadout 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
+  check "$logfile" "Ghost: EMP cost=25 cd=22000 (loadout 1)"; [ $LAST_RESULT -eq 0 ] || ok=1
   no_fatal_warnings "$logfile" || ok=1
   report $ok "ghost-balance-saboteur-discount"
 }
@@ -1583,12 +1584,12 @@ dispatch_test() {
     106) run_test 106 "ghost-loadout-infiltrator" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     107) run_test 107 "ghost-loadout-saboteur" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     108) run_test 108 "ghost-loadout-spectre" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 2 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    109) run_test 109 "ghost-loadout-infiltrator-energy" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    109) run_test 109 "ghost-emp-cost-infiltrator" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_ghost_emptest 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     110) run_test 110 "controller-cvars" 30 +set joy_deadzone 0.15 +set joy_sensitivity 2.5 +set in_joystick 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     111) run_test 111 "ghost-balance-infiltrator" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     112) run_test 112 "ghost-balance-saboteur" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     113) run_test 113 "ghost-balance-spectre" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 2 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
-    114) run_test 114 "ghost-balance-saboteur-discount" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
+    114) run_test 114 "ghost-balance-saboteur-discount" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 1 +set g_ghost_emptest 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     115) run_test 115 "ghost-loadout-cycle" 60 +set g_neonwave_ghost 1 +set g_ghost_loadout 0 +set g_ghost_cycletest 1 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     116) run_test 116 "start-menu" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;
     117) run_test 117 "map-look" 30 +set g_neonwave_autostart 1 +set g_neonwave_failrun 1 ;;

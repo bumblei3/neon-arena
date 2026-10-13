@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI: apt-Steps in allen Workflows (build-mod, engine-quake3e, prototype-gl3, build-installer) mit Retry-Loop (3 Versuche, Backoff 15/30/45 s) und `Acquire::Retries=5` gehärtet — ein hängender Runner-apt-Step killte sonst den ganzen Build.
 - CI: Test-Matrix-Chunk 6 (32 Tests) in zwei Chunks 6/7 zu je 16 geteilt — halbiert die Laufzeit des critical-path-Chunks der Matrix.
 
+### Added
+- Test-Grundlage für Ghost-EMP-Kosten: `g_ghost_emptest` Cvar + EMP-Kosten-Log beim Cast; EMP-Kosten/CD je Loadout in `GH_EmpCostAndCd()` extrahiert.
+
+### Fixed
+- Tests 109 und 114 waren No-Op-Duplikate (106 bzw. 112). 109 prüft jetzt die EMP-Baseline (Infiltrator cost=35 cd=25000), 114 den echten Saboteur-Discount (cost=25 cd=22000) — der Discount war zuvor nirgends getestet.
+
 ## [0.91] - 2026-10-13
 
 ### Fixed

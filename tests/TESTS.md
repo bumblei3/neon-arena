@@ -120,12 +120,12 @@ Test-Hooks via `g_neonwave_*` Cvars.
 | 106 | ghost-loadout-infiltrator | ghost 1, autostart, failrun | `Ghost: .* joined the Ghost team (loadout 0)` | keine Fatal-Warnung |
 | 107 | ghost-loadout-saboteur | ghost 1, loadout 1, failrun | `joined the Ghost team (loadout 1)` | keine Fatal-Warnung |
 | 108 | ghost-loadout-spectre | ghost 1, loadout 2, failrun | `joined the Ghost team (loadout 2)` | keine Fatal-Warnung |
-| 109 | ghost-loadout-infiltrator-energy | ghost 1, autostart, failrun | `joined the Ghost team (loadout 0)` | keine Fatal-Warnung |
+| 109 | ghost-emp-cost-infiltrator | ghost 1, loadout 0, emptest 1, autostart, failrun | `Ghost: .* ENERGY=80 (loadout 0)`, `Ghost: EMP cost=35 cd=25000 (loadout 0)` | keine Fatal-Warnung |
 | 110 | controller-cvars | in_joystick 1, joy_deadzone, joy_sensitivity | `NeonWave` | keine Fatal-Warnung |
 | 111 | ghost-balance-infiltrator | ghost 1, autostart, failrun | `ENERGY=80 (loadout 0)` | keine Fatal-Warnung |
 | 112 | ghost-balance-saboteur | ghost 1, loadout 1, failrun | `ENERGY=70 (loadout 1)` | keine Fatal-Warnung |
 | 113 | ghost-balance-spectre | ghost 1, loadout 2, failrun | `ENERGY=90 (loadout 2)` | keine Fatal-Warnung |
-| 114 | ghost-balance-saboteur-discount | ghost 1, loadout 1, failrun | `ENERGY=70 (loadout 1)`, `joined the Ghost team (loadout 1)` | keine Fatal-Warnung |
+| 114 | ghost-balance-saboteur-discount | ghost 1, loadout 1, emptest 1, failrun | `Ghost: .* ENERGY=70 (loadout 1)`, `Ghost: EMP cost=25 cd=22000 (loadout 1)` | keine Fatal-Warnung |
 | 115 | ghost-loadout-cycle | ghost 1, cycletest 1, failrun | `loadout set to 1`, `ENERGY=70 (loadout 1)`, `hint SABOTEUR`, JOY5/JOY6 binds | keine Fatal-Warnung |
 | 116 | start-menu | failrun | PLAY startet Ghost, ESC Resume/Restart/Leave, daily pool header | keine Fatal-Warnung |
 | 117 | map-look | failrun | `NeonArena: look oa_shine overbright=1 bloom=0.50 grid=0` | keine Fatal-Warnung |
