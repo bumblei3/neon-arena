@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Ghost loadout cycle (`g_ghost_cycletest`) applies in the headless kit announce, not only on a human spawn.
 
 ### Changed
+- Neon-wave split: perks, bosses, modifiers, achievements and records live in `g_nw_*.c`. The wave loop stays in `g_neonwave.c`.
 - Drone count is capped after swarm, coop and arena scale (`g_neonwave_drone_cap`, default 8, `0` disables). Wave 6 SWARM is 8 drones instead of 14, so the reliable command buffer does not drop the client.
 - Ghost perk rolls skip CHAIN (lightning-only). PIERCE stays. `g_neonwave_perkforce` can still force CHAIN.
 - Perk shop: cards are 1 / 2 / 3 buttons (also F1–F3 and D-pad). Binds load from cgame via upgrade-binds.cfg.
