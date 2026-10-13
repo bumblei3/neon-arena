@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - CI: apt-Steps in allen Workflows (build-mod, engine-quake3e, prototype-gl3, build-installer) mit Retry-Loop (3 Versuche, Backoff 15/30/45 s) und `Acquire::Retries=5` gehärtet — ein hängender Runner-apt-Step killte sonst den ganzen Build.
+- CI: Test-Matrix-Chunk 6 (32 Tests) in zwei Chunks 6/7 zu je 16 geteilt — halbiert die Laufzeit des critical-path-Chunks der Matrix.
 
 ## [0.91] - 2026-10-13
 
