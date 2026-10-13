@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Centerprints for wave clear, Ghost spawn, boss, perk and difficulty used a literal `\n` or a stray backslash, so the client showed one garbled line. They now break like the wave-start banner.
+- Headless tests refuse `fs_homepath` of the player install. `timeout --foreground -k 5s` kills a stuck `ioq3ded` with the suite, so a run cannot sit on `~/.openarena/neonarena` and archive `autostart` / `failrun` into `q3config_server.cfg`.
 - Headless runs (`g_neonwave_autostart 1`) still log `ACHIEVEMENT` lines but do not write `neonwave_achievements.dat`, so the test suite cannot unlock lifetime badges in the player profile.
 - Coop respawn test keeps the headless stand-in connected until the next wave revives it. Dead bots were dropped as soon as `respawnTime` passed, so the revive never ran.
 - Ghost loadout cycle (`g_ghost_cycletest`) applies in the headless kit announce, not only on a human spawn.

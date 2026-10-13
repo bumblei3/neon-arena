@@ -37,10 +37,31 @@ while [ $# -gt 0 ]; do
 done
 
 # ---- build command ----
-# na_root: resolve homepath (allow override, else default)
-na_root() { echo "${TEST_HOMEPATH:-$HOME/.openarena}"; }
+# Never write the player install. An unset TEST_HOMEPATH gets a temp tree
+# that only symlinks the installed pk3/vm files.
+if [ -z "${TEST_HOMEPATH:-}" ]; then
+  TEST_HOMEPATH="${TMPDIR:-/tmp}/nw-homepath-$$"
+  mkdir -p "$TEST_HOMEPATH/neonarena/vm"
+  src="$HOME/.openarena/neonarena"
+  if [ -d "$src" ]; then
+    for f in "$src"/*.pk3; do
+      [ -e "$f" ] && ln -sfn "$f" "$TEST_HOMEPATH/neonarena/"
+    done
+    if [ -d "$src/vm" ]; then
+      for f in "$src/vm"/*.qvm; do
+        [ -e "$f" ] && ln -sfn "$f" "$TEST_HOMEPATH/neonarena/vm/"
+      done
+    fi
+  fi
+fi
+case "${TEST_HOMEPATH%/}" in
+  "$HOME/.openarena")
+    echo "refusing launch: fs_homepath is the player install" >&2
+    exit 1
+    ;;
+esac
 CMDLINE="+set dedicated 1"
-CMDLINE="$CMDLINE +set fs_homepath \"$(na_root)\""
+CMDLINE="$CMDLINE +set fs_homepath $TEST_HOMEPATH"
 CMDLINE="$CMDLINE +set sv_maxclients 24"
 CMDLINE="$CMDLINE +set fs_game neonarena +set g_gametype 14"
 # OA_EXTRA: additional engine args (e.g., +set com_basegame baseoa +set fs_basepath /usr/lib/openarena)
@@ -66,7 +87,7 @@ if command -v xvfb-run >/dev/null && [ "${OA_BIN:-}" != "/usr/lib/ioquake3/ioq3d
   RUNNER="xvfb-run -a"
 fi
 
-$RUNNER timeout "$TIMEOUT_SECS" "${OA_BIN:-/usr/lib/ioquake3/ioq3ded}" $CMDLINE > "$LOGFILE" 2>&1 || true
+$RUNNER timeout --foreground -k 5s "$TIMEOUT_SECS" "${OA_BIN:-/usr/lib/ioquake3/ioq3ded}" $CMDLINE > "$LOGFILE" 2>&1 || true
 
 # ---- assert ----
 FAILED=0

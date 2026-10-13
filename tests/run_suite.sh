@@ -28,8 +28,20 @@ elif [ "${OA_BIN##*/}" = "ioq3ded" ] || [ "$OA_BIN" = "/usr/lib/ioquake3/ioq3ded
             +set com_legacyprotocol 71 +set com_protocol 71)
 fi
 
-# Isolated homepath for --parallel slots (default: the player install).
-na_root() { echo "${TEST_HOMEPATH:-$HOME/.openarena}"; }
+# Tests must never write the player install. Callers set TEST_HOMEPATH
+# (setup_isolated_homepath / --parallel) before launch.
+require_isolated_homepath() {
+  local hp="${TEST_HOMEPATH:-}"
+  hp="${hp%/}"
+  if [ -z "$hp" ] || [ "$hp" = "$HOME/.openarena" ]; then
+    echo "refusing launch: fs_homepath would be the player install ($HOME/.openarena)" >&2
+    exit 1
+  fi
+}
+na_root() {
+  require_isolated_homepath
+  echo "$TEST_HOMEPATH"
+}
 na_game() { echo "$(na_root)/neonarena"; }
 # HOME_DIR must follow TEST_HOMEPATH at call time (asserts run after
 # setup_isolated_homepath), so resolve lazily via na_game, not once here.
@@ -192,8 +204,11 @@ run_test() {
     local _before_pass="${PASS:-0}" _before_fail="${FAIL:-0}"
     printf '%s' "TEST $num: $name ... "
     write_nw_reset_cfg
-    $RUNNER timeout "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
-      +set fs_homepath "$(na_root)" \
+    # --foreground keeps the server in this process group, so a killed suite
+    # does not orphan ioq3ded. -k sends KILL if the server ignores TERM.
+    require_isolated_homepath
+    $RUNNER timeout --foreground -k 5s "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
+      +set fs_homepath "$TEST_HOMEPATH" \
       +set sv_maxclients 24 \
       +set fs_game neonarena +set g_gametype 14 \
       +exec "$NW_RESET_CFG" \
