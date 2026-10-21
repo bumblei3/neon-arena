@@ -9,6 +9,7 @@
 #include "hud.h"
 #include "perf_profiler.h"
 #include "map_validator.h"
+#include "balancing.h"
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
@@ -60,6 +61,11 @@ bool Game::init(SDL_Window* window) {
         MapValidator::MapData m = MapValidator::generateDefaultMap("neon_arena", 50.0f);
         MapValidator::ValidationResult vr = MapValidator::validate(m);
         MapValidator::printReport(vr);
+    }
+    {
+        auto r = BalancingDB::get().analyze();
+        printf("Balance: DPS w1=%.1f w10=%.1f | TTK w1=%.2fs w10=%.2fs | survival w10=%.1fs w20=%.1fs\n",
+            r.totalDpsP1, r.totalDpsP10, r.timeToKillW1, r.timeToKillW10, r.survivalScoreW10, r.survivalScoreW20);
     }
 
     player.pos = Vec3(0, DEFAULT_PLAYER_HEIGHT, 0);
