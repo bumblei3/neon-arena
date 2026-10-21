@@ -11,6 +11,7 @@
 #include "weapons.h"
 #include "savegame.h"
 #include "replay_recorder.h"
+#include "wave_editor.h"
 #include <cstdio>
 
 void InputSystem::pollEvents(Game& game) {
@@ -105,6 +106,10 @@ void InputSystem::handlePlayingKeyDown(Game& game, SDL_Event& event) {
         } else {
             ReplayRecorder::start();
         }
+    }
+    if (event.key.keysym.sym == SDLK_F10) {
+        WaveEditor::isVisible() = !WaveEditor::isVisible();
+        WaveEditor::renderEditor();
     }
     if (game.showUpgradeMenu) {
         handleUpgradeInput(game, event);
