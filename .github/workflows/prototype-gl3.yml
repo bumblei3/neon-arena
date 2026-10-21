@@ -10,9 +10,14 @@ on:
       - 'prototypes/sdl2-gl3/**'
       - '.github/workflows/prototype-gl3.yml'
 
+concurrency:
+  group: prototype-gl3-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     
     steps:
     - uses: actions/checkout@v7

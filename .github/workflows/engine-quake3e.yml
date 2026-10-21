@@ -14,6 +14,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: engine-quake3e-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-engine:
     strategy:
@@ -29,6 +33,7 @@ jobs:
           - os: macos-latest
             platform: macos
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     permissions:
       contents: write
     steps:
