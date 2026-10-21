@@ -1,5 +1,8 @@
 # NEON ARENA
 
+[![build-mod](https://github.com/bumblei3/neon-arena/actions/workflows/build-mod.yml/badge.svg)](https://github.com/bumblei3/neon-arena/actions/workflows/build-mod.yml)
+[![engine-quake3e](https://github.com/bumblei3/neon-arena/actions/workflows/engine-quake3e.yml/badge.svg)](https://github.com/bumblei3/neon-arena/actions/workflows/engine-quake3e.yml)
+
 **Wave-Survival-Shooter auf OpenArena-Basis** – Railgun & Lightning Gun gegen
 steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 
