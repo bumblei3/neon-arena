@@ -1,6 +1,6 @@
 # Controller-Support Plan für NeonArena
 
-> Stand v0.90: **erledigt** (QVM Aim-Assist + `[JOY]` HUD, Quake3e SDL2 Stick/UI/Rumble).
+> Stand v0.91: **erledigt** (QVM Aim-Assist + `[JOY]` HUD, Quake3e SDL2 Stick/UI/Rumble).
 > Historischer Plan, kein offenes Milestone. Patch: `patches/quake3e-controller.patch`.
 
 ## Übersicht
