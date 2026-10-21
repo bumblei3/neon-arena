@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: build-installer-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-installer:
     runs-on: ubuntu-latest
