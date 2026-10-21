@@ -10,6 +10,7 @@
 #include "specials.h"
 #include "weapons.h"
 #include "savegame.h"
+#include "replay_recorder.h"
 #include <cstdio>
 
 void InputSystem::pollEvents(Game& game) {
@@ -96,6 +97,14 @@ void InputSystem::handlePlayingKeyDown(Game& game, SDL_Event& event) {
         game.state = GameState::PAUSED;
         SDL_SetRelativeMouseMode(SDL_FALSE);
         SavegameManager::save(game);
+    }
+    if (event.key.keysym.sym == SDLK_F9) {
+        if (ReplayRecorder::isRecording()) {
+            ReplayRecorder::stop();
+            ReplayRecorder::saveToFile("replay.nrp");
+        } else {
+            ReplayRecorder::start();
+        }
     }
     if (game.showUpgradeMenu) {
         handleUpgradeInput(game, event);
