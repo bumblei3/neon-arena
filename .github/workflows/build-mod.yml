@@ -31,6 +31,13 @@ jobs:
           git log --oneline -1
           grep GAMEVERSION code/game/g_local.h | head -2 >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Cache apt packages
+        uses: actions/cache@v6
+        with:
+          path: /var/cache/apt/archives
+          key: apt-${{ runner.os }}-${{ hashFiles('.github/workflows/build-mod.yml') }}
+          restore-keys: apt-${{ runner.os }}-
+
       - name: Install build dependencies
         run: |
           for i in 1 2 3; do
