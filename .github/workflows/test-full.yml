@@ -1,0 +1,48 @@
+name: test-full
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: test-full-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Install build dependencies
+        run: |
+          for i in 1 2 3; do
+            sudo -S -p '' apt-get -o Acquire::Retries=5 update && \
+            sudo apt-get -o Acquire::Retries=5 install -y build-essential bison flex zip xvfb openarena x11-utils && break
+            echo "::warning::apt attempt $i failed, retrying"
+            sleep $((i * 15))
+          done
+
+      - name: Cache QVMs
+        uses: actions/cache@v6
+        with:
+          path: oa-gamecode/build/release-linux-x86_64/neonarena/vm
+          key: qvm-v2-${{ runner.os }}-${{ hashFiles('oa-gamecode/code/**/*.c', 'oa-gamecode/code/**/*.h', 'oa-gamecode/Makefile', 'Makefile.local') }}
+
+      - name: Build mod
+        run: |
+          cp Makefile.local oa-gamecode/
+          make -C oa-gamecode
+
+      - name: Run full test suite
+        run: |
+          set -e
+          HP=$(mktemp -d /tmp/nwtest-ci-XXXX)
+          mkdir -p "$HP/neonarena/vm"
+          cp oa-gamecode/build/release-linux-x86_64/neonarena/vm/*.qvm "$HP/neonarena/vm/"
+          TEST_HOMEPATH="$HP" tests/run_suite.sh --parallel 4
+          rm -rf "$HP"
