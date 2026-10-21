@@ -207,7 +207,7 @@ run_test() {
     # --foreground keeps the server in this process group, so a killed suite
     # does not orphan ioq3ded. -k sends KILL if the server ignores TERM.
     require_isolated_homepath
-    $RUNNER timeout --foreground -k 5s "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
+    $RUNNER timeout --foreground -k 2s "$timeout_s" "$OA_BIN" +set dedicated 1 "${OA_EXTRA[@]}" \
       +set fs_homepath "$TEST_HOMEPATH" \
       +set sv_maxclients 24 \
       +set fs_game neonarena +set g_gametype 14 \

@@ -87,7 +87,7 @@ if command -v xvfb-run >/dev/null && [ "${OA_BIN:-}" != "/usr/lib/ioquake3/ioq3d
   RUNNER="xvfb-run -a"
 fi
 
-$RUNNER timeout --foreground -k 5s "$TIMEOUT_SECS" "${OA_BIN:-/usr/lib/ioquake3/ioq3ded}" $CMDLINE > "$LOGFILE" 2>&1 || true
+$RUNNER timeout --foreground -k 2s "$TIMEOUT_SECS" "${OA_BIN:-/usr/lib/ioquake3/ioq3ded}" $CMDLINE > "$LOGFILE" 2>&1 || true
 
 # ---- assert ----
 FAILED=0
