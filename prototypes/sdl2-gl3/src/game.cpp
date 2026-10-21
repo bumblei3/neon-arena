@@ -8,6 +8,7 @@
 #include "specials.h"
 #include "hud.h"
 #include "perf_profiler.h"
+#include "map_validator.h"
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
@@ -55,6 +56,11 @@ bool Game::init(SDL_Window* window) {
     CoopManager::init();
     loadHighScore(*this);
     setupArena();
+    {
+        MapValidator::MapData m = MapValidator::generateDefaultMap("neon_arena", 50.0f);
+        MapValidator::ValidationResult vr = MapValidator::validate(m);
+        MapValidator::printReport(vr);
+    }
 
     player.pos = Vec3(0, DEFAULT_PLAYER_HEIGHT, 0);
     player.health = DEFAULT_MAX_HEALTH;
