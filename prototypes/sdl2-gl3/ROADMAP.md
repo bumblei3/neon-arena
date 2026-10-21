@@ -89,7 +89,7 @@
 - [x] Balancing: balance report at startup
 
 ### Milestone 4: Input & Controls 📋 PLANNED
-- [ ] Gamepad support (SDL2 GameController API)
+- [x] Gamepad detection (SDL2 GameController API)
 - [ ] Input remapping (keyboard + mouse)
 - [ ] Aim assist for controllers
 - [ ] Haptic feedback (rumble on hit/fire)
