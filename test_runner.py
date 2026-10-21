@@ -162,11 +162,13 @@ def run_single_test(num: int, name: str, script: Optional[Path], timeout: int = 
                 text=True,
                 timeout=timeout,
                 cwd=str(TESTS_DIR.parent),
-                env={**os.environ, "TEST_NUM": str(num)}
+                env={**os.environ, "TEST_NUM": str(num),
+                     "OA_BIN": "/usr/lib/ioquake3/ioq3ded",
+                     "OA_EXTRA": "+set com_basegame baseoa +set fs_basepath /usr/lib/openarena +set com_legacyprotocol 71 +set com_protocol 71"}
             )
             duration = time.time() - start
             output = result.stdout + result.stderr
-            passed = "PASS" in output and "FAIL" not in output
+            passed = result.returncode == 0 and "PASS" in output
             return TestResult(
                 num=num, name=name, passed=passed, duration=duration,
                 output=output[-2000:] if len(output) > 2000 else output,
