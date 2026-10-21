@@ -163,6 +163,15 @@ echo ""
 echo "=== Building Replay Recorder Tests ==="
 g++ -std=c++17 -O2 -I../src -o test_replay_recorder test_replay_recorder.cpp ../src/replay_recorder.cpp
 
+# --- Balancing Tests ---
+echo ""
+echo "=== Building Balancing Tests ==="
+g++ -std=c++17 -O2 -I../src -o test_balancing test_balancing.cpp ../src/balancing.cpp
+
+echo ""
+echo "=== Running Balancing Tests ==="
+./test_balancing
+
 echo ""
 echo "=== Running Replay Recorder Tests ==="
 ./test_replay_recorder
@@ -186,4 +195,4 @@ echo "=== Running Achievement Tests ==="
 ./test_achievements
 
 # Cleanup
-rm -f test_wave_config test_modifier test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_ghost test_wave_editor test_map_validator test_replay_recorder test_perf_profiler test_achievements
+rm -f test_wave_config test_modifier test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_ghost test_wave_editor test_map_validator test_replay_recorder test_balancing test_perf_profiler test_achievements
