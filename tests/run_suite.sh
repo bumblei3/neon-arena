@@ -1634,9 +1634,9 @@ QUICK_TESTS="1 3 4 7 8 10 12 13 17 18 19 20 21 22 23 26 27 28 30 31 32 33 34 35 
     # Real asserts (same dispatch_test / assert_N as --test). Isolated
     # fs_homepath per slot so records/json do not collide. Syntax:
     # --parallel N --test 'n1 n2 ...'
+    # With no --test, run the full catalog (ALL_TESTS).
     if [ -z "$SELECTED" ]; then
-      echo "specify --parallel N --test 'n1 n2 ...'"
-      exit 1
+      SELECTED="$ALL_TESTS"
     fi
     nslots="${PARALLEL_N:-4}"
     testlist="$SELECTED"
