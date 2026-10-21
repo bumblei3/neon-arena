@@ -22,6 +22,46 @@ void PlayerSystem::update(Game& game, float dt) {
     game.mouseX = 0;
     game.mouseY = 0;
 
+    // Aim assist for gamepad: nudge toward nearest alive bot within view
+    if (CoopManager::getGamepad().connected) {
+        const float ASSIST = 0.04f;
+        const float MAX_ANGLE = 0.35f;
+        float best = MAX_ANGLE;
+        Vec3 target(0,0,0);
+        bool found = false;
+        for (auto& b : game.bots) {
+            if (!b.alive) continue;
+            float dx = b.pos.x - game.player.pos.x;
+            float dz = b.pos.z - game.player.pos.z;
+            float dy = b.pos.y - game.player.pos.y;
+            float dist = sqrtf(dx*dx + dz*dz);
+            if (dist < 0.1f) continue;
+            float targetYaw = atan2f(dx, -dz);
+            float diff = targetYaw - game.player.yaw;
+            while (diff > 3.14159f) diff -= 6.28318f;
+            while (diff < -3.14159f) diff += 6.28318f;
+            if (fabsf(diff) < best) {
+                best = fabsf(diff);
+                target = b.pos;
+                found = true;
+            }
+        }
+        if (found) {
+            float dx = target.x - game.player.pos.x;
+            float dz = target.z - game.player.pos.z;
+            float dy = target.y - game.player.pos.y;
+            float dist = sqrtf(dx*dx + dz*dz);
+            float targetYaw = atan2f(dx, -dz);
+            float targetPitch = atan2f(dy, dist);
+            float yawDiff = targetYaw - game.player.yaw;
+            while (yawDiff > 3.14159f) yawDiff -= 6.28318f;
+            while (yawDiff < -3.14159f) yawDiff += 6.28318f;
+            game.player.yaw += yawDiff * ASSIST;
+            game.player.pitch += (targetPitch - game.player.pitch) * ASSIST;
+            game.player.pitch = fmaxf(-1.2f, fminf(1.2f, game.player.pitch));
+        }
+    }
+
     float moveX = 0, moveZ = 0;
     if (game.keys[SDL_SCANCODE_W]) moveZ -= 1;
     if (game.keys[SDL_SCANCODE_S]) moveZ += 1;
