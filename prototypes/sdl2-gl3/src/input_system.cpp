@@ -30,6 +30,27 @@ void InputSystem::pollEvents(Game& game) {
             handleMouseMotion(game, event);
         } else if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
             handleMouseButton(game, event);
+        } else if (event.type == SDL_CONTROLLERAXISMOTION) {
+            if (!game.gamepad_) return;
+            const int DEAD = 8000;
+            int16_t v = event.caxis.value;
+            if (event.caxis.axis == SDL_CONTROLLER_AXIS_LEFTX) {
+                game.keys[SDL_SCANCODE_A] = v < -DEAD;
+                game.keys[SDL_SCANCODE_D] = v > DEAD;
+            } else if (event.caxis.axis == SDL_CONTROLLER_AXIS_LEFTY) {
+                game.keys[SDL_SCANCODE_W] = v < -DEAD;
+                game.keys[SDL_SCANCODE_S] = v > DEAD;
+            } else if (event.caxis.axis == SDL_CONTROLLER_AXIS_RIGHTX) {
+                game.mouseX += (float)v / 32767.0f * 4.0f;
+            } else if (event.caxis.axis == SDL_CONTROLLER_AXIS_RIGHTY) {
+                game.mouseY += (float)v / 32767.0f * 4.0f;
+            }
+        } else if (event.type == SDL_CONTROLLERBUTTONDOWN) {
+            if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) game.shootRequested = true;
+            if (event.cbutton.button == SDL_CONTROLLER_BUTTON_B) game.keys[SDL_SCANCODE_SPACE] = true;
+        } else if (event.type == SDL_CONTROLLERBUTTONUP) {
+            if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) game.shootRequested = false;
+            if (event.cbutton.button == SDL_CONTROLLER_BUTTON_B) game.keys[SDL_SCANCODE_SPACE] = false;
         } else if (event.type == SDL_CONTROLLERDEVICEADDED || event.type == SDL_CONTROLLERDEVICEREMOVED) {
             CoopManager::handleDeviceEvent(event);
         }
