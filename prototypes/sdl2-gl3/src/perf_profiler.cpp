@@ -3,7 +3,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
-#include <SDL2/SDL.h>
+#include <chrono>
 
 bool PerfProfiler::recording = false;
 bool PerfProfiler::frameInProgress = false;
@@ -97,7 +97,7 @@ void PerfProfiler::beginSection(const char* name) {
     int idx = sectionCount;
     strncpy(sectionNames[idx], name, 31);
     sectionNames[idx][31] = 0;
-    sectionStart[idx] = (float)SDL_GetTicks();
+    sectionStart[idx] = (float)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     sectionActive |= (1 << idx);
     sectionCount++;
 }
