@@ -46,7 +46,10 @@ void InputSystem::pollEvents(Game& game) {
                 game.mouseY += (float)v / 32767.0f * 4.0f;
             }
         } else if (event.type == SDL_CONTROLLERBUTTONDOWN) {
-            if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) game.shootRequested = true;
+            if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) {
+                game.shootRequested = true;
+                if (game.gamepad_) SDL_GameControllerRumble(game.gamepad_, 0x4000, 0x4000, 80);
+            }
             if (event.cbutton.button == SDL_CONTROLLER_BUTTON_B) game.keys[SDL_SCANCODE_SPACE] = true;
         } else if (event.type == SDL_CONTROLLERBUTTONUP) {
             if (event.cbutton.button == SDL_CONTROLLER_BUTTON_A) game.shootRequested = false;
