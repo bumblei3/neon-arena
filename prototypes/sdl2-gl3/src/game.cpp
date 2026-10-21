@@ -7,6 +7,7 @@
 #include "powerups.h"
 #include "specials.h"
 #include "hud.h"
+#include "perf_profiler.h"
 #include <cmath>
 #include <cstdio>
 #include <algorithm>
@@ -48,6 +49,7 @@ bool Game::init(SDL_Window* window) {
     // Initialize echo system
     echoSystem = new EchoSystem();
     echoSystem->init();
+    PerfProfiler::startRecording();
 
     SDL_SetRelativeMouseMode(SDL_TRUE);
     CoopManager::init();
@@ -571,13 +573,17 @@ void Game::nextWave() {
 }
 
 void Game::render() {
+    PerfProfiler::beginFrame();
+    PerfProfiler::beginSection("game");
     if (state == GameState::MENU) {
         renderMenu();
+        PerfProfiler::endFrame();
         return;
     }
 
     if (state == GameState::OPTIONS) {
         renderOptions();
+        PerfProfiler::endFrame();
         return;
     }
 
@@ -612,16 +618,19 @@ void Game::render() {
         renderer_->beginOverlay();
 
         renderUpgradeMenu(*this);
+        PerfProfiler::endFrame();
         return;
     }
 
     if (state == GameState::PAUSED) {
         renderPauseMenu();
+        PerfProfiler::endFrame();
         return;
     }
 
     if (state == GameState::GAME_OVER) {
         renderGameOver();
+        PerfProfiler::endFrame();
         return;
     }
 
@@ -688,6 +697,8 @@ void Game::render() {
         achievementPopupTimer -= 0.016f;
     }
 
+    PerfProfiler::endSection("game");
+    PerfProfiler::endFrame();
     SDL_GL_SwapWindow(window_);
 }
 
