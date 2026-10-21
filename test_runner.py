@@ -129,7 +129,7 @@ def run_bash_test(num: int, timeout: int = DEFAULT_TIMEOUT) -> TestResult:
         
         # Parse output: "TEST N: name ... PASS/FAIL"
         name = f"test-{num}"
-        passed = "PASS" in output and "FAIL" not in output
+        passed = bool(re.search(rf"TEST {num}: .*?\bPASS\b", output)) and not bool(re.search(rf"TEST {num}: .*?FAIL", output))
         
         m = re.search(rf"TEST {num}: ([\w-]+)", output)
         if m:
