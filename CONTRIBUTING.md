@@ -181,7 +181,7 @@ ohne menschlichen Spieler. Hooks:
 ```sh
 cd tests
 chmod +x run_suite.sh
-./run_suite.sh                 # alle Tests in ALL_TESTS (103 inkl. 9b)
+./run_suite.sh                 # alle Tests in ALL_TESTS (119 inkl. 9b)
 ./run_suite.sh --quick         # Quick-Subset
 ./run_suite.sh --test 3        # einzelner Test
 python3 verify_catalog.py       # Katalog-Konsistenz prüfen
@@ -225,6 +225,7 @@ Voraussetzung: QVMs in `~/.openarena/neonarena/vm/` (aus `build-mod.sh` oder CI-
 | 4 | 60–74 |
 | 5 | 75–84, 88–89 |
 | 6 | 90–105 |
+| 7 | 106–121 |
 
 Wenn ein Test als "flaky" markiert ist (`FLAKY_TESTS` in `run_suite.sh`), wird er
 einmal retryt.
