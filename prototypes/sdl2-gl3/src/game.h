@@ -485,6 +485,7 @@ private:
     // === Subsystems ===
     Renderer* renderer_ = nullptr;
     SDL_Window* window_ = nullptr;
+    SDL_GameController* gamepad_ = nullptr;
     TextRenderer text_;
     SpatialHash* spatialHash = nullptr;
     ParticleSystem* particleSystem = nullptr;

@@ -27,6 +27,20 @@ Game::~Game() {
 bool Game::init(SDL_Window* window) {
     window_ = window;
 
+    // Gamepad detection (Milestone 4)
+    if (SDL_NumJoysticks() > 0) {
+        for (int i = 0; i < SDL_NumJoysticks(); i++) {
+            if (SDL_IsGameController(i)) {
+                gamepad_ = SDL_GameControllerOpen(i);
+                if (gamepad_) {
+                    printf("Gamepad connected: %s\n", SDL_GameControllerName(gamepad_));
+                    break;
+                }
+            }
+        }
+    }
+    if (!gamepad_) printf("No gamepad detected.\n");
+
     renderer_ = new Renderer();
     if (!renderer_->init(window, DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)) {
         fprintf(stderr, "Failed to initialize renderer\n");
@@ -103,6 +117,7 @@ void Game::shutdown() {
         echoSystem = nullptr;
     }
     
+    if (gamepad_) { SDL_GameControllerClose(gamepad_); gamepad_ = nullptr; }
     if (renderer_) {
         renderer_->shutdown();
         delete renderer_;
