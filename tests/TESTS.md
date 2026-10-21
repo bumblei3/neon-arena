@@ -196,7 +196,7 @@ sich diagnostisch ändern.
 
 ## Gesamtüberblick
 
-Die Suite umfasst **117 Tests** (1–119 inkl. 9b, ohne die entfernten Stubs 85–87). Der vollständige Katalog
+Die Suite umfasst **119 Tests** (9b, 1–121 inkl., ohne die entfernten Stubs 85–87). Der vollständige Katalog
 steht in `tests/run_suite.sh` in der Variable `ALL_TESTS` sowie in der
 `dispatch_test()`-Funktion. Die Tabelle oben ist die menschlich-lesbare
 Dokumentation; jeweils eine Änderung an einem Test erfordert:

@@ -1,7 +1,7 @@
 # NeonArena Roadmap
 
-> Letztes Update: 2026-10-13
-> Stand: v0.91 (unreleased) Startmenü, Daily-Pool 14, Map-Look, Arena-Identität, Pad-Binds, Tests 111–121
+> Letztes Update: 2026-10-21
+> Stand: v0.91 (unreleased) Startmenü, Daily-Pool 14, Map-Look, Arena-Identität, Pad-Binds, Tests 111–121; Test-Infrastruktur gehärtet (per-Test-Timeouts, Kill-Grace 2s, Env-Fix)
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
 > Letztes GitHub-Release: **v0.90** (v0.91 in Vorbereitung).
 
