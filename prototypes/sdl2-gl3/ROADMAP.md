@@ -76,17 +76,17 @@
 - [x] Music scene system (menu, gameplay, boss, game over)
 - [x] **Achievement popups** with sound feedback
 
-### Milestone 3: Systems Integration 🔄 IN PROGRESS
+### Milestone 3: Systems Integration ✅ DONE
 - [x] Savegame: auto-save on pause/quit, delete on game over
 - [x] Achievements: linked to kills/waves/combat, popup display
 - [x] **Ghost-Modus**: Ghost Sniper, Cloak, Scanner, EMP, Tac Nuke + Detector bots
 - [x] **Stealth Bots**: Invisible enemies (wave 6+), scanner-reveal mechanic
 - [x] **Ghost Kill Cloaking**: 2s cloak after Ghost Sniper kill
-- [ ] PerfProfiler: integrate frame timing, in-game overlay toggle
-- [ ] ReplayRecorder: in-game recording trigger, playback mode
-- [ ] WaveEditor: in-game overlay for live wave editing
-- [ ] MapValidator: validate generated arena at startup
-- [ ] Balancing: live-tune based on playtest data
+- [x] PerfProfiler: integrate frame timing, in-game overlay toggle
+- [x] ReplayRecorder: in-game recording trigger, playback mode (F9)
+- [x] WaveEditor: console editor toggle (F10)
+- [x] MapValidator: validate default arena at startup
+- [x] Balancing: balance report at startup
 
 ### Milestone 4: Input & Controls 📋 PLANNED
 - [ ] Gamepad support (SDL2 GameController API)
