@@ -91,7 +91,7 @@
 ### Milestone 4: Input & Controls 📋 PLANNED
 - [x] Gamepad detection (SDL2 GameController API)
 - [x] Gamepad input mapping (sticks/buttons)
-- [ ] Aim assist for controllers
+- [x] Aim assist for controllers
 - [x] Haptic feedback (rumble on fire)
 - [ ] Touch input (future: mobile port consideration)
 
