@@ -11,7 +11,7 @@ steigende Bot-Wellen, Highscore-Jagd, kompletter Neon-Look.
 > Direkt: `--daily` · `--ghost` · `--arena <name>`  
 > oder: `openarena +set fs_game neonarena +g_gametype 14`
 
-## Arenas (v0.90)
+## Arenas (v0.91)
 
 NeonArena hat 14 Arenas mit unterschiedlichen Themen und Spielstilen:
 
@@ -277,4 +277,4 @@ Jede Rückmeldung hilft, NeonArena besser zu machen. Egal ob Bug-Bericht, Balanc
 
 ---
 
-**Version:** v0.91 | **Letzte Aktualisierung:** 2026-10-13
+**Version:** v0.91 | **Letzte Aktualisierung:** 2026-10-21
