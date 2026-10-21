@@ -28,7 +28,7 @@ from typing import List, Optional
 # --- Configuration ---
 TESTS_DIR = Path(__file__).parent / "tests"
 HELPERS_DIR = TESTS_DIR / "helpers"
-DEFAULT_TIMEOUT = 120  # seconds
+DEFAULT_TIMEOUT = 300  # seconds (must exceed run_suite.sh internal timeout + kill grace)
 MAX_PARALLEL = 8
 
 # --- Data Classes ---
