@@ -356,6 +356,7 @@ void Renderer::shutdown() {
     delete brightPassShader;
     delete blurShader;
     delete compositeShader;
+    delete groundShader;
 
     glDeleteVertexArrays(1, &VAOVertex);
     glDeleteBuffers(1, &VBOVertex);

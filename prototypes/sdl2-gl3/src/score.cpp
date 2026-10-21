@@ -46,7 +46,9 @@ void saveHighScore(Game& game) {
 void loadHighScore(Game& game) {
     FILE* f = fopen("highscore.dat", "r");
     if (f) {
-        fscanf(f, "%d", &game.highScore);
+        if (fscanf(f, "%d", &game.highScore) != 1) {
+            game.highScore = 0;
+        }
         fclose(f);
     }
 }
