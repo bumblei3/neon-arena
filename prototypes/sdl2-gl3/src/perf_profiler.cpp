@@ -3,6 +3,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
+#include <SDL2/SDL.h>
 
 bool PerfProfiler::recording = false;
 bool PerfProfiler::frameInProgress = false;
@@ -96,7 +97,7 @@ void PerfProfiler::beginSection(const char* name) {
     int idx = sectionCount;
     strncpy(sectionNames[idx], name, 31);
     sectionNames[idx][31] = 0;
-    sectionStart[idx] = 0; // In real impl: SDL_GetTicks()
+    sectionStart[idx] = (float)SDL_GetTicks();
     sectionActive |= (1 << idx);
     sectionCount++;
 }
