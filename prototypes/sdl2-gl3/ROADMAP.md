@@ -92,7 +92,7 @@
 - [x] Gamepad detection (SDL2 GameController API)
 - [x] Gamepad input mapping (sticks/buttons)
 - [ ] Aim assist for controllers
-- [ ] Haptic feedback (rumble on hit/fire)
+- [x] Haptic feedback (rumble on fire)
 - [ ] Touch input (future: mobile port consideration)
 
 ### Milestone 5: Content & Progression 📋 PLANNED
