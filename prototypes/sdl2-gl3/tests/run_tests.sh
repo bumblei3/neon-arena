@@ -168,6 +168,15 @@ echo ""
 echo "=== Building Balancing Tests ==="
 g++ -std=c++17 -O2 -I../src -o test_balancing test_balancing.cpp ../src/balancing.cpp
 
+# --- Coop Tests ---
+echo ""
+echo "=== Building Coop Tests ==="
+g++ -std=c++17 -O2 -I../src $(pkg-config --cflags sdl2) -o test_coop test_coop.cpp ../src/coop.cpp $(pkg-config --libs sdl2)
+
+echo ""
+echo "=== Running Coop Tests ==="
+./test_coop
+
 echo ""
 echo "=== Running Balancing Tests ==="
 ./test_balancing
@@ -195,4 +204,4 @@ echo "=== Running Achievement Tests ==="
 ./test_achievements
 
 # Cleanup
-rm -f test_wave_config test_modifier test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_ghost test_wave_editor test_map_validator test_replay_recorder test_balancing test_perf_profiler test_achievements
+rm -f test_wave_config test_modifier test_game test_game_state test_spatial_hash test_audio test_savegame test_music test_integration test_overclock test_echo test_bot_ai test_ghost test_wave_editor test_map_validator test_replay_recorder test_balancing test_coop test_perf_profiler test_achievements
