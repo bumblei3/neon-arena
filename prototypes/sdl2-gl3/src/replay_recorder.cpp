@@ -110,7 +110,10 @@ bool ReplayRecorder::loadFromFile(const char* filename) {
     }
     
     eventCount = header.eventCount < MAX_EVENTS ? header.eventCount : MAX_EVENTS;
-    fread(events, sizeof(InputEvent), eventCount, f);
+    if (fread(events, sizeof(InputEvent), eventCount, f) != (size_t)eventCount) {
+        fclose(f);
+        return false;
+    }
     
     fclose(f);
     return true;
