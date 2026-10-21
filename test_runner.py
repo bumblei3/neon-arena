@@ -28,7 +28,7 @@ from typing import List, Optional
 # --- Configuration ---
 TESTS_DIR = Path(__file__).parent / "tests"
 HELPERS_DIR = TESTS_DIR / "helpers"
-DEFAULT_TIMEOUT = 300  # seconds (must exceed run_suite.sh internal timeout + kill grace)
+DEFAULT_TIMEOUT = None  # resolved per-test from run_suite.sh (+15s kill grace)
 MAX_PARALLEL = 8
 
 # --- Data Classes ---
@@ -110,9 +110,16 @@ def get_test_script(num: int) -> Optional[Path]:
             return script
     return None
 
-# --- Bash Bridge (for tests without dedicated scripts) ---
-def run_bash_test(num: int, timeout: int = DEFAULT_TIMEOUT) -> TestResult:
-    """Run a test via run_suite.sh --test N (for tests without dedicated scripts)."""
+def test_timeout(num):
+    suite = (TESTS_DIR.parent / "tests" / "run_suite.sh").read_text()
+    m = re.search(r"\b" + str(num) + r"\)\s+.*?run_test\s+\d+\s+\"[^\"]*\"\s+(\d+)", suite, re.S)
+    base = int(m.group(1)) if m else 90
+    return base + 15
+
+
+def run_bash_test(num, timeout=None):
+    if timeout is None:
+        timeout = test_timeout(num)
     start = time.time()
     script = TESTS_DIR / "run_suite.sh"
     
@@ -151,8 +158,9 @@ def run_bash_test(num: int, timeout: int = DEFAULT_TIMEOUT) -> TestResult:
                          error=str(e))
 
 # --- Test Execution ---
-def run_single_test(num: int, name: str, script: Optional[Path], timeout: int = DEFAULT_TIMEOUT) -> TestResult:
-    """Run a single test. Uses dedicated script if available, else falls back to run_suite.sh."""
+def run_single_test(num, name, script, timeout=None):
+    if timeout is None:
+        timeout = test_timeout(num)
     if script and script.exists():
         start = time.time()
         try:
@@ -185,8 +193,7 @@ def run_single_test(num: int, name: str, script: Optional[Path], timeout: int = 
         return run_bash_test(num, timeout)
 
 # --- Parallel Runner ---
-def run_tests_parallel(tests: List[tuple[int, str, Optional[Path]]], max_workers: int = 4,
-                       retry: int = 0, timeout: int = DEFAULT_TIMEOUT) -> TestSuite:
+def run_tests_parallel(tests, max_workers=4, retry=0, timeout=None):
     """Run tests in parallel with retry support."""
     suite = TestSuite()
     
@@ -258,7 +265,7 @@ def main():
     parser.add_argument("--json", action="store_true", help="Output JSON for CI")
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     parser.add_argument("--quick", action="store_true", help="Run smoke tests only")
-    parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT, help="Test timeout in seconds")
+    parser.add_argument("--timeout", type=int, default=None, help="Override timeout for all tests (seconds)")
     
     args = parser.parse_args()
     
