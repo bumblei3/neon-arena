@@ -39,6 +39,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Cache apt packages
+        uses: actions/cache@v6
+        with:
+          path: /var/cache/apt/archives
+          key: apt-${{ runner.os }}-${{ hashFiles('.github/workflows/engine-quake3e.yml') }}
+          restore-keys: apt-${{ runner.os }}-
+
       - name: Install build dependencies (Linux)
         if: matrix.platform == 'linux'
         run: |
