@@ -29,13 +29,19 @@ mit Bloom, HDR und Vulkan-Unterstützung. Dieses Dokument beschreibt die Integra
 
 Jedes `v*` Tag triggert:
 - QVM-Build + PK3-Packaging
-- Test-Suite (116 Tests)
-- GitHub Release mit `neonarena.pk3` + `neonarena-qvm.pk3`
+- Test-Suite (119 Tests)
+- GitHub Release mit `neonarena.pk3` und `neonarena-qvm.pk3`
 
-### Engine-Release (optional)
+### Engine und Installer (CI-Artefakte)
 
-Engine-Builds werden bei jedem Push auf `main` erstellt und als
-CI-Artifacts veröffentlicht. Bei Tags werden sie dem Release angehängt.
+`engine-quake3e` baut bei Push auf `main` die Archive
+`neonarena-engine-linux64.tar.gz`, `neonarena-engine-win64.zip` und
+`neonarena-engine-macos-universal.tar.gz`. Sie liegen 30 Tage als CI-Artefakte.
+Ein Tag startet diesen Workflow nicht, der Schritt „Release engine (tags only)“
+läuft deshalb nie. `build-installer` und `build-setup-exe` legen
+`NeonArena-<version>-portable.zip` bzw. `NeonArena-<version>-Setup.exe` nur als
+CI-Artefakte ab. v0.91 enthält nur die beiden Mod-pk3s. v0.90 enthält
+`NeonArena-0.90-Setup.exe` als manuellen Upload.
 
 ## Installation
 
@@ -154,14 +160,13 @@ Bei Unterbelichtung: `r_bloom_intensity` erhöhen oder `r_bloom_threshold` senke
 
 - Trigger: Push auf `main`, manuell
 - Matrix: Linux, Windows (Cross), macOS
-- Artifacts: Engine-Pakete pro Plattform
-- Release: Anhängen an Tag-Release
+- Artefakte: Engine-Archive pro Plattform, 30 Tage. Kein Anhang am GitHub-Release.
 
 ### build-mod.yml
 
 - Trigger: Push, Tag, PR, manuell
 - Build: QVMs + PK3s
-- Tests: 116 Tests
+- Tests: 119 Tests
 - Release: `neonarena.pk3` + `neonarena-qvm.pk3`
 
 ## Troubleshooting

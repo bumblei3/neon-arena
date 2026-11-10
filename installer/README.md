@@ -15,8 +15,10 @@
    installer/engine/renderer_opengl2.dll
    ```
 3. `installer/neonarena.iss` mit Inno Setup kompilieren
-   (`iscc /DMyAppVersion=0.90 neonarena.iss` — Default ist GAMEVERSION 0.90)
-4. Fertig: `installer/NeonArena-0.90-Setup.exe`
+   (`iscc neonarena.iss` — Default ist 0.91, passend zu `GAMEVERSION`)
+4. Fertig: `installer/NeonArena-0.91-Setup.exe`
+
+Das veröffentlichte Release v0.91 enthält weder diese Setup.exe noch `NeonArena-0.91-portable.zip`. Beides bleibt ein CI-Artefakt. An v0.90 hängt nur `NeonArena-0.90-Setup.exe`, als manueller Upload. Ein Windows-Klicktest ist offen.
 
 ## Manuelle Installation (ohne Installer)
 

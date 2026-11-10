@@ -322,7 +322,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Modifier system (15 modifiers, 2 slots with synergy)
 
-[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.90...HEAD
+[Unreleased]: https://github.com/bumblei3/neon-arena/compare/v0.91...HEAD
+[0.91]: https://github.com/bumblei3/neon-arena/compare/v0.90...v0.91
 [0.90]: https://github.com/bumblei3/neon-arena/compare/v0.82...v0.90
 [0.82]: https://github.com/bumblei3/neon-arena/compare/v0.81...v0.82
 [0.81]: https://github.com/bumblei3/neon-arena/compare/v0.80...v0.81

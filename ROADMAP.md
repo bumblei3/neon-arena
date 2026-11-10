@@ -1,9 +1,9 @@
 # NeonArena Roadmap
 
-> Letztes Update: 2026-10-21
-> Stand: v0.91 (unreleased) Startmenü, Daily-Pool 14, Map-Look, Arena-Identität, Pad-Binds, Tests 111–121; Test-Infrastruktur gehärtet (per-Test-Timeouts, Kill-Grace 2s, Env-Fix)
+> Letztes Update: 2026-11-10
+> Stand: **v0.91** veröffentlicht (2026-10-13): Startmenü, Daily-Pool 14, Map-Look, Arena-Identität, Pad-Binds, Tests 111–121. Am Release hängen `neonarena.pk3` und `neonarena-qvm.pk3`. Portable-Zip, Engine-Archive und Setup.exe bleiben CI-Artefakte.
 > Produkt ist der OpenArena-Mod (`fs_game neonarena`). `prototypes/sdl2-gl3` ist eine Skizze.
-> Letztes GitHub-Release: **v0.90** (v0.91 in Vorbereitung).
+> Letztes GitHub-Release: **v0.91**. Nächster Spielschritt: eine Infiltrator-Runde bis zum Detector in Welle 8, danach genau eine Balance-Zahl.
 
 ---
 
@@ -98,7 +98,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 ### M15: v0.91 — Start-Menu & Arena-Identität Release 🎯
 > *Ziel: Unreleased-Block als Release schützen — Startmenü, Daily-Pool, Map-Look, Module-Split*
-> **Status:** Code fertig, CI grün — Release-Tag ausstehend
+> **Status:** Veröffentlicht am 2026-10-13. Offen: Portable-Zip, Engine-Archive und Setup.exe am Release. Windows-Klicktest weiter offen.
 
 **Inhalt (aus CHANGELOG [0.91]):**
 - ✅ Startmenü (q3_ui): PLAY / DAILY / GHOST / ARENA; Launcher ohne Flags öffnet Menü
@@ -111,7 +111,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 - ✅ Tests 111–121 (Loadout-Energie, Startmenü, Map-Look, Arena-Identity, Humans-only, Drone-Cap, no-CHAIN)
 
 **Aufwand:** ~1 Tag (Release-Vorbereitung + Verifikation)
-**Priorität:** Hoch (fast fertig — nur Tag + Release-Notes offen)
+**Priorität:** Hoch (Release draußen — Portable-Zip, Engine-Archive und Setup.exe fehlen am Release)
 **When:** Okt 2026
 
 **Definition of Done:**
@@ -121,7 +121,8 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 - [x] CHANGELOG.md aktualisiert (0.91)
 - [x] GAMEVERSION 0.91 in beiden Repos
 - [x] Installer-Version 0.91
-- [ ] GitHub Release v0.91 mit Engine-Artifacts
+- [x] GitHub Release v0.91 (2026-10-13) mit `neonarena.pk3` und `neonarena-qvm.pk3`
+- [ ] Portable-Zip (`NeonArena-0.91-portable.zip`), Engine-Archive und `NeonArena-0.91-Setup.exe` an v0.91. v0.90 hat nur `NeonArena-0.90-Setup.exe` (manueller Upload). Windows-Klicktest offen.
 
 ---
 
@@ -177,7 +178,7 @@ NeonArena als **moderner, spielbarer Wave-Survival-Shooter** mit Fokus auf:
 
 | Milestone | Priority | Impact | Risk | When |
 |-----------|----------|--------|------|------|
-| **M15 v0.91 Start-Menu & Arena-Identität** | ✅ Code fertig | Release | Low | Okt 2026 |
+| **M15 v0.91 Start-Menu & Arena-Identität** | ✅ Veröffentlicht | Release | Low | 2026-10-13 |
 | **M14 v0.90 Gamepad-Ready** | ✅ Fertig | Release | Low | Q4 2026 ✅ |
 | **M13 Engine-Controller (SDL2)** | ✅ Fertig | Gamepad | — | Q4 2026 ✅ |
 | **Ghost Playtest-Balance** | 🟡 Medium | Feel | Low | Q4 2026 |
@@ -200,7 +201,7 @@ Jedes Milestone ist fertig wenn:
 
 | Metric | Current | Next Target |
 |--------|---------|-------------|
-| Haupt-Mod Tests | 121 | 121 ✅ |
+| Haupt-Mod Tests | 119 | 119 ✅ |
 | Build Time | ~45s | <60s |
 | Bosse | 13 | 13 |
 | Bot-Typen (Trash) | Healer / Shielder / Elite | — |
@@ -218,9 +219,8 @@ Sep 2026  v0.71 Ghost-Kit G1–G11 ✅
           v0.81 Controller QVM ✅
           v0.82 Ghost Loadouts + Seasonal + Bosse 12–13 ✅
           v0.90 Gamepad-Ready Release ✅
-Okt 2026  v0.91 Start-Menu & Arena-Identität (Code fertig, Release-Tag)
-          Ghost Playtest-Balance, M13 Engine-SDL2
-Nov 2026  v0.91 Release + Ghost-Feinbalance
+Okt 2026  v0.91 veröffentlicht (nur pk3). Portable-Zip, Engine-Archive und Setup.exe nicht am Release.
+Nov 2026  Ghost-Feinbalance erst nach einer Infiltrator-Runde bis Detector Welle 8
 Jan 2027  M10 Netzwerk-Coop Start
 Mär 2027  Release v1.0 (Multiplayer-Ready) — Ziel
 ```

@@ -87,7 +87,7 @@ Starten mit: `scripts/start-quake3e.sh --arena <name>` (z.B. `--arena catacombs`
 - [Ghost-Reference](docs/GHOST_REFERENCE.md) — StarCraft Ghost-Kit (Loadouts, Cloak, EMP, Lockdown, Nuke, Detector)
 - [Ghost-Roadmap](docs/GHOST_ROADMAP.md) — Kit G1–G12; nächster Hebel ist Playtest-Balance
 - [Architektur](docs/ARCHITECTURE.md) — Code-Struktur, Modul-Grenzen, Build-System
-- [Test-Suite](tests/TESTS.md) — Headless-Suite (116 Tests: 1–118 inkl. 9b, ohne 85–87)
+- [Test-Suite](tests/TESTS.md) — Headless-Suite (119 Tests: 1–121 inkl. 9b, ohne 85–87)
 - [Engine-Integration](docs/ENGINE_INTEGRATION.md) — Quake3e, Renderer, Bloom, Installation
 
 ## Schnellstart (Spieler)
@@ -126,10 +126,10 @@ Die klassische OpenArena-Engine bleibt ausdrücklich voll unterstützt. Quake3e 
 ### Installation
 
 1. Engine-Binary besorgen:
-   - **CI-Artifact** aus dem Release oder dem neusten `main`-Lauf (Artifact `neonarena-engine`, `dist/neonarena-engine-linux64.tar.gz`), entpackt nach `~/quake3e-engine/`.
+   - **CI-Artefakt** vom letzten `main`-Lauf von `engine-quake3e` (`neonarena-engine-linux`, Datei `neonarena-engine-linux64.tar.gz`), entpackt nach `~/quake3e-engine/`. Das GitHub-Release v0.91 enthält dieses Archiv nicht.
    - **Selbst bauen:** `git clone --depth 1 https://github.com/ec-/quake3e && cd quake3e && make ARCH=x86_64` – das Binary landet in `build/release-linux-x86_64/`.
 2. OpenArena-Basisdateien bereitstellen:
-   - `baseoa/*.pk3` aus der OpenArena-Installation nach `~/quake3e-engine/baseq3/` kopieren **oder** das Engine-Patch verwenden: `patches/engine-quake3e-oa.patch` setzt das hardcoded `BASEGAME` von `"baseq3"` auf `"baseoa"` (im CI-Build automatisch angewendet), damit Quake3e OA-Content direkt aus `baseoa/` lädt.
+   - `baseoa/*.pk3` aus der OpenArena-Installation nach `~/quake3e-engine/baseq3/` kopieren **oder** im Engine-Quelltext `#define BASEGAME` auf `"baseoa"` setzen. Der CI-Build macht das in `code/qcommon/q_shared.h`. Eine Patch-Datei `engine-quake3e-oa.patch` gibt es nicht. Der Controller-Patch ist `patches/quake3e-controller.patch`.
 3. NeonArena-Mod installiert (siehe Build-Abschnitt): die PK3(s) liegen in `~/.openarena/neonarena/`.
 
 ### Start mit Bloom
@@ -204,9 +204,9 @@ Falls ein Element unter Bloom schlecht wirkt, liegt die Ursache meist in einem d
 
 ### CI: Engine-Build
 
-`.github/workflows/engine-quake3e.yml` baut bei jedem Push auf `main` (und optional manuell) die Quake3e-Engine mit dem OpenArena-Kompatibilitäts-Patch und veröffentlicht das Binary als Artifact `neonarena-engine`. Der Pfad wird automatisch mitgepflegt, sobald der Upstream-Quake3e-Build kompatibel bleibt.
+`.github/workflows/engine-quake3e.yml` baut bei jedem Push auf `main` (und optional manuell) die Quake3e-Engine. `BASEGAME` wird dabei auf `"baseoa"` gesetzt, `patches/quake3e-controller.patch` wird angewendet. Die Archive liegen 30 Tage als CI-Artefakte und hängen nicht am GitHub-Release.
 
-Der Patch `patches/engine-quake3e-oa.patch` ist **kein Mod-Patch** – er wird nur beim Engine-Build angewendet (nicht beim Mod-Bau `build-mod.sh`).
+Das ist kein Mod-Patch und gilt nicht für `build-mod.sh`.
 
 ### FAQ
 
@@ -256,8 +256,8 @@ Siehe [Architektur](docs/ARCHITECTURE.md) für Details.
 
 Ein Tag `v*` triggert automatisch:
 1. Build der QVMs und PK3-Dateien
-2. Vollständige Test-Suite (116 Tests)
-3. Erstellung eines GitHub Releases mit `neonarena.pk3` und `neonarena-qvm.pk3`
+2. Vollständige Test-Suite (119 Tests)
+3. GitHub Release mit `neonarena.pk3` und `neonarena-qvm.pk3`. Portable-Zip, Engine-Archive und Setup.exe bleiben CI-Artefakte.
 
 GAMEVERSION in `code/game/g_local.h` muss mit dem Tag übereinstimmen.
 
@@ -277,4 +277,4 @@ Jede Rückmeldung hilft, NeonArena besser zu machen. Egal ob Bug-Bericht, Balanc
 
 ---
 
-**Version:** v0.91 | **Letzte Aktualisierung:** 2026-10-21
+**Version:** v0.91 | **Letzte Aktualisierung:** 2026-11-10

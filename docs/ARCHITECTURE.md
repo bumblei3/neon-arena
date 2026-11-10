@@ -158,8 +158,8 @@ cd neon-arena
 
 ### Test-Suite
 
-- 116 Tests (`ALL_TESTS` in `tests/run_suite.sh`: 1–118 inkl. 9b, ohne 85–87)
-- Verteilung auf 7 parallele Chunks (0–6)
+- 119 Tests (`ALL_TESTS` in `tests/run_suite.sh`: 1–121 inkl. 9b, ohne 85–87)
+- Verteilung auf 8 parallele Chunks (0–7)
 - Headless via `ioq3ded` + `xvfb-run`
 - Assertions prüfen Log-Marker + Anti-Patterns
 
@@ -167,8 +167,8 @@ cd neon-arena
 
 - Tag `v*` triggert automatisch
 - GAMEVERSION muss mit Tag übereinstimmen
-- Erstellt `neonarena.pk3` + `neonarena-qvm.pk3`
-- Veröffentlicht als GitHub Release
+- Erstellt `neonarena.pk3` + `neonarena-qvm.pk3` und veröffentlicht sie als GitHub Release
+- Portable-Zip, Engine-Archive und Setup.exe bleiben CI-Artefakte und hängen nicht am Tag-Release
 
 ## Performance
 

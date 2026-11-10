@@ -205,7 +205,7 @@ Voraussetzung: QVMs in `~/.openarena/neonarena/vm/` (aus `build-mod.sh` oder CI-
 ## CI
 
 `.github/workflows/build-mod.yml`:
-- Push auf `main`, Tag `v*` und `workflow_dispatch` → Build + **volle Suite** (7 parallele Chunks).
+- Push auf `main`, Tag `v*` und `workflow_dispatch` → Build + **volle Suite** (8 parallele Chunks, 0–7).
 - `verify_catalog.py` als Pre-Flight vor der Suite.
 - Bei Tag-Push: GAMEVERSION-Gate (`NeonArena-<tag>` muss mit `g_local.h` übereinstimmen).
 - Tag-Release: GitHub-Release mit `neonarena.pk3` + `neonarena-qvm.pk3`.
@@ -262,7 +262,8 @@ git push origin v0.82
 Der Tag-Push triggert:
 - Build-Mod-Job mit FULL-Suite (alle Tests in `ALL_TESTS`).
 - GAMEVERSION-Gate: Tag `v0.82` vs `g_local.h` → muss passen.
-- GitHub-Release mit `dist/neonarena.pk3` + `dist/neonarena-qvm.pk3`.
+- GitHub-Release mit `neonarena.pk3` und `neonarena-qvm.pk3`.
+- Portable-Zip, Engine-Archive und Setup.exe hängen nicht am Release. `engine-quake3e` startet nicht bei Tags. `build-installer` und `build-setup-exe` laden nur CI-Artefakte hoch.
 - **Nicht** vergessen: Submodul-Repo (bumblei3/oa-gamecode) muss den Commit mit GAMEVERSION-Update bereits enthalten — der Parent-Tag triggert nur den Mod-Build aus dem gepinnten Submodul-Stand.
 
 ### Vor dem Tag
@@ -281,7 +282,7 @@ Der Tag-Push triggert:
 ## Sonstiges
 
 - Der SDL2/OpenGL-Prototyp (`main.cpp`) ist eingefroren und nicht der Entwicklungspfad.
-- Engine-Patch `patches/engine-quake3e-oa.patch` ist kein Mod-Patch — nur beim
-  Quake3e-Engine-Build relevant.
+- `patches/quake3e-controller.patch` und die `BASEGAME`-Zeile gelten nur für den
+  Quake3e-Engine-Build, nicht für den Mod. Eine Datei `engine-quake3e-oa.patch` gibt es nicht.
 - Patches in `patches/` (0*.patch, 1*.patch, 2*.patch, g_neonwave.c) sind historisch
   und **nicht anzuwenden** bei aktuellen Submodul-Checkouts.

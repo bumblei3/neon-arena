@@ -1,7 +1,7 @@
 # Ghost Loadout Balance-Analyse
 
 > Erstellt: 2026-09-08
-> Stand: v0.90 Loadouts v1.2 (Infiltrator / Saboteur / Spectre)
+> Stand: Loadouts v1.2 (Infiltrator / Saboteur / Spectre), Zahlen unverändert in v0.91. Checkliste offen.
 
 ---
 
@@ -36,7 +36,7 @@
 
 ---
 
-## Empfohlene Fein-Balancing (v0.90)
+## Fein-Balancing (in v0.90 umgesetzt, in v0.91 unverändert)
 
 ### Infiltrator
 - Aktuell: Solide, ausgewogen
@@ -65,7 +65,7 @@
 
 ---
 
-## Playtest-Checkliste für v0.90
+## Playtest-Checkliste (offen seit v0.90, Stand v0.91)
 
 - [ ] Saboteur EMP+Lockdown-Kombo in Welle 1 zu stark?
 - [ ] Spectre Nuke-DPS vs Boss zu hoch?
